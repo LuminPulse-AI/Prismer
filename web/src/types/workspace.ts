@@ -212,6 +212,13 @@ export interface AsyncOperation {
 // Component Availability
 // ============================================================
 
-export type DisabledComponentType = 'three-viewer' | 'pdf-reader';
+export type DisabledComponentType = 'pdf-reader' | 'code-playground' | 'bento-gallery' | 'three-viewer' | 'ag-grid' | 'jupyter-notebook';
 export type ActiveComponentType = Exclude<ComponentType, DisabledComponentType>;
-export const DISABLED_COMPONENTS: Set<ComponentType> = new Set<ComponentType>(['three-viewer', 'pdf-reader']);
+export const DISABLED_COMPONENTS: Set<ComponentType> = new Set<ComponentType>([
+  'pdf-reader',
+  'code-playground',
+  'bento-gallery',
+  'three-viewer',
+  'ag-grid',
+  'jupyter-notebook',
+]);
