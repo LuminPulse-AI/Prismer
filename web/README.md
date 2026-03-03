@@ -64,8 +64,8 @@ Each workspace is backed by an **OpenClaw AI Agent** running in a Docker contain
 | State | Zustand 5 (workspace-isolated stores with localStorage persistence) |
 | Styling | Tailwind CSS 4 + shadcn/ui (Radix primitives, new-york style) |
 | ORM | Prisma 6 (SQLite dev / MySQL prod) |
-| Auth | NextAuth v5 (JWT strategy — Google, GitHub, email) |
-| Desktop/Mobile | Tauri 2 (Rust backend, iOS 13+, Android SDK 24+) |
+| Auth | Local single-user mode in OSS routes (`dev-user` fallback; auth hardening is planned) |
+| Desktop/Mobile | Web workspace focus in this repo snapshot |
 | Validation | Zod 4 |
 | Agent | OpenClaw (containerized, 26 tools via prismer-workspace plugin v0.5.0) |
 
@@ -102,7 +102,6 @@ Each workspace is backed by an **OpenClaw AI Agent** running in a Docker contain
 │  ├──────────────────────────────────────────────────────────────┤  │
 │  │  OpenClaw Agent                                               │  │
 │  │  ├── prismer-workspace plugin (26 tools)                      │  │
-│  │  ├── prismer-im plugin (IM bridge)                            │  │
 │  │  └── Skills (find-skills, templates)                          │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
@@ -137,19 +136,11 @@ docker/
 ├── base/                 # Base image: Ubuntu 24.04 + TeXLive + Python + Jupyter + Node 22
 ├── Dockerfile.openclaw   # Agent layer: OpenClaw + plugins + gateway
 ├── plugin/
-│   ├── prismer-workspace/ # 26-tool workspace plugin (v0.5.0)
-│   └── prismer-im/       # IM channel plugin (v0.2.0)
+│   └── prismer-workspace/ # 26-tool workspace plugin (v0.5.0)
 ├── gateway/              # container-gateway.mjs (v1.1.0)
 ├── scripts/prismer-tools/ # Python CLI tools (4 commands)
 ├── config/               # OpenClaw + skill configs
 └── templates/            # Agent templates (academic-researcher, data-scientist, etc.)
-tests/
-├── unit/                 # Vitest (jsdom)
-├── layer1/               # Playwright: container + API (real agent)
-├── layer2/               # Playwright: mock frontend rendering
-├── layer3/               # Playwright: full E2E
-├── fixtures/             # Mock directives, agent responses
-└── helpers/              # Setup, API client, trace collector
 docs/
 ├── ARCH.md               # Full engineering architecture
 ├── ROADMAP.md            # Phased delivery plan
@@ -187,7 +178,7 @@ npm run db:push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Root `/` redirects to `/discovery`.
+Open [http://localhost:3000](http://localhost:3000). Root `/` redirects to `/workspace`.
 
 ### Environment Variables
 
@@ -237,8 +228,7 @@ npm run test:e2e               # All Playwright tests
 npm run test:report            # Open HTML report
 
 # Desktop (Tauri)
-npm run tauri:dev              # Desktop dev
-npm run tauri:ios:sim          # iOS simulator
+# (Not included in this repo snapshot)
 ```
 
 ---
@@ -250,7 +240,7 @@ npm run tauri:ios:sim          # iOS simulator
 ```
 Frontend → Bridge API (/api/v2/im/bridge/:wsId) → Container Gateway (:3000) → OpenClaw Agent
                                                                                      ↓
-Frontend ← Directive SSE (/api/agents/:id/directive/stream) ← Plugin emits directives
+Frontend ← Directive SSE (/api/agents/:id/directive/stream) ← Bridge/runtime emits directives
 ```
 
 1. User sends message via **Chat Panel**
@@ -267,7 +257,7 @@ Frontend ← Directive SSE (/api/agents/:id/directive/stream) ← Plugin emits d
 | Base Image | v5.0 | Ubuntu 24.04 + TeXLive + Python/uv + R + Coq + Lean4 + Jupyter + Node 22 |
 | Container Image | v5.0-openclaw | Base + OpenClaw runtime + plugins + gateway |
 | prismer-workspace | 0.5.0 | 26 workspace tools (SSoT: `docker/plugin/prismer-workspace/version.ts`) |
-| prismer-im | 0.2.0 | IM channel plugin (SSoT: `docker/plugin/prismer-im/version.ts`) |
+| IM bridge path | current | `/api/v2/im/bridge/*` + `imService` persist/relay in web backend |
 | container-gateway | 1.1.0 | Unified reverse proxy (SSoT: `docker/gateway/version.mjs`) |
 | prismer-tools | 0.1.0 | 4 Python CLI tools (SSoT: `docker/scripts/prismer-tools/version.py`) |
 
@@ -285,13 +275,13 @@ See `docs/OPENSOURCE_ARCHITECTURE.md` for the full open-source design.
 
 ## Testing
 
-4-layer test infrastructure:
+Test commands exposed by `package.json`:
 
 | Layer | Type | Command | Description |
 |-------|------|---------|-------------|
 | Unit | Vitest (jsdom) | `npm run test:unit` | Store logic, directive mapping, API handlers |
 | L1 | Playwright | `npm run test:layer1` | Container protocol, bridge, directive delivery |
-| L2 | Playwright | `npm run test:layer2` | Mock frontend rendering (directives injected via `window.__executeDirective`) |
+| L2 | Playwright | `npm run test:layer2` | Mock frontend rendering (directive-driven flows) |
 | L3 | Playwright | `npm run test:layer3` | Full E2E: real agent → real rendering |
 
 **Always run Playwright with `--trace on`** for Trace Viewer files:

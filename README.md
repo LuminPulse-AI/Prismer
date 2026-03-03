@@ -75,6 +75,14 @@
 
 Prismer.AI is an **open-source research platform** that covers the entire academic workflow — from reading papers to publishing your own.
 
+### Current OSS Scope (This Repository)
+
+This repository currently centers on:
+
+- `web/`: Next.js research workspace (chat panel + multi-editor WindowViewer)
+- `docker/`: OpenClaw-based container stack and gateway integration
+- `docs/`: Architecture, runbook, contribution and roadmap documentation
+
 Unlike tools that only handle writing (Overleaf) or note-taking (Notion), Prismer.AI integrates:
 
 | Feature | Description |
@@ -133,7 +141,7 @@ LLMs fabricate citations. Prismer.AI solves this with a **Reviewer Agent** that 
 
 ## 📦 Open Source Components
 
-All core components are MIT-licensed and can be used independently:
+Component extraction is in progress. The `@prismer/*` entries below represent target packages being extracted from the monorepo:
 
 | Package | Version | Language | Description |
 |---------|---------|----------|-------------|
@@ -212,8 +220,6 @@ If you find Prismer.AI helpful, please consider giving us a star! It helps us gr
     <img src="docs/star.gif" alt="Please Star Us" width="600" />
   </a>
 </p>
-
-### Star History
 
 ## Star History
 
