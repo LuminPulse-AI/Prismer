@@ -158,19 +158,29 @@ Component extraction is in progress. The `@prismer/*` entries below represent ta
 
 ## 🛠️ Self-Hosting
 
-Deploy OpenPrismer with a single command:
+### Quick Start
 
 ```bash
-docker run -d \
-  --name openprismer \
-  -p 3000:3000 \
-  -v openprismer-data:/workspace \
-  ghcr.io/prismer-ai/openprismer:latest
+# 1. Clone & configure
+git clone https://github.com/Prismer-AI/Prismer.git
+cd Prismer
+cp .env.example .env
+# Edit .env — set OPENAI_API_KEY (any OpenAI-compatible API)
+
+# 2. Start (Web + Agent containers)
+cd docker
+docker compose -f docker-compose.openclaw.yml up --build -d
 ```
 
-Then open **http://localhost:3000** and configure your AI provider.
+Then open **http://localhost:3000**.
 
-See [docker/README.md](docker/README.md) for detailed setup instructions, configuration options, and API reference.
+| Service | URL | Description |
+|---------|-----|-------------|
+| Web UI | http://localhost:3000 | Next.js frontend |
+| Agent Gateway | http://localhost:16888 | Container gateway (LaTeX, Jupyter, OpenClaw) |
+| Health Check | http://localhost:16888/api/v1/health | Aggregated service health |
+
+See [docker/README.md](docker/README.md) for detailed setup, configuration options, and API reference.
 
 ---
 

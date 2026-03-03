@@ -26,6 +26,12 @@ FROM ${BASE_IMAGE}
 # ─── 安装 OpenClaw + 配置 (root) ──────────────────────────────
 USER root
 
+# 创建 user 用户
+RUN groupadd -r user && useradd -r -g user -m -s /bin/bash user
+
+# npm 阿里源
+RUN npm config set registry https://registry.npmmirror.com
+
 # Install OpenClaw globally
 RUN npm install -g openclaw@latest
 
@@ -33,7 +39,7 @@ RUN npm install -g openclaw@latest
 COPY plugin/prismer-im /opt/prismer/plugins/prismer-im
 COPY plugin/prismer-workspace /opt/prismer/plugins/prismer-workspace
 
-# Install runtime deps required by plugins (for example @prismer/sdk in prismer-im)
+# Install runtime deps required by plugins
 RUN cd /opt/prismer/plugins/prismer-im && npm install --omit=dev
 
 # ─── 复制配置、模板、技能 ────────────────────────────────────────
@@ -41,7 +47,14 @@ COPY config/openclaw.json /opt/prismer/config/openclaw.json
 COPY config/workspace/skills/ /opt/prismer/config/skills/
 COPY templates/ /opt/prismer/templates/
 COPY scripts/bootstrap-workspace.sh /opt/prismer/scripts/bootstrap-workspace.sh
-RUN chmod +x /opt/prismer/scripts/bootstrap-workspace.sh
+COPY scripts/latex-server.py /home/user/.local/bin/latex-server.py
+COPY scripts/prover-server.py /home/user/.local/bin/prover-server.py
+COPY scripts/arxiv-server.py /home/user/.local/bin/arxiv-server.py
+COPY scripts/prismer-tools/ /home/user/.local/bin/prismer-tools/
+RUN chmod +x /opt/prismer/scripts/bootstrap-workspace.sh \
+    /home/user/.local/bin/latex-server.py \
+    /home/user/.local/bin/prover-server.py \
+    /home/user/.local/bin/arxiv-server.py
 
 # ─── 复制容器网关 ──────────────────────────────────────────────
 COPY gateway/ /app/gateway/

@@ -23,12 +23,15 @@ services:
       context: .
       dockerfile: Dockerfile.openclaw
       args:
-        BASE_IMAGE: prismer-academic:v5.0
+        BASE_IMAGE: ghcr.io/prismer-ai/prismer-academic:v5.0-lite
     image: prismer-academic:v5.0-openclaw
     container_name: prismer-agent
 
+    env_file:
+      - ../.env
+
     ports:
-      - "16888:3000"  # Container Gateway (fixed port for k8s alignment)
+      - "16888:3000"  # Container Gateway
 
     environment:
       # Prismer IM — point to host mock-im-server

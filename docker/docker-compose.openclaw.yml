@@ -2,10 +2,10 @@
 # Prismer Academic + OpenClaw (v5.0)
 # ============================================================
 #
-# 构建:
+# Build:
 #   docker compose -f docker-compose.openclaw.yml build
 #
-# 运行:
+# Run:
 #   docker compose -f docker-compose.openclaw.yml up
 #
 # All services via unified gateway on :16888:
@@ -18,12 +18,40 @@
 #
 
 services:
+  prismer-web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    image: prismer-web:latest
+    container_name: prismer-web
+
+    env_file:
+      - ../.env
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      CONTAINER_GATEWAY_URL: http://prismer-agent:3000
+      AGENT_GATEWAY_URL: http://prismer-agent:3000
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-prismer-dev-token}
+      AUTH_TRUST_HOST: "true"
+      AUTH_DEV_MODE: "true"
+
+    volumes:
+      - prismer-data:/app/prisma
+
+    depends_on:
+      - prismer-agent
+
+    restart: unless-stopped
+
   prismer-agent:
     build:
       context: .
       dockerfile: Dockerfile.openclaw
       args:
-        BASE_IMAGE: prismer-academic:v5.0
+        BASE_IMAGE: ghcr.io/prismer-ai/prismer-academic:v5.0-lite
     image: prismer-academic:v5.0-openclaw
     container_name: prismer-agent
 
@@ -31,21 +59,18 @@ services:
       - ../.env
 
     ports:
-      - "16888:3000"  # Unified Container Gateway (fixed port for k8s alignment)
+      - "16888:3000"  # Unified Container Gateway
 
     environment:
-      # Prismer IM 配置
-      PRISMER_IM_SERVER_URL: ${PRISMER_IM_SERVER_URL:-http://host.docker.internal:3456}
+      # Prismer IM
+      PRISMER_IM_SERVER_URL: ${PRISMER_IM_SERVER_URL:-http://prismer-web:3456}
       PRISMER_CONVERSATION_ID: ${PRISMER_CONVERSATION_ID:-test-conversation}
       PRISMER_AGENT_TOKEN: ${PRISMER_AGENT_TOKEN:-dev-token}
-      PRISMER_API_BASE_URL: ${PRISMER_API_BASE_URL:-http://host.docker.internal:3000}
+      PRISMER_API_BASE_URL: ${PRISMER_API_BASE_URL:-http://prismer-web:3000}
       PRISMER_AGENT_ID: ${PRISMER_AGENT_ID:-default}
 
-      # Model API Key
+      # Model API Key (loaded from env_file, do not override here)
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required in .env}
-      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL:-http://34.60.178.0:3000/v1}
-      AGENT_DEFAULT_MODEL: ${AGENT_DEFAULT_MODEL:-us-kimi-k2.5}
 
       # OpenClaw Gateway Token
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-prismer-dev-token}
@@ -59,4 +84,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  prismer-data:
   prismer-workspace:

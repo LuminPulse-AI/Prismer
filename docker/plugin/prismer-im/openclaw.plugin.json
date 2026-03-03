@@ -1,0 +1,29 @@
+{
+  "id": "prismer-im",
+  "name": "Prismer IM",
+  "version": "0.2.0",
+  "description": "Connect to Prismer.AI Workspace via IM Server",
+  "channels": ["prismer-im"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "accounts": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "imServerUrl": { "type": "string" },
+            "conversationId": { "type": "string" },
+            "agentToken": { "type": "string" },
+            "capabilities": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["imServerUrl", "conversationId", "agentToken"]
+        }
+      }
+    }
+  }
+}

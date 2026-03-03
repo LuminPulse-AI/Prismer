@@ -1,28 +1,72 @@
+# ============================================================
 # Prismer Local Mode — Lightweight single-container setup
-# Usage: docker compose -f docker/docker-compose.lite.yml up -d
+# ============================================================
+#
+# Usage:
+#   docker compose -f docker-compose.lite.yml up -d
+#
 
 services:
+  prismer-web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: prismer-web:latest
+    container_name: prismer-web
+
+    env_file:
+      - ../.env
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      CONTAINER_GATEWAY_URL: http://prismer-agent:3000
+      AGENT_GATEWAY_URL: http://prismer-agent:3000
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-prismer-dev-token}
+      AUTH_TRUST_HOST: "true"
+      AUTH_DEV_MODE: "true"
+
+    volumes:
+      - prismer-data:/app/prisma
+
+    depends_on:
+      - prismer-agent
+
+    restart: unless-stopped
+
   prismer-agent:
     build:
       context: .
       dockerfile: Dockerfile.openclaw
       args:
-        BASE_IMAGE: prismer-academic:v5.0-lite
+        BASE_IMAGE: ghcr.io/prismer-ai/prismer-academic:v5.0-lite
+    image: prismer-academic:v5.0-lite
+    container_name: prismer-agent
+
+    env_file:
+      - ../.env
+
     ports:
       - "${AGENT_PORT:-16888}:3000"
       - "${JUPYTER_PORT:-18888}:8888"
       - "${LATEX_PORT:-18080}:8080"
+
     environment:
-      - LOCAL_MODE=true
-      - STATIC_AGENT_ENABLED=true
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.openai.com/v1}
-      - AGENT_DEFAULT_MODEL=${AGENT_DEFAULT_MODEL:-gpt-4o}
-      - PRISMER_API_BASE_URL=http://host.docker.internal:3000
-      - PRISMER_AGENT_ID=${PRISMER_AGENT_ID:-local-agent-001}
+      LOCAL_MODE: "true"
+      STATIC_AGENT_ENABLED: "true"
+      PRISMER_API_BASE_URL: http://prismer-web:3000
+      PRISMER_AGENT_ID: ${PRISMER_AGENT_ID:-local-agent-001}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-prismer-dev-token}
+
     volumes:
       - prismer-workspace:/workspace
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     restart: unless-stopped
 
 volumes:
+  prismer-data:
   prismer-workspace:
