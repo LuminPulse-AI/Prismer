@@ -9,7 +9,7 @@ export { StreamingOutput, useStreamingOutput } from './StreamingOutput';
 export { VariableInspector } from './VariableInspector';
 export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 
-// Phase 5 新增组件
+// Phase 5 additional components
 export { DraggableCellList } from './DraggableCellList';
 export { PackageManager } from './PackageManager';
 export { SessionManager } from './SessionManager';

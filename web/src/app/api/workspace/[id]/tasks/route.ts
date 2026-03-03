@@ -1,8 +1,8 @@
 /**
  * Workspace Tasks API
  *
- * GET    /api/workspace/[id]/tasks          - 获取任务列表
- * POST   /api/workspace/[id]/tasks          - 创建新任务
+ * GET    /api/workspace/[id]/tasks          - Get task list
+ * POST   /api/workspace/[id]/tasks          - Create a new task
  */
 
 import { NextRequest, NextResponse } from 'next/server';

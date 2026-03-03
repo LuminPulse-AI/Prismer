@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * SkillCard - Skill 卡片组件
+ * SkillCard - Skill Card Component
  *
- * 视觉规范:
- * - 白色背景 + 圆角卡片
- * - 与 ChatPanel 消息卡片风格一致
- * - 支持移动端和桌面端
+ * Visual spec:
+ * - White background + rounded card
+ * - Consistent with ChatPanel message card style
+ * - Supports mobile and desktop
  */
 
 import { motion } from 'framer-motion';
@@ -54,7 +54,7 @@ export function SkillCard({
     }
   };
 
-  // 移动端卡片
+  // Mobile card
   if (isMobile) {
     return (
       <motion.button
@@ -95,7 +95,7 @@ export function SkillCard({
     );
   }
 
-  // 桌面端紧凑卡片 (已安装)
+  // Desktop compact card (installed)
   if (compact) {
     return (
       <motion.button
@@ -128,7 +128,7 @@ export function SkillCard({
     );
   }
 
-  // 桌面端完整卡片 (可安装)
+  // Desktop full card (installable)
   return (
     <motion.div
       whileHover={{ scale: 1.01 }}

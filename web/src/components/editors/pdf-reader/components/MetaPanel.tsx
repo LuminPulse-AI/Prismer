@@ -57,14 +57,14 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
         const pdf = await pdfjs.getDocument(file).promise;
         const metadata = await pdf.getMetadata();
         
-        // 获取文件信息
+        // Get file information
         const fileName = typeof file === 'string' ? file.split('/').pop() || 'Unknown' : 'Uploaded File';
         
-        // 格式化日期
+        // Format dates
         const formatDate = (dateStr?: string) => {
           if (!dateStr) return undefined;
           try {
-            // PDF日期格式通常是 D:YYYYMMDDHHmmSSOHH'mm'
+            // PDF date format is typically D:YYYYMMDDHHmmSSOHH'mm'
             if (dateStr.startsWith('D:')) {
               const year = dateStr.substring(2, 6);
               const month = dateStr.substring(6, 8);
@@ -82,7 +82,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           }
         };
 
-        // 获取文件大小（如果可能）
+        // Get file size (if possible)
         const getFileSize = () => {
           if (typeof file === 'string') {
             return 'Unknown';
@@ -110,7 +110,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           isLinearized: (pdf as unknown as { linearized?: boolean }).linearized || false,
           isEncrypted: (pdf as unknown as { encrypted?: boolean }).encrypted || false,
           permissions: {
-            printing: true, // 默认值，实际需要根据PDF权限设置
+            printing: true, // Default values; actual values should be based on PDF permissions
             modifying: true,
             copying: true,
             annotating: true,
@@ -131,12 +131,12 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
     }
   }, [file, numPages]);
 
-  // 复制文本到剪贴板
+  // Copy text to clipboard
   const copyToClipboard = async (text: string, fieldName: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedField(fieldName);
-      setTimeout(() => setCopiedField(null), 2000); // 2秒后重置状态
+      setTimeout(() => setCopiedField(null), 2000); // Reset state after 2 seconds
     } catch (err) {
       console.error('Failed to copy text:', err);
     }
@@ -254,7 +254,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
       </div>
 
       <div className="space-y-1">
-        {/* 基本信息 */}
+        {/* Basic information */}
         <MetaItem
           icon={<FileText className="w-4 h-4" />}
           label="Title"
@@ -281,7 +281,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           multiline
         />
 
-        {/* 创建信息 */}
+        {/* Creation information */}
         <MetaItem
           icon={<Code className="w-4 h-4" />}
           label="Creator"
@@ -294,7 +294,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           value={metadata.producer}
         />
 
-        {/* 日期信息 */}
+        {/* Date information */}
         <MetaItem
           icon={<Calendar className="w-4 h-4" />}
           label="Creation Date"
@@ -307,7 +307,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           value={metadata.modDate}
         />
 
-        {/* 文件信息 */}
+        {/* File information */}
         <MetaItem
           icon={<File className="w-4 h-4" />}
           label="File Name"
@@ -326,7 +326,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
           value={metadata.numPages?.toString()}
         />
 
-        {/* 文档属性 */}
+        {/* Document properties */}
         {metadata.isLinearized && (
           <div className="flex gap-3 p-3 rounded-lg hover:bg-gray-100/50 transition-colors duration-200">
             <div className="flex-shrink-0 w-5 h-5 text-green-500 mt-0.5">
@@ -352,7 +352,7 @@ export const MetaPanel: React.FC<MetaPanelProps> = ({ file, numPages }) => {
         )}
       </div>
 
-      {/* 底部说明 */}
+      {/* Footer description */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <p className="text-xs text-gray-500 text-center">
           Metadata extracted from PDF document properties

@@ -2,8 +2,8 @@
  * Session Persistence Types
  *
  * @description
- * Phase 3D: 会话持久化类型定义
- * 定义会话数据的存储和恢复接口
+ * Phase 3D: Session persistence type definitions
+ * Defines interfaces for storing and restoring session data
  */
 
 import type { SessionState, ClientInfo } from '../types';
@@ -13,76 +13,76 @@ import type { SessionState, ClientInfo } from '../types';
 // ============================================================
 
 /**
- * 会话持久化接口
+ * Session persistence interface
  */
 export interface SessionPersistence {
   /**
-   * 保存会话状态
+   * Save session state
    */
   saveSession(sessionId: string, state: SessionState): Promise<void>;
 
   /**
-   * 加载会话状态
+   * Load session state
    */
   loadSession(sessionId: string): Promise<SessionState | null>;
 
   /**
-   * 删除会话
+   * Delete session
    */
   deleteSession(sessionId: string): Promise<void>;
 
   /**
-   * 列出所有会话
+   * List all sessions
    */
   listSessions(options?: ListSessionsOptions): Promise<SessionSummary[]>;
 
   /**
-   * 保存消息
+   * Save a message
    */
   saveMessage(sessionId: string, message: SessionMessage): Promise<void>;
 
   /**
-   * 保存消息（批量）
+   * Save messages (batch)
    */
   saveMessages(sessionId: string, messages: SessionMessage[]): Promise<void>;
 
   /**
-   * 加载消息
+   * Load messages
    */
   loadMessages(sessionId: string, options?: LoadMessagesOptions): Promise<SessionMessage[]>;
 
   /**
-   * 保存任务
+   * Save a task
    */
   saveTask(sessionId: string, task: SessionTask): Promise<void>;
 
   /**
-   * 保存任务（批量）
+   * Save tasks (batch)
    */
   saveTasks(sessionId: string, tasks: SessionTask[]): Promise<void>;
 
   /**
-   * 加载任务
+   * Load tasks
    */
   loadTasks(sessionId: string): Promise<SessionTask[]>;
 
   /**
-   * 保存时间线事件
+   * Save a timeline event
    */
   saveTimelineEvent(sessionId: string, event: TimelineEvent): Promise<void>;
 
   /**
-   * 保存时间线事件（批量）
+   * Save timeline events (batch)
    */
   saveTimelineEvents(sessionId: string, events: TimelineEvent[]): Promise<void>;
 
   /**
-   * 加载时间线
+   * Load timeline
    */
   loadTimeline(sessionId: string, options?: LoadTimelineOptions): Promise<TimelineEvent[]>;
 
   /**
-   * 保存组件状态
+   * Save component state
    */
   saveComponentState(
     sessionId: string,
@@ -91,27 +91,27 @@ export interface SessionPersistence {
   ): Promise<void>;
 
   /**
-   * 加载组件状态
+   * Load component states
    */
   loadComponentStates(sessionId: string): Promise<Record<string, unknown>>;
 
   /**
-   * 保存状态快照
+   * Save state snapshot
    */
   saveSnapshot(sessionId: string, snapshot: StateSnapshot): Promise<void>;
 
   /**
-   * 加载快照
+   * Load snapshots
    */
   loadSnapshots(sessionId: string, limit?: number): Promise<StateSnapshot[]>;
 
   /**
-   * 健康检查
+   * Health check
    */
   healthCheck(): Promise<boolean>;
 
   /**
-   * 关闭连接
+   * Close connection
    */
   close(): Promise<void>;
 }
@@ -121,7 +121,7 @@ export interface SessionPersistence {
 // ============================================================
 
 /**
- * 会话消息
+ * Session message
  */
 export interface SessionMessage {
   id: string;
@@ -141,7 +141,7 @@ export interface SessionMessage {
 }
 
 /**
- * 会话任务
+ * Session task
  */
 export interface SessionTask {
   id: string;
@@ -159,7 +159,7 @@ export interface SessionTask {
 }
 
 /**
- * 时间线事件
+ * Timeline event
  */
 export interface TimelineEvent {
   id: string;
@@ -175,7 +175,7 @@ export interface TimelineEvent {
 }
 
 /**
- * 状态快照
+ * State snapshot
  */
 export interface StateSnapshot {
   id: string;
@@ -187,7 +187,7 @@ export interface StateSnapshot {
 }
 
 /**
- * 会话摘要
+ * Session summary
  */
 export interface SessionSummary {
   sessionId: string;
@@ -205,7 +205,7 @@ export interface SessionSummary {
 // ============================================================
 
 /**
- * 列出会话选项
+ * List sessions options
  */
 export interface ListSessionsOptions {
   workspaceId?: string;
@@ -217,7 +217,7 @@ export interface ListSessionsOptions {
 }
 
 /**
- * 加载消息选项
+ * Load messages options
  */
 export interface LoadMessagesOptions {
   limit?: number;
@@ -226,7 +226,7 @@ export interface LoadMessagesOptions {
 }
 
 /**
- * 加载时间线选项
+ * Load timeline options
  */
 export interface LoadTimelineOptions {
   limit?: number;
@@ -239,12 +239,12 @@ export interface LoadTimelineOptions {
 // ============================================================
 
 /**
- * 持久化类型
+ * Persistence type
  */
 export type PersistenceType = 'memory' | 'prisma';
 
 /**
- * 持久化配置
+ * Persistence configuration
  */
 export interface PersistenceConfig {
   type: PersistenceType;

@@ -24,7 +24,7 @@ export const SearchHighlight: React.FC<SearchHighlightProps> = ({
   pageWidth,
   pageHeight
 }) => {
-  // 过滤出当前页面的搜索结果
+  // Filter search results for the current page
   const currentPageResults = searchResults.filter(result => result.pageNumber === pageNumber);
   
   if (currentPageResults.length === 0) {
@@ -36,14 +36,14 @@ export const SearchHighlight: React.FC<SearchHighlightProps> = ({
       {currentPageResults.map((result, index) => {
         const isCurrentResult = searchResults.indexOf(result) === currentResultIndex;
         
-        // 将PDF坐标转换为页面坐标
-        // PDF.js的坐标系原点在左下角，需要转换为页面坐标系（原点在左上角）
-        // result.position 中的坐标是PDF的原始坐标（以PDF单位为基础）
-        // 需要应用缩放并转换坐标系
+        // Convert PDF coordinates to page coordinates
+        // PDF.js coordinate system origin is at the bottom-left, needs conversion to page coordinates (origin at top-left)
+        // result.position coordinates are PDF's original coordinates (based on PDF units)
+        // Need to apply scale and convert the coordinate system
         const x = result.position.x * scale;
         const y = (pageHeight - result.position.y - result.position.height) * scale;
-        const width = Math.max(result.position.width * scale, 10); // 最小宽度确保可见
-        const height = Math.max(result.position.height * scale, 15); // 最小高度确保可见
+        const width = Math.max(result.position.width * scale, 10); // Minimum width to ensure visibility
+        const height = Math.max(result.position.height * scale, 15); // Minimum height to ensure visibility
 
         return (
           <div
@@ -58,7 +58,7 @@ export const SearchHighlight: React.FC<SearchHighlightProps> = ({
               top: `${y}px`,
               width: `${width}px`,
               height: `${height}px`,
-              // 确保高亮显示在文本上方
+              // Ensure highlight displays above text
               zIndex: 10
             }}
             title={`Search result: ${result.textContent}`}

@@ -1,14 +1,14 @@
 /**
- * AssetBrowser — 共享资产浏览器
+ * AssetBrowser - Shared asset browser
  *
- * CommandPalette 风格的弹出式文件浏览器。
- * 用于无文件管理的组件 (Notes, AG Grid, Jupyter) 打开/导入工作区资产。
+ * A CommandPalette-style pop-up file browser.
+ * Used by components without file management (Notes, AG Grid, Jupyter) to open/import workspace assets.
  *
- * 功能：
- * - 搜索资产 (papers, notes)
- * - 分类筛选
- * - 选择回调
- * - Cmd+O 快捷键绑定（由调用方实现）
+ * Features:
+ * - Search assets (papers, notes)
+ * - Category filtering
+ * - Selection callback
+ * - Cmd+O keyboard shortcut binding (implemented by the caller)
  */
 
 'use client';
@@ -29,15 +29,15 @@ export interface AssetItem {
 }
 
 export interface AssetBrowserProps {
-  /** 是否打开 */
+  /** Whether the browser is open */
   isOpen: boolean;
-  /** 关闭回调 */
+  /** Close callback */
   onClose: () => void;
-  /** 选择资产回调 */
+  /** Asset selection callback */
   onSelect: (asset: AssetItem) => void;
-  /** 过滤资产类型 */
+  /** Filter by asset type */
   filterType?: 'paper' | 'note' | 'all';
-  /** 标题 */
+  /** Title */
   title?: string;
 }
 
@@ -131,7 +131,7 @@ export function AssetBrowser({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      {/* Modal — 与项目统一：白底、slate 边框与文字 */}
+      {/* Modal - Consistent with the project: white background, slate borders and text */}
       <div
         className="relative w-full max-w-lg bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden"
         onKeyDown={handleKeyDown}

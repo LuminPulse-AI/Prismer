@@ -1,8 +1,8 @@
 /**
  * VLA Enhanced Demo Data
- * 
- * 使用新的事件驱动架构的 VLA 研究 Demo
- * 每一步都等待组件真正完成操作后才推进
+ *
+ * VLA research demo using the new event-driven architecture.
+ * Each step waits for the component to truly complete its operation before advancing.
  */
 
 import type { ExtendedChatMessage, ExtendedTimelineEvent, Participant, Task } from '@/app/workspace/types';

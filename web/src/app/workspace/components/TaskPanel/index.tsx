@@ -2,11 +2,11 @@
 
 /**
  * TaskPanel
- * 
- * 任务面板 - 三态：collapsed / 30% / 80%
- * - collapsed: 只显示当前任务状态条
- * - 30%: 显示一级任务大纲
- * - 80%: 展示二级子任务详情
+ *
+ * Task Panel - Three states: collapsed / 30% / 80%
+ * - collapsed: Shows only the current task status bar
+ * - 30%: Shows top-level task outline
+ * - 80%: Shows second-level subtask details
  */
 
 import React, { memo, useMemo } from 'react';
@@ -34,7 +34,7 @@ interface TaskPanelProps {
   isCard?: boolean;
 }
 
-// 状态颜色配置
+// Status color configuration
 const statusConfig: Record<TaskStatus, { icon: React.ReactNode; bg: string; text: string; border: string }> = {
   completed: {
     icon: <CheckCircle2 className="w-4 h-4" />,
@@ -68,7 +68,7 @@ const heightValues: Record<TaskPanelHeight, string> = {
   '80%': '80%',
 };
 
-// 子任务组件
+// Subtask component
 const SubTaskItem = memo(function SubTaskItem({ subtask }: { subtask: SubTask }) {
   const config = statusConfig[subtask.status];
   
@@ -94,7 +94,7 @@ const SubTaskItem = memo(function SubTaskItem({ subtask }: { subtask: SubTask })
   );
 });
 
-// 任务卡片组件
+// Task card component
 const TaskCard = memo(function TaskCard({
   task,
   isActive,
@@ -274,7 +274,7 @@ export const TaskPanel = memo(function TaskPanel({
         </button>
       )}
 
-      {/* ===== 30% / 80% 状态：显示任务列表 ===== */}
+      {/* ===== 30% / 80% state: show task list ===== */}
       {!isCollapsed && (
         <div className="h-full flex flex-col">
           {/* Header */}
@@ -335,7 +335,7 @@ export const TaskPanel = memo(function TaskPanel({
                   isExpanded={isExpanded}
                   onClick={() => {
                     onTaskClick(task.id);
-                    // 点击任务时自动展开到 80%
+                    // Auto-expand to 80% when clicking a task
                     if (!isExpanded) onHeightChange('80%');
                   }}
                 />

@@ -109,26 +109,26 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
   const { workspaceId } = ctx;
 
   ctx.addMessage(agentMessage(workspaceId,
-    '好的，我来帮你撰写关于 **Vision Transformer** 的综述论文。\n\n' +
-    '我将分三个阶段完成：\n' +
-    '1. 文献调研与大纲设计\n' +
-    '2. 撰写初稿\n' +
-    '3. LaTeX 编译与排版\n\n' +
-    '正在开始文献调研...'
+    'Sure, I will help you write a survey paper on **Vision Transformer**.\n\n' +
+    'I will complete this in three phases:\n' +
+    '1. Literature review and outline design\n' +
+    '2. Draft writing\n' +
+    '3. LaTeX compilation and typesetting\n\n' +
+    'Starting the literature review...'
   ));
 
   await delay(500);
   const tasks: Task[] = [
     {
-      id: 'task-vit-1', title: '文献调研与大纲', status: 'pending', progress: 0,
+      id: 'task-vit-1', title: 'Literature Review & Outline', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-1-1', parentId: 'task-vit-1', title: '检索 ViT 相关论文', status: 'pending' },
-        { id: 'sub-1-2', parentId: 'task-vit-1', title: '分析核心架构变体', status: 'pending' },
-        { id: 'sub-1-3', parentId: 'task-vit-1', title: '设计论文大纲', status: 'pending' },
+        { id: 'sub-1-1', parentId: 'task-vit-1', title: 'Search ViT-related papers', status: 'pending' },
+        { id: 'sub-1-2', parentId: 'task-vit-1', title: 'Analyze core architecture variants', status: 'pending' },
+        { id: 'sub-1-3', parentId: 'task-vit-1', title: 'Design paper outline', status: 'pending' },
       ],
     },
     {
-      id: 'task-vit-2', title: '撰写初稿', status: 'pending', progress: 0,
+      id: 'task-vit-2', title: 'Write Draft', status: 'pending', progress: 0,
       subtasks: [
         { id: 'sub-2-1', parentId: 'task-vit-2', title: 'Introduction & Background', status: 'pending' },
         { id: 'sub-2-2', parentId: 'task-vit-2', title: 'Architecture & Key Variants', status: 'pending' },
@@ -137,36 +137,36 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
       ],
     },
     {
-      id: 'task-vit-3', title: 'LaTeX 编译与排版', status: 'pending', progress: 0,
+      id: 'task-vit-3', title: 'LaTeX Compilation & Typesetting', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-3-1', parentId: 'task-vit-3', title: '编译 LaTeX 源码', status: 'pending' },
-        { id: 'sub-3-2', parentId: 'task-vit-3', title: '生成 PDF 预览', status: 'pending' },
+        { id: 'sub-3-1', parentId: 'task-vit-3', title: 'Compile LaTeX source', status: 'pending' },
+        { id: 'sub-3-2', parentId: 'task-vit-3', title: 'Generate PDF preview', status: 'pending' },
       ],
     },
   ];
   ctx.setTasks(tasks);
   ctx.setTaskPanelHeight('30%');
 
-  // Task 1: 文献调研
+  // Task 1: Literature review
   await delay(500);
   ctx.updateTask('task-vit-1', { status: 'running' });
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_start', '开始文献调研'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_start', 'Starting literature review'));
 
   await delay(1000);
   ctx.updateSubtaskStatus('task-vit-1', 'sub-1-1', 'completed');
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '已检索 8 篇核心论文'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', 'Retrieved 8 core papers'));
 
   await delay(800);
   ctx.updateSubtaskStatus('task-vit-1', 'sub-1-2', 'completed');
 
   await delay(600);
   ctx.updateSubtaskStatus('task-vit-1', 'sub-1-3', 'completed');
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '大纲设计完成'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', 'Outline design completed'));
 
-  // Task 2: 撰写初稿
+  // Task 2: Write draft
   await delay(500);
   ctx.updateTask('task-vit-2', { status: 'running' });
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', '开始撰写初稿'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', 'Starting draft writing'));
 
   await delay(1000);
   ctx.setActiveComponent('latex-editor');
@@ -179,12 +179,12 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
 
   // Artifact created notification (DESIGN §3.6 Scene A)
   ctx.addMessage(agentMessage(workspaceId,
-    '已创建 LaTeX 文档，正在撰写各章节...', [
+    'LaTeX document created, writing chapters...', [
       {
         id: 'artifact-vit-tex',
         type: 'latex',
         name: 'vit-survey.tex',
-        description: 'Vision Transformer 综述论文 LaTeX 源码',
+        description: 'Vision Transformer survey paper LaTeX source',
         version: 'v1',
         size: '8.2 KB',
         previewText: '\\documentclass{article}\n\\title{Vision Transformer: A Comprehensive Survey}\n...',
@@ -193,24 +193,24 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
 
   await delay(500);
   ctx.updateSubtaskStatus('task-vit-2', 'sub-2-1', 'completed');
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', 'Introduction 撰写完成'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', 'Introduction writing completed'));
 
   await delay(500);
   ctx.updateSubtaskStatus('task-vit-2', 'sub-2-2', 'completed');
 
   await delay(500);
   ctx.updateSubtaskStatus('task-vit-2', 'sub-2-3', 'completed');
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', '性能对比表格完成'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', 'Performance comparison table completed'));
 
   await delay(500);
   ctx.updateSubtaskStatus('task-vit-2', 'sub-2-4', 'completed');
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', '初稿撰写完成'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_step', 'Draft writing completed'));
 
-  // Task 3: 编译 (Docker-based, ~15s total)
+  // Task 3: Compilation (Docker-based, ~15s total)
   await delay(500);
   ctx.updateTask('task-vit-3', { status: 'running' });
   ctx.updateSubtaskStatus('task-vit-3', 'sub-3-1', 'running');
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'execute', '开始 LaTeX 编译'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'execute', 'Starting LaTeX compilation'));
 
   await delay(500);
   window.dispatchEvent(new CustomEvent('demo:compileLatex'));
@@ -227,22 +227,22 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
 
   ctx.updateSubtaskStatus('task-vit-3', 'sub-3-1', 'completed');
   ctx.updateSubtaskStatus('task-vit-3', 'sub-3-2', 'completed');
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_complete', 'LaTeX 编译完成'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_complete', 'LaTeX compilation completed'));
 
   await delay(500);
   ctx.addMessage(agentMessage(workspaceId,
-    '综述撰写完成！\n\n' +
-    '**Vision Transformer: A Comprehensive Survey** 已在 LaTeX 编辑器中完成编译。\n\n' +
-    '文章包含：\n' +
-    '- 6 个章节（Introduction → Conclusion）\n' +
-    '- 自注意力机制数学公式\n' +
-    '- ViT 变体性能对比表\n' +
-    '- 8 篇核心参考文献', [
+    'Survey writing complete!\n\n' +
+    '**Vision Transformer: A Comprehensive Survey** has been compiled in the LaTeX editor.\n\n' +
+    'The paper includes:\n' +
+    '- 6 chapters (Introduction to Conclusion)\n' +
+    '- Self-attention mechanism mathematical formulas\n' +
+    '- ViT variant performance comparison table\n' +
+    '- 8 core references', [
       {
         id: 'artifact-vit-pdf',
         type: 'pdf',
         name: 'vit-survey.pdf',
-        description: '编译后的 PDF 文档',
+        description: 'Compiled PDF document',
         version: 'v1',
         size: '245 KB',
       },
@@ -250,12 +250,12 @@ async function runViTSurveyScenario(ctx: OrchestratorContext): Promise<void> {
         id: 'artifact-vit-tex-final',
         type: 'latex',
         name: 'vit-survey.tex',
-        description: 'LaTeX 源码（6 章 + 参考文献）',
+        description: 'LaTeX source (6 chapters + references)',
         version: 'v1',
         size: '8.2 KB',
       },
     ]));
-  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_complete', '任务完成：ViT 综述'));
+  ctx.addTimelineEvent(tlEvent('latex-editor', 'workflow_complete', 'Task completed: ViT survey'));
 }
 
 // ============================================================
@@ -266,23 +266,23 @@ async function runCosCurveScenario(ctx: OrchestratorContext): Promise<void> {
   const { workspaceId } = ctx;
 
   ctx.addMessage(agentMessage(workspaceId,
-    '好的，我来用 **Python** 绘制 cos 曲线。\n\n' +
-    '将使用 NumPy + Matplotlib 生成高质量图表，并保存到资产库。'
+    'Sure, I will plot a cos curve using **Python**.\n\n' +
+    'I will use NumPy + Matplotlib to generate a high-quality chart and save it to the asset library.'
   ));
 
   await delay(500);
   const tasks: Task[] = [
     {
-      id: 'task-cos-1', title: '编写绘图代码', status: 'pending', progress: 0,
+      id: 'task-cos-1', title: 'Write plotting code', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-cos-1-1', parentId: 'task-cos-1', title: '生成数据与绘图', status: 'pending' },
-        { id: 'sub-cos-1-2', parentId: 'task-cos-1', title: '执行代码', status: 'pending' },
+        { id: 'sub-cos-1-1', parentId: 'task-cos-1', title: 'Generate data and plot', status: 'pending' },
+        { id: 'sub-cos-1-2', parentId: 'task-cos-1', title: 'Execute code', status: 'pending' },
       ],
     },
     {
-      id: 'task-cos-2', title: '保存到资产库', status: 'pending', progress: 0,
+      id: 'task-cos-2', title: 'Save to asset library', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-cos-2-1', parentId: 'task-cos-2', title: '保存图片到 Gallery', status: 'pending' },
+        { id: 'sub-cos-2-1', parentId: 'task-cos-2', title: 'Save image to Gallery', status: 'pending' },
       ],
     },
   ];
@@ -291,11 +291,11 @@ async function runCosCurveScenario(ctx: OrchestratorContext): Promise<void> {
 
   await delay(500);
   ctx.updateTask('task-cos-1', { status: 'running' });
-  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'workflow_start', '开始绘制 cos 曲线'));
+  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'workflow_start', 'Starting cos curve plot'));
 
   await delay(500);
   ctx.setActiveComponent('jupyter-notebook');
-  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'execute', '切换到 Jupyter Notebook'));
+  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'execute', 'Switched to Jupyter Notebook'));
 
   // 2s for lazy component mount
   await delay(2000);
@@ -326,16 +326,16 @@ async function runCosCurveScenario(ctx: OrchestratorContext): Promise<void> {
   await delay(1500);
   ctx.updateSubtaskStatus('task-cos-1', 'sub-cos-1-1', 'completed');
   ctx.updateSubtaskStatus('task-cos-1', 'sub-cos-1-2', 'completed');
-  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'workflow_step', 'cos 曲线绘图代码执行完成'));
+  ctx.addTimelineEvent(tlEvent('jupyter-notebook', 'workflow_step', 'Cos curve plotting code execution completed'));
 
   // Artifact: Jupyter notebook created
   ctx.addMessage(agentMessage(workspaceId,
-    '绘图代码已执行完成，正在保存图片到资产库...', [
+    'Plotting code executed successfully, saving image to asset library...', [
       {
         id: 'artifact-cos-notebook',
         type: 'notebook',
         name: 'cos_curve.ipynb',
-        description: 'NumPy + Matplotlib 绘制 cos 曲线',
+        description: 'Cos curve plotted with NumPy + Matplotlib',
         version: 'v1',
         size: '3.1 KB',
         previewText: 'import numpy as np\nimport matplotlib.pyplot as plt\n\nx = np.linspace(0, 4*np.pi, 1000)\ny = np.cos(x)',
@@ -350,7 +350,7 @@ async function runCosCurveScenario(ctx: OrchestratorContext): Promise<void> {
 
   await delay(500);
   ctx.setActiveComponent('bento-gallery');
-  ctx.addTimelineEvent(tlEvent('bento-gallery', 'navigate', '切换到 Gallery'));
+  ctx.addTimelineEvent(tlEvent('bento-gallery', 'navigate', 'Switched to Gallery'));
 
   // 2s for lazy component mount
   await delay(2000);
@@ -368,25 +368,25 @@ async function runCosCurveScenario(ctx: OrchestratorContext): Promise<void> {
 
   await delay(500);
   ctx.updateSubtaskStatus('task-cos-2', 'sub-cos-2-1', 'completed');
-  ctx.addTimelineEvent(tlEvent('bento-gallery', 'workflow_complete', '图片已保存到 Gallery'));
+  ctx.addTimelineEvent(tlEvent('bento-gallery', 'workflow_complete', 'Image saved to Gallery'));
 
   await delay(1000);
   ctx.addMessage(agentMessage(workspaceId,
-    'cos 曲线已绘制完成！\n\n' +
-    '- **Jupyter**: 绘图代码已执行\n' +
-    '- **Gallery**: cos 曲线图已添加到图库\n\n' +
-    '图表展示了 cos(x) 在 [0, 4π] 区间的完整波形。', [
+    'Cos curve plotted successfully!\n\n' +
+    '- **Jupyter**: Plotting code executed\n' +
+    '- **Gallery**: Cos curve chart added to gallery\n\n' +
+    'The chart displays the complete waveform of cos(x) over the interval [0, 4pi].', [
       {
         id: 'artifact-cos-image',
         type: 'image',
         name: 'cos_curve.svg',
-        description: 'cos(x) 曲线图 — Range: [0, 4π]',
+        description: 'cos(x) curve chart -- Range: [0, 4pi]',
         version: 'v1',
         size: '2.4 KB',
         previewUrl: COS_CURVE_SVG,
       },
     ]));
-  ctx.addTimelineEvent(tlEvent('bento-gallery', 'workflow_complete', '任务完成：cos 曲线绘图'));
+  ctx.addTimelineEvent(tlEvent('bento-gallery', 'workflow_complete', 'Task completed: cos curve plot'));
 }
 
 // ============================================================
@@ -397,24 +397,24 @@ async function runAblationStudyScenario(ctx: OrchestratorContext): Promise<void>
   const { workspaceId } = ctx;
 
   ctx.addMessage(agentMessage(workspaceId,
-    '好的，我来撰写 **目标检测消融实验** 分析文档。\n\n' +
-    '将基于 COCO 2017 数据集，对 Backbone、Neck、Head、数据增强和 Loss 进行系统性消融分析。'
+    'Sure, I will write an **object detection ablation study** analysis document.\n\n' +
+    'I will perform systematic ablation analysis on Backbone, Neck, Head, data augmentation, and Loss based on the COCO 2017 dataset.'
   ));
 
   await delay(500);
   const tasks: Task[] = [
     {
-      id: 'task-abl-1', title: '设计实验方案', status: 'pending', progress: 0,
+      id: 'task-abl-1', title: 'Design experiment plan', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-abl-1-1', parentId: 'task-abl-1', title: '定义消融变量', status: 'pending' },
-        { id: 'sub-abl-1-2', parentId: 'task-abl-1', title: '设置基线模型', status: 'pending' },
+        { id: 'sub-abl-1-1', parentId: 'task-abl-1', title: 'Define ablation variables', status: 'pending' },
+        { id: 'sub-abl-1-2', parentId: 'task-abl-1', title: 'Set up baseline model', status: 'pending' },
       ],
     },
     {
-      id: 'task-abl-2', title: '撰写分析报告', status: 'pending', progress: 0,
+      id: 'task-abl-2', title: 'Write analysis report', status: 'pending', progress: 0,
       subtasks: [
-        { id: 'sub-abl-2-1', parentId: 'task-abl-2', title: '生成实验结果表格', status: 'pending' },
-        { id: 'sub-abl-2-2', parentId: 'task-abl-2', title: '撰写分析与结论', status: 'pending' },
+        { id: 'sub-abl-2-1', parentId: 'task-abl-2', title: 'Generate experiment result tables', status: 'pending' },
+        { id: 'sub-abl-2-2', parentId: 'task-abl-2', title: 'Write analysis and conclusions', status: 'pending' },
       ],
     },
   ];
@@ -423,18 +423,18 @@ async function runAblationStudyScenario(ctx: OrchestratorContext): Promise<void>
 
   await delay(500);
   ctx.updateTask('task-abl-1', { status: 'running' });
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_start', '开始设计实验方案'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_start', 'Starting experiment plan design'));
 
   await delay(800);
   ctx.updateSubtaskStatus('task-abl-1', 'sub-abl-1-1', 'completed');
 
   await delay(600);
   ctx.updateSubtaskStatus('task-abl-1', 'sub-abl-1-2', 'completed');
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '实验方案设计完成'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', 'Experiment plan design completed'));
 
   await delay(600);
   ctx.updateTask('task-abl-2', { status: 'running' });
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '开始撰写分析报告'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', 'Starting analysis report writing'));
 
   await delay(500);
   ctx.setActiveComponent('ai-editor');
@@ -442,24 +442,24 @@ async function runAblationStudyScenario(ctx: OrchestratorContext): Promise<void>
   // 2s for component mount
   await delay(2000);
   ctx.updateComponentState('ai-editor', { content: ABLATION_STUDY_HTML });
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'edit', '文档内容注入完成'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'edit', 'Document content injected'));
 
   await delay(500);
   ctx.updateSubtaskStatus('task-abl-2', 'sub-abl-2-1', 'completed');
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '6 组消融实验表格完成'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_step', '6 ablation experiment tables completed'));
 
   await delay(800);
   ctx.updateSubtaskStatus('task-abl-2', 'sub-abl-2-2', 'completed');
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_complete', '分析报告撰写完成'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_complete', 'Analysis report writing completed'));
 
   // Artifact: Notes document created
   ctx.addMessage(agentMessage(workspaceId,
-    '文档内容已生成，正在完成分析部分...', [
+    'Document content generated, completing analysis section...', [
       {
         id: 'artifact-abl-notes',
         type: 'notes',
-        name: '消融实验分析报告.md',
-        description: '目标检测消融实验 — COCO 2017',
+        name: 'ablation-study-report.md',
+        description: 'Object detection ablation study -- COCO 2017',
         version: 'v1',
         size: '15.6 KB',
       },
@@ -467,22 +467,22 @@ async function runAblationStudyScenario(ctx: OrchestratorContext): Promise<void>
 
   await delay(700);
   ctx.addMessage(agentMessage(workspaceId,
-    '消融实验文档已完成！\n\n' +
-    '文档包含：\n' +
-    '- 6 组消融实验（Backbone/Neck/Head/增强/Loss/NMS）\n' +
-    '- 详细的性能对比表格（mAP, AP50, AP75 等）\n' +
-    '- 最优组合分析：**Swin-S + BiFPN + CIoU + Combined Aug → 48.7 mAP** (+11.3)\n' +
-    '- 每组实验的定量分析与结论', [
+    'Ablation study document complete!\n\n' +
+    'The document includes:\n' +
+    '- 6 ablation experiments (Backbone/Neck/Head/Augmentation/Loss/NMS)\n' +
+    '- Detailed performance comparison tables (mAP, AP50, AP75, etc.)\n' +
+    '- Best combination analysis: **Swin-S + BiFPN + CIoU + Combined Aug -> 48.7 mAP** (+11.3)\n' +
+    '- Quantitative analysis and conclusions for each experiment', [
       {
         id: 'artifact-abl-notes-final',
         type: 'notes',
-        name: '消融实验分析报告.md',
-        description: '完整报告 — 6 组实验 + 结论分析',
+        name: 'ablation-study-report.md',
+        description: 'Full report -- 6 experiments + conclusion analysis',
         version: 'v2',
         size: '15.6 KB',
       },
     ]));
-  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_complete', '任务完成：消融实验文档'));
+  ctx.addTimelineEvent(tlEvent('ai-editor', 'workflow_complete', 'Task completed: ablation study document'));
 }
 
 // ============================================================
@@ -496,14 +496,13 @@ function matchScenario(content: string): ScenarioId | null {
 
   if (
     (lower.includes('vision transformer') || lower.includes('vit')) &&
-    (lower.includes('综述') || lower.includes('survey'))
+    (lower.includes('survey'))
   ) return 'vit-survey';
-  if (lower.includes('综述') && lower.includes('transformer')) return 'vit-survey';
 
-  if (lower.includes('cos') && (lower.includes('曲线') || lower.includes('curve') || lower.includes('绘')))
+  if (lower.includes('cos') && (lower.includes('curve') || lower.includes('plot')))
     return 'cos-curve';
 
-  if (lower.includes('消融') && (lower.includes('实验') || lower.includes('文档'))) return 'ablation-study';
+  if (lower.includes('ablation') && (lower.includes('study') || lower.includes('experiment') || lower.includes('document'))) return 'ablation-study';
   if (lower.includes('ablation') && lower.includes('study')) return 'ablation-study';
 
   return null;
@@ -547,7 +546,7 @@ export function tryDemoMessage(workspaceId: string, content: string): boolean {
 
   if (isRunning) {
     useChatStore.getState().addMessage(
-      agentMessage(workspaceId, '当前有任务正在执行，请稍后再试。')
+      agentMessage(workspaceId, 'A task is currently running, please try again later.')
     );
     return true;
   }
@@ -570,7 +569,7 @@ export function tryDemoMessage(workspaceId: string, content: string): boolean {
   scenarioRunners[scenario](ctx)
     .catch((err) => {
       console.error('[DemoOrchestrator] Scenario error:', err);
-      ctx.addMessage(agentMessage(workspaceId, `场景执行出错: ${err instanceof Error ? err.message : String(err)}`));
+      ctx.addMessage(agentMessage(workspaceId, `Scenario execution error: ${err instanceof Error ? err.message : String(err)}`));
     })
     .finally(() => { isRunning = false; });
 

@@ -1,7 +1,7 @@
 /**
- * 跨论文标签系统 - 统一导出
- * 
- * 使用方式:
+ * Cross-Paper Citation Tag System - Unified Exports
+ *
+ * Usage:
  * ```typescript
  * import {
  *   Citation,
@@ -10,19 +10,19 @@
  *   citationNavigator,
  *   paperAliasAssigner,
  * } from './services/citationSystem';
- * 
- * // 解析标签
+ *
+ * // Parse tags
  * const tags = citationTagParser.parse(content);
- * 
- * // 映射为 Citation
+ *
+ * // Map to Citations
  * const citations = citationMapper.mapToCitations(tags, context);
- * 
- * // 导航到引用
+ *
+ * // Navigate to citation
  * await citationNavigator.navigate(citation);
  * ```
  */
 
-// 类型导出
+// Type exports
 export type {
   Citation,
   TagParseResult,
@@ -34,7 +34,7 @@ export type {
   TagType,
 } from '../types/citation';
 
-// 工具函数导出
+// Utility function exports
 export {
   createCitationUri,
   parseCitationUri,
@@ -43,7 +43,7 @@ export {
   createCitation,
 } from '../types/citation';
 
-// 解析器导出
+// Parser exports
 export {
   CitationTagParser,
   CitationErrorHandler,
@@ -51,7 +51,7 @@ export {
   citationErrorHandler,
 } from './citationTagParser';
 
-// 映射器导出
+// Mapper exports
 export {
   CitationMapper,
   PaperAliasAssigner,
@@ -59,7 +59,7 @@ export {
   paperAliasAssigner,
 } from './citationMapper';
 
-// 导航器导出
+// Navigator exports
 export type {
   NavigationTarget,
   NavigationResult,

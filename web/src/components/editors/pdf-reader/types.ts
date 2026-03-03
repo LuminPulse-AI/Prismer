@@ -11,10 +11,10 @@ export interface Annotation {
   content: string;
   timestamp: number;
   color?: string;
-  sentenceIds?: number[]; // 用于句子高亮
+  sentenceIds?: number[]; // Used for sentence highlighting
 }
 
-// 不同学科的预设模板
+// Preset templates for different disciplines
 export const disciplineTemplates = {
   "Computer Science": [
     {

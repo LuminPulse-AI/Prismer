@@ -25,7 +25,7 @@ interface PDFToolbarProps {
   pageNumber: number;
   numPages: number;
   scale: number;
-  // 新的模式感知翻页函数
+  // New mode-aware page turn functions
   onPrevPage: () => void;
   onNextPage: () => void;
   canGoToPrev: boolean;
@@ -162,7 +162,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
     }
   };
 
-  // 工具栏图标颜色 - 高对比度
+  // Toolbar icon colors - high contrast
   const iconColor = "text-slate-700";
   const iconColorHover = "hover:text-slate-900";
   const iconColorActive = "text-indigo-600";
@@ -173,7 +173,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left Section */}
           <div className="flex items-center gap-2 flex-1">
-            {/* 关闭按钮 */}
+            {/* Close button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -213,9 +213,9 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
             </Tooltip>
           </div>
 
-          {/* Center Section - 搜索和核心控件围绕中心布局 */}
+          {/* Center Section - search and core controls centered layout */}
           <div className="flex items-center gap-4">
-            {/* 翻页控件 - 使用模式感知的翻页函数 */}
+            {/* Page navigation controls - using mode-aware page turn functions */}
             <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -254,7 +254,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
               </Tooltip>
             </div>
 
-            {/* 比例控件 */}
+            {/* Zoom controls */}
             <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -293,7 +293,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
               </Tooltip>
             </div>
 
-            {/* 中央搜索区域 */}
+            {/* Center search area */}
             <div
               className={cn(
                 "flex items-center gap-2 bg-slate-200/50 rounded-lg px-3 py-2 transition-all duration-300",
@@ -378,7 +378,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
               )}
             </div>
 
-            {/* 阅读模式切换 */}
+            {/* Reading mode toggle */}
             <div className="flex items-center gap-1 bg-slate-200/50 rounded-lg p-1">
               {(["single", "continuous", "double"] as ReadingMode[]).map(
                 (mode) => (
@@ -406,7 +406,7 @@ export const PDFToolbar: React.FC<PDFToolbarProps> = ({
               )}
             </div>
 
-            {/* 句子交互层开关 */}
+            {/* Sentence interaction layer toggle */}
             {onToggleSentenceLayer && (
               <Tooltip>
                 <TooltipTrigger asChild>

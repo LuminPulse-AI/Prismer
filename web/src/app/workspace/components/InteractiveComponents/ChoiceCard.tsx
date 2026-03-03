@@ -2,8 +2,8 @@
 
 /**
  * ChoiceCard
- * 
- * 选择卡片交互组件 - 用于多选项决策
+ *
+ * Choice card interactive component - For multi-option decision making
  */
 
 import React, { memo, useState, useCallback } from 'react';
@@ -39,7 +39,7 @@ export const ChoiceCard = memo(function ChoiceCard({
         return next;
       });
     } else {
-      // 单选模式，直接触发 action
+      // Single-select mode, trigger action directly
       onAction(option.id);
     }
   }, [config.multiSelect, disabled, onAction]);
@@ -56,12 +56,12 @@ export const ChoiceCard = memo(function ChoiceCard({
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-4 shadow-sm"
     >
-      {/* 标题 */}
+      {/* Title */}
       <h4 className="text-sm font-semibold text-slate-800 mb-3">
         {config.title}
       </h4>
 
-      {/* 选项列表 */}
+      {/* Options list */}
       <div className="space-y-2">
         <AnimatePresence mode="popLayout">
           {config.options.map((option, index) => {
@@ -140,7 +140,7 @@ export const ChoiceCard = memo(function ChoiceCard({
         </AnimatePresence>
       </div>
 
-      {/* 多选确认按钮 */}
+      {/* Multi-select confirm button */}
       {config.multiSelect && selectedIds.size > 0 && (
         <motion.button
           type="button"
@@ -154,7 +154,7 @@ export const ChoiceCard = memo(function ChoiceCard({
             hover:from-violet-700 hover:to-purple-700
             shadow-md shadow-violet-500/20 transition-all"
         >
-          确认选择 ({selectedIds.size})
+          Confirm Selection ({selectedIds.size})
         </motion.button>
       )}
     </motion.div>

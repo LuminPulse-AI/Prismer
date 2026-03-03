@@ -1,65 +1,65 @@
 /**
- * Research Notes - 示例扩展数据类型
+ * Research Notes - Example extended data type
  *
- * 这个文件演示如何向同步系统添加新的数据类型。
- * "研究笔记" 是一个简单的卡片数据类型，支持多端同步和持久化。
+ * This file demonstrates how to add a new data type to the sync system.
+ * "Research Notes" is a simple card-based data type supporting multi-client sync and persistence.
  *
- * 步骤:
- * 1. 定义数据类型接口
- * 2. 创建同步规则
- * 3. 在 Store 中添加状态和 Actions
- * 4. 注册到同步矩阵
- * 5. 在服务端添加持久化支持
+ * Steps:
+ * 1. Define the data type interface
+ * 2. Create sync rules
+ * 3. Add state and Actions to the Store
+ * 4. Register with the sync matrix
+ * 5. Add server-side persistence support
  */
 
 import type { SyncRule, EndpointType } from '../types';
 import { SyncRuleBuilder } from '../SyncMatrixEngine';
 
 // ============================================================
-// 1. 数据类型定义
+// 1. Data Type Definitions
 // ============================================================
 
-/** 研究笔记 */
+/** Research note */
 export interface ResearchNote {
-  /** 唯一 ID */
+  /** Unique ID */
   id: string;
-  /** 创建者 */
+  /** Creator */
   creatorId: string;
-  /** 标题 */
+  /** Title */
   title: string;
-  /** 内容 (Markdown) */
+  /** Content (Markdown) */
   content: string;
-  /** 标签 */
+  /** Tags */
   tags: string[];
-  /** 关联的消息 ID */
+  /** Linked message IDs */
   linkedMessageIds?: string[];
-  /** 关联的任务 ID */
+  /** Linked task IDs */
   linkedTaskIds?: string[];
-  /** 颜色标记 */
+  /** Color label */
   color?: 'default' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink';
-  /** 是否置顶 */
+  /** Whether pinned */
   pinned?: boolean;
-  /** 创建时间 */
+  /** Creation time */
   createdAt: number;
-  /** 更新时间 */
+  /** Update time */
   updatedAt: number;
 }
 
-/** 研究笔记状态 */
+/** Research notes state */
 export interface ResearchNotesState {
-  /** 笔记列表 */
+  /** Notes list */
   notes: ResearchNote[];
-  /** 当前选中的笔记 ID */
+  /** Currently selected note ID */
   activeNoteId: string | null;
-  /** 过滤标签 */
+  /** Filter tags */
   filterTags: string[];
-  /** 排序方式 */
+  /** Sort field */
   sortBy: 'createdAt' | 'updatedAt' | 'title';
-  /** 排序方向 */
+  /** Sort direction */
   sortOrder: 'asc' | 'desc';
 }
 
-/** 研究笔记事件 */
+/** Research note event */
 export type ResearchNoteEvent =
   | { type: 'note_created'; note: ResearchNote }
   | { type: 'note_updated'; noteId: string; changes: Partial<ResearchNote> }
@@ -67,28 +67,28 @@ export type ResearchNoteEvent =
   | { type: 'note_linked'; noteId: string; messageId?: string; taskId?: string };
 
 // ============================================================
-// 2. 同步规则定义
+// 2. Sync Rule Definitions
 // ============================================================
 
 /**
- * 研究笔记同步规则
+ * Research notes sync rule
  *
- * 特点:
- * - 服务端是权威源
- * - 桌面端和移动端都可以读写
- * - 持久化到数据库
- * - 双向同步
- * - 支持合并冲突
+ * Features:
+ * - Server is the authoritative source
+ * - Both desktop and mobile can read and write
+ * - Persisted to database
+ * - Bidirectional sync
+ * - Supports merge conflict resolution
  */
 export const researchNotesSyncRule: SyncRule = {
   dataType: 'researchNotes',
-  description: '研究笔记卡片',
+  description: 'Research note cards',
   endpoints: {
     server: { access: 'owner' },
     desktop: { access: 'readwrite' },
     mobile: { access: 'readwrite' },
     web: { access: 'readwrite' },
-    agent: { access: 'read' },  // Agent 可以读取笔记但不能修改
+    agent: { access: 'read' },  // Agent can read notes but not modify them
   },
   persistence: {
     strategy: 'database',
@@ -97,7 +97,7 @@ export const researchNotesSyncRule: SyncRule = {
   sync: {
     direction: 'bidirectional',
     conflictStrategy: 'merge',
-    throttleMs: 1000,  // 笔记不需要实时同步，1秒节流
+    throttleMs: 1000,  // Notes do not need real-time sync, 1s throttle
   },
   interactionSignals: {
     canTrigger: ['desktop', 'mobile', 'web'],
@@ -107,10 +107,10 @@ export const researchNotesSyncRule: SyncRule = {
 };
 
 /**
- * 使用 SyncRuleBuilder 创建规则（另一种方式）
+ * Create rule using SyncRuleBuilder (alternative approach)
  */
 export function createResearchNotesRule(): SyncRule {
-  return new SyncRuleBuilder('researchNotes', '研究笔记卡片')
+  return new SyncRuleBuilder('researchNotes', 'Research note cards')
     .serverOwned()
     .endpoint('desktop', 'readwrite')
     .endpoint('mobile', 'readwrite')
@@ -127,47 +127,47 @@ export function createResearchNotesRule(): SyncRule {
 }
 
 // ============================================================
-// 3. Store Actions
+// 3. Store Actions Definitions
 // ============================================================
 
 /**
- * 研究笔记 Store Actions
+ * Research notes Store Actions
  *
- * 这些 actions 应该添加到 WorkspaceStore 中
+ * These actions should be added to WorkspaceStore
  */
 export interface ResearchNotesActions {
-  // 批量设置 (用于 FULL_STATE)
+  // Batch set (for FULL_STATE)
   setResearchNotes: (notes: ResearchNote[]) => void;
 
-  // 增量更新 (用于 STATE_DELTA)
+  // Incremental updates (for STATE_DELTA)
   addResearchNote: (note: ResearchNote) => void;
   updateResearchNote: (id: string, changes: Partial<ResearchNote>) => void;
   deleteResearchNote: (id: string) => void;
 
-  // 本地操作
+  // Local operations
   setActiveNote: (id: string | null) => void;
   setFilterTags: (tags: string[]) => void;
   setSortBy: (sortBy: ResearchNotesState['sortBy']) => void;
   setSortOrder: (order: ResearchNotesState['sortOrder']) => void;
 
-  // 链接
+  // Linking
   linkNoteToMessage: (noteId: string, messageId: string) => void;
   linkNoteToTask: (noteId: string, taskId: string) => void;
 }
 
 /**
- * 创建研究笔记的 Store 切片
+ * Create research notes Store slice
  *
- * 示例：如何在 Zustand Store 中添加这个数据类型
+ * Example: how to add this data type to a Zustand Store
  *
  * ```typescript
- * // 在 workspaceStore.ts 中:
+ * // In workspaceStore.ts:
  * import { createResearchNotesSlice } from '@/lib/sync/examples/researchNotes';
  *
  * export const useWorkspaceStore = create<WorkspaceState & WorkspaceActions>((set, get) => ({
  *   ...initialState,
  *   ...createResearchNotesSlice(set, get),
- *   // ... 其他 actions
+ *   // ... other actions
  * }));
  * ```
  */
@@ -190,7 +190,7 @@ export function createResearchNotesSlice(
 
     addResearchNote: (note) => {
       set((state: any) => {
-        // ID 去重
+        // Deduplicate by ID
         if (state.notes.some((n: ResearchNote) => n.id === note.id)) {
           return state;
         }
@@ -260,11 +260,11 @@ export function createResearchNotesSlice(
 }
 
 // ============================================================
-// 4. 辅助函数
+// 4. Helper Functions
 // ============================================================
 
 /**
- * 创建新笔记
+ * Create a new note
  */
 export function createResearchNote(
   title: string,
@@ -287,7 +287,7 @@ export function createResearchNote(
 }
 
 /**
- * 获取笔记的所有标签
+ * Get all tags from notes
  */
 export function getAllTags(notes: ResearchNote[]): string[] {
   const tagSet = new Set<string>();
@@ -298,7 +298,7 @@ export function getAllTags(notes: ResearchNote[]): string[] {
 }
 
 /**
- * 过滤和排序笔记
+ * Filter and sort notes
  */
 export function filterAndSortNotes(
   notes: ResearchNote[],
@@ -306,21 +306,21 @@ export function filterAndSortNotes(
 ): ResearchNote[] {
   let result = [...notes];
 
-  // 过滤
+  // Filter
   if (state.filterTags.length > 0) {
     result = result.filter(note =>
       state.filterTags.some(tag => note.tags.includes(tag))
     );
   }
 
-  // 置顶优先
+  // Pinned items first
   result.sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
     return 0;
   });
 
-  // 排序
+  // Sort
   result.sort((a, b) => {
     if (a.pinned && !b.pinned) return -1;
     if (!a.pinned && b.pinned) return 1;
@@ -345,7 +345,7 @@ export function filterAndSortNotes(
 }
 
 // ============================================================
-// 5. 导出
+// 5. Exports
 // ============================================================
 
 export default {

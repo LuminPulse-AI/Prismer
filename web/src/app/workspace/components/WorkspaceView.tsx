@@ -3,23 +3,24 @@
 /**
  * WorkspaceView
  *
- * 工作空间主视图
- * 布局：Chat Panel (左) + Window Viewer (右)
- * Chat 收起时，SiriOrb + 任务气泡显示在 Window 左下角
- * 支持拖拽调整 Chat Panel 宽度
+ * Main workspace view.
+ * Layout: Chat Panel (left) + Window Viewer (right).
+ * When chat is collapsed, SiriOrb + task bubble appear in bottom-left of the window.
+ * Supports drag-to-resize for Chat Panel width.
  *
- * 通信架构：
+ * Communication architecture:
  * useContainerChat → Bridge API → Container Gateway → OpenClaw Agent
  */
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { useWorkspaceStore, useCurrentTask, useActiveDiff } from '../stores';
+import { useCurrentTask, useActiveDiff } from '../stores';
 import { useTaskStore } from '../stores/taskStore';
 import { useChatStore } from '../stores/chatStore';
 import { useTimelineStore } from '../stores/timelineStore';
 import { useComponentStore } from '../stores/componentStore';
+import { useLayoutStore } from '../stores/layoutStore';
 import { WorkspaceChat } from './WorkspaceChat';
 import { WindowViewer } from './WindowViewer';
 import { useContainerChat } from '../hooks/useContainerChat';
@@ -59,34 +60,40 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
   const searchParams = useSearchParams();
   const documentIdFromUrl = searchParams.get('documentId');
 
-  // Store state
-  const chatExpanded = useWorkspaceStore((s) => s.chatExpanded);
-  const chatPanelWidth = useWorkspaceStore((s) => s.chatPanelWidth);
-  const taskPanelHeight = useWorkspaceStore((s) => s.taskPanelHeight);
-  const messages = useWorkspaceStore((s) => s.messages);
-  const participants = useWorkspaceStore((s) => s.participants);
-  const tasks = useWorkspaceStore((s) => s.tasks);
-  const activeTaskId = useWorkspaceStore((s) => s.activeTaskId);
-  const activeComponent = useWorkspaceStore((s) => s.activeComponent);
-  const timeline = useWorkspaceStore((s) => s.timeline);
-  const currentTimelinePosition = useWorkspaceStore((s) => s.currentTimelinePosition);
-  const isTimelinePlaying = useWorkspaceStore((s) => s.isTimelinePlaying);
+  // Layout store
+  const chatExpanded = useLayoutStore((s) => s.chatExpanded);
+  const chatPanelWidth = useLayoutStore((s) => s.chatPanelWidth);
+  const taskPanelHeight = useLayoutStore((s) => s.taskPanelHeight);
+  const toggleChat = useLayoutStore((s) => s.toggleChat);
+  const setTaskPanelHeight = useLayoutStore((s) => s.setTaskPanelHeight);
+  const setChatPanelWidth = useLayoutStore((s) => s.setChatPanelWidth);
+
+  // Chat store
+  const messages = useChatStore((s) => s.messages);
+  const participants = useChatStore((s) => s.participants);
+  const addMessage = useChatStore((s) => s.addMessage);
+
+  // Task store
+  const tasks = useTaskStore((s) => s.tasks);
+  const activeTaskId = useTaskStore((s) => s.activeTaskId);
+  const setActiveTaskId = useTaskStore((s) => s.setActiveTaskId);
+
+  // Component store
+  const activeComponent = useComponentStore((s) => s.activeComponent);
+  const setActiveComponent = useComponentStore((s) => s.setActiveComponent);
+  const clearDiff = useComponentStore((s) => s.clearDiff);
   const activeDiff = useActiveDiff();
 
-  // Store actions
-  const toggleChat = useWorkspaceStore((s) => s.toggleChat);
-  const setTaskPanelHeight = useWorkspaceStore((s) => s.setTaskPanelHeight);
-  const setChatPanelWidth = useWorkspaceStore((s) => s.setChatPanelWidth);
-  const setActiveTaskId = useWorkspaceStore((s) => s.setActiveTaskId);
-  const addMessage = useWorkspaceStore((s) => s.addMessage);
-  const setActiveComponent = useWorkspaceStore((s) => s.setActiveComponent);
-  const seekTimeline = useWorkspaceStore((s) => s.seekTimeline);
-  const playTimeline = useWorkspaceStore((s) => s.playTimeline);
-  const pauseTimeline = useWorkspaceStore((s) => s.pauseTimeline);
-  const clearDiff = useWorkspaceStore((s) => s.clearDiff);
-  const restoreSnapshot = useWorkspaceStore((s) => s.restoreSnapshot);
+  // Timeline store
+  const timeline = useTimelineStore((s) => s.timeline);
+  const currentTimelinePosition = useTimelineStore((s) => s.currentTimelinePosition);
+  const isTimelinePlaying = useTimelineStore((s) => s.isTimelinePlaying);
+  const seekTimeline = useTimelineStore((s) => s.seekTimeline);
+  const playTimeline = useTimelineStore((s) => s.playTimeline);
+  const pauseTimeline = useTimelineStore((s) => s.pauseTimeline);
+  const restoreSnapshot = useTimelineStore((s) => s.restoreSnapshot);
 
-  // ==================== 初始化：workspace 级别 store 隔离 ====================
+  // ==================== Initialization: workspace-level store isolation ====================
   const hasInitRef = useRef(false);
   const prevWorkspaceIdRef = useRef(workspaceId);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -148,7 +155,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
     }
   }, [workspaceId]);
 
-  // ==================== Agent 生命周期 ====================
+  // ==================== Agent Lifecycle ====================
   const fetchAgentBinding = useAgentInstanceStore((s) => s.fetchAgentBinding);
   const ensureAgentForWorkspace = useAgentInstanceStore((s) => s.ensureAgentForWorkspace);
   const startAgentInstance = useAgentInstanceStore((s) => s.startAgentInstance);
@@ -211,7 +218,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
     setGateDismissed(true);
   }, []);
 
-  // ==================== Container Chat (唯一通信路径) ====================
+  // ==================== Container Chat (sole communication path) ====================
   const {
     connectionStatus: containerConnectionStatus,
     isConnected: isContainerConnected,
@@ -484,8 +491,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
     if (!isTimelinePlaying) return;
 
     const interval = setInterval(() => {
-      const state = useWorkspaceStore.getState();
-      const newPosition = state.currentTimelinePosition + 2;
+      const newPosition = useTimelineStore.getState().currentTimelinePosition + 2;
 
       if (newPosition >= 100) {
         pauseTimeline();
@@ -555,7 +561,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
       ref={containerRef}
       className={`h-full flex relative ${isResizing ? 'select-none' : ''}`}
     >
-      {/* Chat Panel (展开时显示) */}
+      {/* Chat Panel (shown when expanded) */}
       <AnimatePresence mode="wait">
         {chatExpanded && (
           <>
@@ -578,7 +584,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
               isAgentThinking={isAgentThinking}
             />
 
-            {/* 拖拽调整宽度的把手 */}
+            {/* Resize handle for dragging panel width */}
             <div
               onMouseDown={handleResizeStart}
               className={`
@@ -592,7 +598,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
         )}
       </AnimatePresence>
 
-      {/* Window Viewer (始终显示，宽度根据 Chat 状态变化) */}
+      {/* Window Viewer (always visible, width adjusts with Chat state) */}
       <motion.div
         className="flex-1 min-w-0 relative"
         layout

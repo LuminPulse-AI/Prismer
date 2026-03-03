@@ -1,10 +1,10 @@
 /**
  * Text Block Layer
  * 
- * 文本段落交互层
- * - 显示段落边界
- * - Hover 1秒后自动翻译
- * - 显示翻译气泡
+ * Text paragraph interaction layer
+ * - Displays paragraph boundaries
+ * - Auto-translates after hovering for 1 second
+ * - Shows translation popup
  */
 
 "use client";
@@ -32,15 +32,15 @@ interface TextBlockLayerProps {
   pageHeight: number;
   scale: number;
   detections: PageDetection | null;
-  /** OCR 图像宽度 (用于坐标转换) */
+  /** OCR image width (for coordinate conversion) */
   ocrImageWidth?: number;
-  /** OCR 图像高度 (用于坐标转换) */
+  /** OCR image height (for coordinate conversion) */
   ocrImageHeight?: number;
   isEnabled: boolean;
   className?: string;
-  /** 当前目标语言 */
+  /** Current target language */
   targetLanguage?: TargetLanguage;
-  /** 语言变更回调 */
+  /** Language change callback */
   onLanguageChange?: (language: TargetLanguage) => void;
 }
 
@@ -56,20 +56,20 @@ interface TranslationPopupProps {
 // Constants
 // ============================================================
 
-const HOVER_DELAY_MS = 2000; // 2秒后触发翻译
+const HOVER_DELAY_MS = 2000; // Trigger translation after 2 seconds
 const TEXT_LABELS = ['text', 'title', 'sub_title'] as const;
 
-// 合并阈值 - 基于实际 OCR 数据分析
-// 段间距通常 27-53px，行间距(截断) 通常 -1 到 19px
+// Merge thresholds - based on actual OCR data analysis
+// Paragraph spacing is typically 27-53px, line spacing (truncated) is typically -1 to 19px
 const MERGE_CONFIG = {
-  /** 垂直间距阈值 (像素) - 小于此值认为是同一段落被截断 */
-  // 只合并非常紧密的行（行间距小于 15px）
+  /** Vertical gap threshold (pixels) - values below this are considered truncated lines within the same paragraph */
+  // Only merge very tightly spaced lines (line spacing less than 15px)
   verticalGapThreshold: 15,
-  /** 水平重叠比例阈值 - 大于此比例认为在同一列 */
+  /** Horizontal overlap ratio threshold - values above this indicate the same column */
   horizontalOverlapRatio: 0.5,
-  /** 最小文本长度 */
+  /** Minimum text length */
   minTextLength: 15,
-  /** 最大合并块数 - 防止过度合并 */
+  /** Maximum number of blocks to merge - prevents over-merging */
   maxMergeCount: 3,
 };
 
@@ -78,13 +78,13 @@ const MERGE_CONFIG = {
 // ============================================================
 
 interface MergedTextBlock {
-  /** 合并后的唯一ID */
+  /** Unique ID after merging */
   id: string;
-  /** 包含的原始检测块 */
+  /** Original detection blocks included */
   detections: Detection[];
-  /** 合并后的文本 */
+  /** Combined text after merging */
   text: string;
-  /** 合并后的边界框 (OCR 像素坐标) */
+  /** Merged bounding box (OCR pixel coordinates) */
   boundingBox: {
     x1_px: number;
     y1_px: number;
@@ -94,14 +94,14 @@ interface MergedTextBlock {
 }
 
 // ============================================================
-// Helper: 合并相邻文本检测块
+// Helper: Merge adjacent text detection blocks
 // ============================================================
 
 /**
- * 检查两个检测块是否应该合并
+ * Check whether two detection blocks should be merged
  */
 function shouldMerge(a: Detection, b: Detection): boolean {
-  // 只合并 text 类型
+  // Only merge text type
   if (a.label !== 'text' || b.label !== 'text') {
     return false;
   }
@@ -120,24 +120,24 @@ function shouldMerge(a: Detection, b: Detection): boolean {
   const bX1 = bBox.x1_px ?? bBox.x1;
   const bX2 = bBox.x2_px ?? bBox.x2;
   
-  // 确定上下关系
+  // Determine upper/lower relationship
   const upper = aY1 < bY1 ? { y1: aY1, y2: aY2, x1: aX1, x2: aX2 } : { y1: bY1, y2: bY2, x1: bX1, x2: bX2 };
   const lower = aY1 < bY1 ? { y1: bY1, y2: bY2, x1: bX1, x2: bX2 } : { y1: aY1, y2: aY2, x1: aX1, x2: aX2 };
   
-  // 计算垂直间距
+  // Calculate vertical gap
   const verticalGap = lower.y1 - upper.y2;
   
-  // 如果间距太大，不合并
+  // If the gap is too large, don't merge
   if (verticalGap > MERGE_CONFIG.verticalGapThreshold) {
     return false;
   }
   
-  // 如果重叠太多（负间距太大），可能是不同列
+  // If there's too much overlap (large negative gap), they may be in different columns
   if (verticalGap < -50) {
     return false;
   }
   
-  // 计算水平重叠
+  // Calculate horizontal overlap
   const overlapLeft = Math.max(aX1, bX1);
   const overlapRight = Math.min(aX2, bX2);
   const horizontalOverlap = Math.max(0, overlapRight - overlapLeft);
@@ -146,7 +146,7 @@ function shouldMerge(a: Detection, b: Detection): boolean {
   const bWidth = bX2 - bX1;
   const minWidth = Math.min(aWidth, bWidth);
   
-  // 水平重叠不够
+  // Insufficient horizontal overlap
   if (horizontalOverlap < minWidth * MERGE_CONFIG.horizontalOverlapRatio) {
     return false;
   }
@@ -155,7 +155,7 @@ function shouldMerge(a: Detection, b: Detection): boolean {
 }
 
 /**
- * 创建合并后的文本块
+ * Create a merged text block
  */
 function createMergedBlock(detections: Detection[]): MergedTextBlock {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -173,7 +173,7 @@ function createMergedBlock(detections: Detection[]): MergedTextBlock {
     maxY = Math.max(maxY, y2);
   }
   
-  // 按 Y 坐标排序后合并文本
+  // Sort by Y coordinate then combine text
   const sortedByY = [...detections].sort((a, b) => {
     const aY = a.boxes[0]?.y1_px ?? a.boxes[0]?.y1 ?? 0;
     const bY = b.boxes[0]?.y1_px ?? b.boxes[0]?.y1 ?? 0;
@@ -200,12 +200,12 @@ function createMergedBlock(detections: Detection[]): MergedTextBlock {
 }
 
 /**
- * 合并相邻的文本检测块
+ * Merge adjacent text detection blocks
  */
 function mergeAdjacentTextBlocks(detections: Detection[]): MergedTextBlock[] {
   if (detections.length === 0) return [];
   
-  // 按 Y 坐标排序
+  // Sort by Y coordinate
   const sorted = [...detections].sort((a, b) => {
     const aY = a.boxes[0]?.y1_px ?? a.boxes[0]?.y1 ?? 0;
     const bY = b.boxes[0]?.y1_px ?? b.boxes[0]?.y1 ?? 0;
@@ -221,17 +221,17 @@ function mergeAdjacentTextBlocks(detections: Detection[]): MergedTextBlock[] {
     const group: Detection[] = [sorted[i]];
     used.add(sorted[i].id);
     
-    // 尝试合并后续的检测块（限制最大合并数量）
+    // Try to merge subsequent detection blocks (limited by max merge count)
     for (let j = i + 1; j < sorted.length && group.length < MERGE_CONFIG.maxMergeCount; j++) {
       if (used.has(sorted[j].id)) continue;
       
-      // 检查是否可以与组内最后一个元素合并
+      // Check if it can be merged with the last element in the group
       const lastInGroup = group[group.length - 1];
       if (shouldMerge(lastInGroup, sorted[j])) {
         group.push(sorted[j]);
         used.add(sorted[j].id);
       } else {
-        // 如果不能合并，停止尝试（因为已按 Y 排序）
+        // If cannot merge, stop trying (since already sorted by Y)
         break;
       }
     }
@@ -239,7 +239,7 @@ function mergeAdjacentTextBlocks(detections: Detection[]): MergedTextBlock[] {
     merged.push(createMergedBlock(group));
   }
   
-  // 过滤掉太短的文本
+  // Filter out text that is too short
   return merged.filter(block => block.text.length >= MERGE_CONFIG.minTextLength);
 }
 
@@ -260,7 +260,7 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  // 加载翻译
+  // Load translation
   useEffect(() => {
     let cancelled = false;
 
@@ -268,7 +268,7 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
       setIsLoading(true);
       setError(null);
 
-      // 检查缓存
+      // Check cache
       const cached = translateService.getFromCache(block.text, targetLanguage);
       if (cached) {
         setTranslation(cached);
@@ -299,7 +299,7 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
     };
   }, [block.text, targetLanguage]);
 
-  // 点击外部关闭
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -313,7 +313,7 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
 
   const currentLang = SUPPORTED_LANGUAGES.find(l => l.code === targetLanguage);
 
-  // 使用原文相同的宽度，或至少 300px
+  // Use the same width as the original text, or at least 350px
   const popupWidth = Math.max(position.width, 350);
 
   return (
@@ -328,12 +328,12 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
         left: position.x,
         top: position.y,
         width: popupWidth,
-        height: position.height, // 使用原文完整高度
-        // 毛玻璃效果
+        height: position.height, // Use the full height of the original text
+        // Frosted glass effect
         background: 'rgba(255, 255, 255, 0.85)',
         backdropFilter: 'blur(12px) saturate(180%)',
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-        // 阴影
+        // Shadow
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
         border: '1px solid rgba(255, 255, 255, 0.6)',
       }}
@@ -397,7 +397,7 @@ const TranslationPopup: React.FC<TranslationPopupProps> = ({
         </div>
       </div>
 
-      {/* Content - 使用全部面积显示 */}
+      {/* Content - uses full area for display */}
       <div className="p-4 flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-full gap-2 text-stone-500">
@@ -449,30 +449,30 @@ const TextBlockOverlay: React.FC<TextBlockOverlayProps> = ({
   const overlayRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 默认 OCR 图像尺寸 (与 ObjectSelectionLayer 保持一致)
+  // Default OCR image dimensions (consistent with ObjectSelectionLayer)
   const ocrWidth = ocrImageWidth || 1122;
   const ocrHeight = ocrImageHeight || 1584;
 
-  // 转换比例：将 OCR 像素坐标转换为 PDF 页面坐标
+  // Conversion ratio: convert OCR pixel coordinates to PDF page coordinates
   const scaleX = pageWidth / ocrWidth;
   const scaleY = pageHeight / ocrHeight;
 
-  // 使用合并后的边界框
+  // Use the merged bounding box
   const box = block.boundingBox;
 
-  // 转换到渲染坐标
+  // Convert to render coordinates
   const x = box.x1_px * scaleX * scale;
   const y = box.y1_px * scaleY * scale;
   const width = (box.x2_px - box.x1_px) * scaleX * scale;
   const height = (box.y2_px - box.y1_px) * scaleY * scale;
 
   const handleMouseEnter = () => {
-    // 清除之前的 timeout
+    // Clear the previous timeout
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
 
-    // 1秒后触发翻译
+    // Trigger translation after delay
     hoverTimeoutRef.current = setTimeout(() => {
       if (overlayRef.current) {
         onHoverStart(block, overlayRef.current.getBoundingClientRect());
@@ -485,7 +485,7 @@ const TextBlockOverlay: React.FC<TextBlockOverlayProps> = ({
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = null;
     }
-    // 不立即关闭，让用户有时间移动到 popup
+    // Don't close immediately, give user time to move to the popup
   };
 
   // Cleanup on unmount
@@ -539,7 +539,7 @@ export const TextBlockLayer: React.FC<TextBlockLayerProps> = ({
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [currentLanguage, setCurrentLanguage] = useState<TargetLanguage>(targetLanguage);
 
-  // 过滤文本类型并智能合并被截断的段落
+  // Filter text types and intelligently merge truncated paragraphs
   const mergedBlocks = useMemo(() => {
     if (!detections?.detections) return [];
     

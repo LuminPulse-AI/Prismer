@@ -1,8 +1,8 @@
 /**
  * Source Matching Service
  * 
- * 将 AI 回答中的引用文本匹配到 PDF 原文位置
- * 实现精准溯源功能
+ * Matches citation text from AI responses to PDF source locations.
+ * Implements precise source tracing functionality.
  */
 
 import {
@@ -14,19 +14,19 @@ import {
 } from '@/types/paperContext';
 
 /**
- * 模糊匹配选项
+ * Fuzzy match options
  */
 interface FuzzyMatchOptions {
-  /** 最小匹配分数 (0-1) */
+  /** Minimum match score (0-1) */
   minScore?: number;
-  /** 是否忽略大小写 */
+  /** Whether to ignore case */
   ignoreCase?: boolean;
-  /** 是否忽略空白字符差异 */
+  /** Whether to ignore whitespace differences */
   ignoreWhitespace?: boolean;
 }
 
 /**
- * 匹配结果
+ * Match result
  */
 interface MatchResult {
   pageNumber: number;
@@ -37,7 +37,7 @@ interface MatchResult {
 }
 
 /**
- * Source Matching Service 实现
+ * Source Matching Service implementation
  */
 export class SourceMatchingService implements ISourceMatchingService {
   private defaultOptions: FuzzyMatchOptions = {
@@ -47,7 +47,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   };
 
   /**
-   * 将文本匹配到 PDF 位置
+   * Match text to PDF location
    */
   matchTextToSource(
     text: string,
@@ -61,19 +61,19 @@ export class SourceMatchingService implements ISourceMatchingService {
       return null;
     }
 
-    // 首先在 markdown 中搜索
+    // First search in markdown
     const pageHits = this.searchInMarkdown(normalizedText, context, opts);
     
     if (pageHits.length === 0) {
       return null;
     }
 
-    // 取最佳匹配
+    // Take best match
     const bestHit = pageHits.reduce((best, current) => 
       current.score > best.score ? current : best
     );
 
-    // 尝试在 detections 中找到精确位置
+    // Try to find precise location in detections
     const bbox = this.findBboxForText(
       text,
       bestHit.pageNumber,
@@ -91,7 +91,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 批量匹配
+   * Batch matching
    */
   matchMultiple(
     texts: string[],
@@ -104,7 +104,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 根据页码和坐标获取文本
+   * Get text by page number and coordinates
    */
   getTextAtPosition(
     pageNumber: number,
@@ -119,7 +119,7 @@ export class SourceMatchingService implements ISourceMatchingService {
       return null;
     }
 
-    // 查找与 bbox 重叠的 detection
+    // Find detection overlapping with bbox
     for (const detection of pageDetections.detections) {
       for (const box of detection.boxes) {
         if (this.boxesOverlap(bbox, box)) {
@@ -132,7 +132,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 在 markdown 内容中搜索
+   * Search in markdown content
    */
   private searchInMarkdown(
     text: string,
@@ -141,13 +141,13 @@ export class SourceMatchingService implements ISourceMatchingService {
   ): MatchResult[] {
     const results: MatchResult[] = [];
 
-    // 按页面搜索
+    // Search by page
     for (const page of context.pages) {
       const pageContent = this.normalizeText(page.content, options);
       const score = this.calculateMatchScore(text, pageContent);
       
       if (score >= (options.minScore || 0.6)) {
-        // 尝试找到最佳匹配的子串
+        // Try to find the best matching substring
         const matchedText = this.findBestMatchingSubstring(text, page.content);
         
         results.push({
@@ -158,12 +158,12 @@ export class SourceMatchingService implements ISourceMatchingService {
       }
     }
 
-    // 按分数排序
+    // Sort by score
     return results.sort((a, b) => b.score - a.score);
   }
 
   /**
-   * 在 detections 中查找精确 bbox
+   * Find precise bbox in detections
    */
   private findBboxForText(
     text: string,
@@ -178,7 +178,7 @@ export class SourceMatchingService implements ISourceMatchingService {
     let bestMatch: { detection: PageDetection['detections'][0]; score: number } | null = null;
 
     for (const detection of pageDetections.detections) {
-      // 跳过非文本类型或无文本内容的检测
+      // Skip non-text types or detections without text content
       if (!['text', 'title', 'sub_title'].includes(detection.label) || !detection.raw_text) {
         continue;
       }
@@ -199,7 +199,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 规范化文本
+   * Normalize text
    */
   private normalizeText(text: string, options: FuzzyMatchOptions): string {
     let normalized = text;
@@ -209,30 +209,30 @@ export class SourceMatchingService implements ISourceMatchingService {
     }
     
     if (options.ignoreWhitespace) {
-      // 将多个空白字符替换为单个空格
+      // Replace multiple whitespace characters with a single space
       normalized = normalized.replace(/\s+/g, ' ').trim();
     }
 
-    // 移除特殊字符
+    // Remove special characters
     normalized = normalized.replace(/[^\w\s]/g, '');
 
     return normalized;
   }
 
   /**
-   * 计算匹配分数 (使用 Jaccard 相似度)
+   * Calculate match score (using Jaccard similarity)
    */
   private calculateMatchScore(query: string, target: string): number {
     if (!query || !target) return 0;
 
-    // 对于短文本，检查是否包含
+    // For short text, check containment
     if (query.length < 50) {
       if (target.includes(query)) {
         return 1.0;
       }
     }
 
-    // 使用 n-gram 相似度
+    // Use n-gram similarity
     const queryGrams = this.getNGrams(query, 3);
     const targetGrams = this.getNGrams(target, 3);
 
@@ -243,7 +243,7 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 获取 n-gram
+   * Get n-grams
    */
   private getNGrams(text: string, n: number): string[] {
     const grams: string[] = [];
@@ -254,10 +254,10 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 找到最佳匹配的子串
+   * Find best matching substring
    */
   private findBestMatchingSubstring(query: string, content: string): string | null {
-    // 简单实现：返回包含查询词的句子
+    // Simple implementation: return the sentence containing query words
     const sentences = content.split(/[.!?]+/);
     const queryWords = query.toLowerCase().split(/\s+/).slice(0, 5);
 
@@ -284,10 +284,10 @@ export class SourceMatchingService implements ISourceMatchingService {
   }
 
   /**
-   * 检查两个 bbox 是否重叠
+   * Check if two bounding boxes overlap
    */
   private boxesOverlap(box1: BoundingBox, box2: BoundingBox): boolean {
-    // 使用像素坐标
+    // Using pixel coordinates
     return !(
       box1.x2_px < box2.x1_px ||
       box1.x1_px > box2.x2_px ||
@@ -298,14 +298,14 @@ export class SourceMatchingService implements ISourceMatchingService {
 }
 
 /**
- * 创建 Source Matching Service 实例
+ * Create Source Matching Service instance
  */
 export function createSourceMatchingService(): ISourceMatchingService {
   return new SourceMatchingService();
 }
 
 /**
- * 单例实例
+ * Singleton instance
  */
 let defaultMatchingService: ISourceMatchingService | null = null;
 

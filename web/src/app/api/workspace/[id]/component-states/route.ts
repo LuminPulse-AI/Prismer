@@ -1,8 +1,8 @@
 /**
  * Workspace Component States API
  *
- * GET    /api/workspace/[id]/component-states        - 获取所有组件状态
- * PATCH  /api/workspace/[id]/component-states        - 更新指定组件状态 (body: { componentType, state })
+ * GET    /api/workspace/[id]/component-states        - Get all component states
+ * PATCH  /api/workspace/[id]/component-states        - Update a specific component state (body: { componentType, state })
  */
 
 import { NextRequest, NextResponse } from 'next/server';

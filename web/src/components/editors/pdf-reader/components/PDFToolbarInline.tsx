@@ -1,8 +1,8 @@
 /**
  * PDF Toolbar Inline
  * 
- * 内嵌在 PDF 容器内的工具栏
- * 布局：左侧(阅读模式) - 中间(搜索) - 右侧(页码+缩放)
+ * Toolbar embedded inside the PDF container.
+ * Layout: Left (reading mode) - Center (search) - Right (page number + zoom)
  */
 
 "use client";
@@ -35,9 +35,9 @@ import {
 export type ReadingMode = "single" | "continuous" | "double";
 
 /**
- * 交互模式（选择粒度）
- * - sentence: 句子/文本块模式 - 选中单个句子或文本块
- * - paragraph: 段落模式 - Hover 整个段落进行操作
+ * Interaction mode (selection granularity)
+ * - sentence: Sentence/text block mode - select individual sentences or text blocks
+ * - paragraph: Paragraph mode - hover over entire paragraphs for operations
  */
 export type InteractionMode = "sentence" | "paragraph";
 
@@ -69,7 +69,7 @@ export interface PDFToolbarInlineProps {
   // Interaction mode (selection vs translate)
   interactionMode?: InteractionMode;
   onInteractionModeChange?: (mode: InteractionMode) => void;
-  /** 是否有 OCR 数据（段落翻译模式需要 OCR 数据） */
+  /** Whether OCR data is available (paragraph translation mode requires OCR data) */
   hasOCRData?: boolean;
   className?: string;
 }
@@ -149,7 +149,7 @@ export const PDFToolbarInline: React.FC<PDFToolbarInlineProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
-  // 切换交互模式（句子/段落）
+  // Toggle interaction mode (sentence/paragraph)
   const handleInteractionModeToggle = useCallback(() => {
     if (!onInteractionModeChange) return;
     const newMode = interactionMode === "sentence" ? "paragraph" : "sentence";

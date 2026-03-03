@@ -1,8 +1,8 @@
 /**
  * VLA Research Demo Data
- * 
- * VLA 模型研究完整演示数据
- * 通过 IDemoDataProvider 接口提供数据
+ *
+ * Complete VLA model research demo data.
+ * Data is provided through the IDemoDataProvider interface.
  */
 
 import type {
@@ -28,7 +28,7 @@ const WORKSPACE_ID = 'workspace-vla-research';
 const USER_ID = 'user-1';
 const USER_NAME = 'Me';
 
-// 基础时间戳 (用于生成连续的时间)
+// Base timestamp (used to generate sequential times)
 const BASE_TIME = new Date('2026-01-29T09:00:00Z').getTime();
 
 // ============================================================
@@ -138,7 +138,7 @@ export class VLAResearchDemoProvider implements IDemoDataProvider {
   }
 
   handleInteraction(componentId: string, actionId: string, data?: unknown): InteractionHandlerResult {
-    // 根据组件 ID 和 action ID 处理交互
+    // Handle interaction based on component ID and action ID
     if (componentId === 'step1-confirm') {
       if (actionId === 'yes') {
         this.interactionState.set('confirmed', true);

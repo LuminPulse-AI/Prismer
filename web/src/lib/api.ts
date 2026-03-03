@@ -29,7 +29,7 @@ class MockApi {
   async post<T>(url: string, data?: unknown, _options?: RequestOptions): Promise<T> {
     console.log("[Mock API] POST:", url, data);
     
-    // 对于 annotation 创建，返回完整的数据（包括发送的数据和生成的 id）
+    // For annotation creation, return full data (including sent data and generated id)
     if (url.includes("/annotations")) {
       const postData = data as Record<string, unknown> || {};
       return { 
@@ -44,7 +44,7 @@ class MockApi {
       } as T;
     }
     
-    // 默认返回带 id 的响应
+    // Default: return response with id
     return { 
       id: `mock-${Date.now()}`,
       ...(data as object || {}),

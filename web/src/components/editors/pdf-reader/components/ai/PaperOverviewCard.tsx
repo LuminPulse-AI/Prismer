@@ -1,7 +1,7 @@
 /**
  * Paper Overview Card
  * 
- * 论文概览卡片 - 30秒了解论文价值
+ * Paper overview card - understand a paper's value in 30 seconds
  */
 
 "use client";
@@ -36,10 +36,10 @@ interface PaperOverviewCardProps {
 // ============================================================
 
 /**
- * 估算阅读时间 (基于页数)
+ * Estimate reading time (based on page count)
  */
 function estimateReadingTime(totalPages: number): string {
-  // 假设平均每页需要 2-3 分钟
+  // Assume an average of 2-3 minutes per page
   const minTime = totalPages * 2;
   const maxTime = totalPages * 3;
   
@@ -57,7 +57,7 @@ function estimateReadingTime(totalPages: number): string {
 }
 
 /**
- * 格式化发布日期
+ * Format the publication date
  */
 function formatDate(dateString: string): string {
   try {
@@ -73,7 +73,7 @@ function formatDate(dateString: string): string {
 }
 
 /**
- * 获取论文类型标签
+ * Get the paper type label
  */
 function getPaperTypeLabel(categories: string[]): string {
   const categoryLower = categories.map(c => c.toLowerCase()).join(' ');
@@ -122,7 +122,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
 
   return (
     <div className={cn('p-4 space-y-4', className)}>
-      {/* 标题和类型 */}
+      {/* Title and type */}
       <div>
         <div className="flex items-start gap-2 mb-2">
           <span className={cn(
@@ -143,7 +143,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         </h2>
       </div>
 
-      {/* 作者 */}
+      {/* Authors */}
       <div className="flex items-start gap-2">
         <Users className="w-4 h-4 mt-0.5 text-stone-500 flex-shrink-0" />
         <p className="text-sm text-stone-700 leading-relaxed">
@@ -152,7 +152,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         </p>
       </div>
 
-      {/* 元信息栏 */}
+      {/* Metadata bar */}
       <div className="flex flex-wrap gap-3 text-sm text-stone-600">
         <div className="flex items-center gap-1">
           <Calendar className="w-4 h-4" />
@@ -168,7 +168,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         </div>
       </div>
 
-      {/* 分类标签 */}
+      {/* Category tags */}
       {metadata.categories.length > 0 && (
         <div className="flex items-start gap-2">
           <Tag className="w-4 h-4 mt-0.5 text-stone-500 flex-shrink-0" />
@@ -185,7 +185,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         </div>
       )}
 
-      {/* 摘要 */}
+      {/* Abstract */}
       <div className="pt-3 border-t border-stone-200">
         <h3 className="text-sm font-medium text-stone-900 mb-2">Abstract</h3>
         <p className="text-sm text-stone-700 leading-relaxed line-clamp-6">
@@ -201,7 +201,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         )}
       </div>
 
-      {/* ArXiv 链接 */}
+      {/* ArXiv link */}
       {metadata.arxiv_id && (
         <div className="pt-2">
           <a
@@ -219,7 +219,7 @@ export const PaperOverviewCard: React.FC<PaperOverviewCardProps> = ({
         </div>
       )}
 
-      {/* OCR 状态提示 */}
+      {/* OCR status notice */}
       {!hasOCRData && (
         <div className={cn(
           'flex items-start gap-2 p-3 rounded-lg',

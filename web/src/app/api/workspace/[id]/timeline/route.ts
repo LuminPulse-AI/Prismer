@@ -1,8 +1,8 @@
 /**
  * Workspace Timeline API
  *
- * GET    /api/workspace/[id]/timeline  - 获取时间线事件
- * POST   /api/workspace/[id]/timeline  - 添加事件
+ * GET    /api/workspace/[id]/timeline  - Get timeline events
+ * POST   /api/workspace/[id]/timeline  - Add an event
  */
 
 import { NextRequest, NextResponse } from 'next/server';

@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * AgentChatPanel - LaTeX 写作助手悬浮对话面板
- * 
- * 特性：
- * - 收起时显示 SiriOrb 动效球
- * - 展开时悬浮圆角矩形
- * - 上翻滚动的行为展示
+ * AgentChatPanel - LaTeX writing assistant floating chat panel
+ *
+ * Features:
+ * - Displays SiriOrb animation when collapsed
+ * - Floating rounded rectangle when expanded
+ * - Scroll-up behavior display
  */
 
 import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
@@ -151,7 +151,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [currentAction, setCurrentAction] = useState<AgentAction | null>(null);
   const [pendingActions, setPendingActions] = useState<AgentAction[]>([]);
-  const [isOpen, setIsOpen] = useState(true); // 默认打开
+  const [isOpen, setIsOpen] = useState(true); // Open by default
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -277,7 +277,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
     setCurrentAction(null);
   }, []);
 
-  // 收起状态 - 显示 SiriOrb 动效球 (在编辑器底部左侧)
+  // Collapsed state - Show SiriOrb animation (at bottom-left of editor)
   if (!isOpen) {
     return (
       <div className={`absolute bottom-3 left-3 z-50 ${className}`}>
@@ -286,7 +286,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
           className="relative group cursor-pointer flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 hover:from-violet-500 hover:to-purple-600 transition-all duration-300 shadow-lg shadow-violet-500/40 hover:shadow-xl hover:shadow-violet-500/50"
           title="AI Writing Assistant"
         >
-          {/* SiriOrb 动效球 - 3x faster */}
+          {/* SiriOrb animation - 3x faster */}
           <SiriOrb 
             size="40px" 
             animationDuration={4}
@@ -298,7 +298,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
             className="drop-shadow-xl transition-transform duration-300 group-hover:scale-110"
           />
           
-          {/* 悬浮提示 */}
+          {/* Hover tooltip */}
           <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
             px-3 py-1.5 bg-slate-800/95 backdrop-blur-sm rounded-xl 
             text-xs text-slate-200 whitespace-nowrap
@@ -311,7 +311,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
             )}
           </div>
           
-          {/* 消息计数角标 */}
+          {/* Message count badge */}
           {messages.length > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-violet-500 text-white text-[10px] 
               rounded-full flex items-center justify-center font-medium shadow-lg
@@ -320,7 +320,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
             </span>
           )}
           
-          {/* 加载状态指示器 */}
+          {/* Loading state indicator */}
           {isLoading && (
             <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full 
               flex items-center justify-center animate-pulse">
@@ -332,11 +332,11 @@ export const AgentChatPanel = memo(function AgentChatPanel({
     );
   }
 
-  // 检查是否有已完成的 action（需要更大空间）
+  // Check if there are completed actions (which need more space)
   const hasCompletedActions = messages.some(m => m.actions?.some(a => a.status === 'completed')) ||
     pendingActions.some(a => a.status === 'completed');
 
-  // 展开状态 - 底部面板，与编辑器宽度一致
+  // Expanded state - Bottom panel, matching the editor width
   return (
     <div 
       className={`absolute bottom-0 left-0 right-0 z-50 flex flex-col 
@@ -354,7 +354,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
         bg-gradient-to-r from-violet-600/20 to-purple-600/20 
         border-b border-slate-700/50">
         <div className="flex items-center gap-2">
-          {/* 小型 SiriOrb 作为图标 - 3x faster */}
+          {/* Small SiriOrb as icon - 3x faster */}
           <SiriOrb 
             size="28px" 
             animationDuration={3}
@@ -401,7 +401,7 @@ export const AgentChatPanel = memo(function AgentChatPanel({
         </div>
       </div>
 
-      {/* Action Display Area - 上翻滚动区域 */}
+      {/* Action Display Area - Scroll-up region */}
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         <div 
           className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scroll-smooth"

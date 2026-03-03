@@ -1,8 +1,8 @@
 /**
  * Demo Flow Types
  * 
- * 演示流程数据接口定义
- * 所有 mock 数据通过这些接口加载，避免硬编码
+ * Demo flow data interface definitions.
+ * All mock data is loaded through these interfaces to avoid hardcoding.
  */
 
 import type {
@@ -20,40 +20,40 @@ import type {
 // ============================================================
 
 /**
- * 演示数据提供者接口
- * 所有 mock 数据必须实现此接口
+ * Demo data provider interface.
+ * All mock data must implement this interface.
  */
 export interface IDemoDataProvider {
-  /** 获取演示流程配置 */
+  /** Get demo flow configuration */
   getDemoFlowConfig(): DemoFlowConfig;
-  
-  /** 获取参与者列表 */
+
+  /** Get participant list */
   getParticipants(): Participant[];
-  
-  /** 获取初始任务列表 */
+
+  /** Get initial task list */
   getInitialTasks(): Task[];
-  
-  /** 获取指定步骤的消息 */
+
+  /** Get messages for a specific step */
   getStepMessages(stepIndex: number): ExtendedChatMessage[];
-  
-  /** 获取指定步骤的时间线事件 */
+
+  /** Get timeline events for a specific step */
   getStepTimelineEvents(stepIndex: number): ExtendedTimelineEvent[];
-  
-  /** 处理交互响应 */
+
+  /** Handle interaction response */
   handleInteraction(componentId: string, actionId: string, data?: unknown): InteractionHandlerResult;
 }
 
 /**
- * 交互处理结果
+ * Interaction handler result
  */
 export interface InteractionHandlerResult {
-  /** 要添加的新消息 */
+  /** New messages to add */
   messages?: ExtendedChatMessage[];
-  /** 要执行的 UI 指令 */
+  /** UI directives to execute */
   uiDirectives?: UIDirective[];
-  /** 要添加的时间线事件 */
+  /** Timeline events to add */
   timelineEvents?: ExtendedTimelineEvent[];
-  /** 是否触发下一步 */
+  /** Whether to trigger the next step */
   triggerNextStep?: boolean;
 }
 
@@ -62,7 +62,7 @@ export interface InteractionHandlerResult {
 // ============================================================
 
 /**
- * Agent 定义
+ * Agent definition
  */
 export interface AgentDefinition {
   id: string;
@@ -107,7 +107,7 @@ export const DEMO_AGENTS: Record<string, AgentDefinition> = {
 // ============================================================
 
 /**
- * 步骤模板定义
+ * Step template definition
  */
 export interface StepTemplate {
   id: string;
@@ -201,14 +201,14 @@ export const VLA_DEMO_STEPS: StepTemplate[] = [
 // ============================================================
 
 /**
- * 生成唯一 ID
+ * Generate a unique ID
  */
 export function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 /**
- * 获取当前时间戳字符串
+ * Get the current timestamp as an ISO string
  */
 export function getTimestamp(): string {
   return new Date().toISOString();

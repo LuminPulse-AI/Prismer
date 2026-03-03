@@ -1,16 +1,16 @@
 /**
  * Agent Logs API
  *
- * GET /api/agents/:id/logs - 获取 Agent 容器日志
+ * GET /api/agents/:id/logs - Get agent container logs
  *
  * @description
- * 返回 Agent 运行容器的日志内容。
- * 支持限制行数和时间过滤。
+ * Returns log content from the agent's running container.
+ * Supports line count limiting and time filtering.
  *
  * Query Parameters:
- * - tail: 返回最后 N 行日志，默认 100
- * - since: Unix 时间戳，只返回该时间之后的日志
- * - timestamps: 是否包含时间戳，默认 false
+ * - tail: Return the last N log lines, defaults to 100
+ * - since: Unix timestamp, only return logs after this time
+ * - timestamps: Whether to include timestamps, defaults to false
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -26,12 +26,12 @@ export async function GET(request: NextRequest, { params }: Params) {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
 
-    // 解析查询参数
+    // Parse query parameters
     const tail = parseInt(searchParams.get('tail') || '100');
     const sinceParam = searchParams.get('since');
     const timestamps = searchParams.get('timestamps') === 'true';
 
-    // 查询 Agent 和 Container
+    // Query Agent and Container
     const agent = await prisma.agentInstance.findUnique({
       where: { id },
       include: { container: true },
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 检查是否有容器
+    // Check if a container exists
     if (!agent.container) {
       return NextResponse.json(
         { success: false, error: 'Agent has no container' },
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   } catch (error) {
     console.error('GET /api/agents/:id/logs error:', error);
 
-    // 处理编排器错误
+    // Handle orchestrator errors
     if (error instanceof OrchestratorError) {
       const status = error.code === 'CONTAINER_NOT_FOUND' ? 404 : 500;
       return NextResponse.json(

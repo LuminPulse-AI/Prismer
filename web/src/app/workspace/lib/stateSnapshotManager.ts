@@ -1,8 +1,8 @@
 /**
  * State Snapshot Manager
  * 
- * 状态快照管理器 - 用于捕获、存储、恢复 UI 状态
- * 支持时间线回放和状态对比
+ * State snapshot manager - captures, stores, and restores UI state.
+ * Supports timeline playback and state comparison.
  */
 
 import type {
@@ -49,7 +49,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 捕获当前状态快照
+   * Capture a snapshot of the current state
    */
   capture(source: StateSource, options?: SnapshotCaptureOptions): StateSnapshot {
     const snapshot: StateSnapshot = {
@@ -72,10 +72,10 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 添加快照
+   * Add a snapshot
    */
   addSnapshot(snapshot: StateSnapshot): void {
-    // 检查是否超出限制
+    // Check if limit is exceeded
     while (this.snapshotOrder.length >= this.maxSnapshots) {
       const oldestId = this.snapshotOrder.shift();
       if (oldestId) {
@@ -88,14 +88,14 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 获取快照
+   * Get a snapshot by ID
    */
   getSnapshot(id: string): StateSnapshot | undefined {
     return this.snapshots.get(id);
   }
 
   /**
-   * 获取所有快照 (按时间排序)
+   * Get all snapshots (sorted by time)
    */
   getAllSnapshots(): StateSnapshot[] {
     return this.snapshotOrder
@@ -104,19 +104,19 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 获取最近的 N 个快照
+   * Get the most recent N snapshots
    */
   getRecentSnapshots(count: number): StateSnapshot[] {
     return this.getAllSnapshots().slice(-count);
   }
 
   /**
-   * 获取某个时间点附近的快照
+   * Get the snapshot closest to a given timestamp
    */
   getSnapshotAtTime(timestamp: number): StateSnapshot | undefined {
     const snapshots = this.getAllSnapshots();
-    
-    // 找到最接近的快照
+
+    // Find the closest snapshot
     let closest: StateSnapshot | undefined;
     let minDiff = Infinity;
 
@@ -132,7 +132,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 获取时间范围内的快照
+   * Get snapshots within a time range
    */
   getSnapshotsInRange(startTime: number, endTime: number): StateSnapshot[] {
     return this.getAllSnapshots().filter(
@@ -141,7 +141,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 比较两个快照的差异
+   * Compare the differences between two snapshots
    */
   compareSnapshots(
     snapshotA: StateSnapshot,
@@ -156,7 +156,7 @@ export class StateSnapshotManager {
       },
     };
 
-    // 比较布局
+    // Compare layout
     const layoutKeys = Object.keys(snapshotA.layout) as (keyof StateSnapshot['layout'])[];
     for (const key of layoutKeys) {
       if (snapshotA.layout[key] !== snapshotB.layout[key]) {
@@ -167,7 +167,7 @@ export class StateSnapshotManager {
       }
     }
 
-    // 比较组件状态
+    // Compare component states
     const allComponents = new Set([
       ...Object.keys(snapshotA.components),
       ...Object.keys(snapshotB.components),
@@ -190,7 +190,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 清空所有快照
+   * Clear all snapshots
    */
   clear(): void {
     this.snapshots.clear();
@@ -198,7 +198,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 删除指定快照
+   * Delete a specific snapshot
    */
   deleteSnapshot(id: string): boolean {
     const index = this.snapshotOrder.indexOf(id);
@@ -211,7 +211,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 导出快照 (用于持久化)
+   * Export snapshots (for persistence)
    */
   export(): { snapshots: StateSnapshot[]; exportedAt: number } {
     return {
@@ -221,7 +221,7 @@ export class StateSnapshotManager {
   }
 
   /**
-   * 导入快照
+   * Import snapshots
    */
   import(data: { snapshots: StateSnapshot[] }): void {
     for (const snapshot of data.snapshots) {
@@ -229,7 +229,7 @@ export class StateSnapshotManager {
     }
   }
 
-  // ==================== 工具方法 ====================
+  // ==================== Utility Methods ====================
 
   private deepClone<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
@@ -272,7 +272,7 @@ export interface SnapshotDiff {
 // ============================================================
 
 /**
- * 创建状态快照管理器
+ * Create a state snapshot manager
  */
 export function createSnapshotManager(maxSnapshots?: number): StateSnapshotManager {
   return new StateSnapshotManager(maxSnapshots);
@@ -285,7 +285,7 @@ export function createSnapshotManager(maxSnapshots?: number): StateSnapshotManag
 let defaultManager: StateSnapshotManager | null = null;
 
 /**
- * 获取默认的快照管理器实例
+ * Get the default snapshot manager instance
  */
 export function getDefaultSnapshotManager(): StateSnapshotManager {
   if (!defaultManager) {

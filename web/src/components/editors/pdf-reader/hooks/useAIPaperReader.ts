@@ -1,8 +1,8 @@
 /**
  * useAIPaperReader Hook
  * 
- * 集成 AI 功能到 PDF Reader 的高层 Hook
- * 管理 Paper Context、Agent Service 和 AI Store 的协调
+ * High-level hook integrating AI features into PDF Reader.
+ * Coordinates Paper Context, Agent Service, and AI Store.
  */
 
 import { useEffect, useCallback, useState, useMemo } from 'react';
@@ -67,9 +67,9 @@ export function useAIPaperReader(
 ): UseAIPaperReaderReturn {
   const [isAgentReady, setIsAgentReady] = useState(false);
   
-  // Paper Context - 注意：主 PDFReader 组件也会调用 usePaperContext
-  // 这里的调用主要是为了同步到 AI Store
-  // usePaperContext 内部会自动在 source 变化时重新加载
+  // Paper Context - Note: the main PDFReader component also calls usePaperContext.
+  // This call is primarily to sync context into the AI Store.
+  // usePaperContext internally reloads automatically when the source changes.
   const {
     context: paperContext,
     loadingState,
@@ -99,8 +99,8 @@ export function useAIPaperReader(
   const agentService = useMemo(() => getDefaultPaperAgentService(), []);
   const sourceMatchingService = useMemo(() => getDefaultSourceMatchingService(), []);
 
-  // 初始化 Agent
-  // 注意：API Key 现在由服务端管理，客户端不需要检查
+  // Initialize Agent
+  // Note: API Key is now managed server-side; no client-side check needed.
   useEffect(() => {
     const initAgent = async () => {
       try {
@@ -126,20 +126,20 @@ export function useAIPaperReader(
     setActivePaper,
   } = useCitationStore();
 
-  // 获取论文 ID
+  // Get paper ID
   const paperId = pdfSource.arxivId || pdfSource.path || 'default';
 
-  // 立即切换活动论文 ID（不等待 OCR 加载）
-  // 这确保 Chat 和 Insights 组件能够立即切换到对应论文的会话/缓存
+  // Immediately switch the active paper ID (without waiting for OCR to load).
+  // This ensures Chat and Insights components can switch to the corresponding session/cache right away.
   useEffect(() => {
     if (paperId && paperId !== 'default') {
       console.log('[useAIPaperReader] Immediately switching active paper ID:', paperId);
-      // 只切换 ID，context 等 OCR 加载后再更新
+      // Only switch the ID; context will be updated after OCR data loads.
       switchToPaper(paperId);
     }
   }, [paperId, switchToPaper]);
 
-  // 当 OCR 数据加载完成时，更新完整的 Paper Context
+  // When OCR data finishes loading, update the full Paper Context.
   useEffect(() => {
     if (paperContext && paperId && paperContext.hasOCRData && paperContext.detections.length > 0) {
       console.log('[useAIPaperReader] Updating paper context with OCR data:', paperId, {
@@ -147,20 +147,20 @@ export function useAIPaperReader(
         detectionsCount: paperContext.detections.length,
         markdownLength: paperContext.markdown?.length || 0,
       });
-      // 更新完整的 context（包含 OCR 数据）
+      // Update the full context (including OCR data).
       switchToPaper(paperId, paperContext);
     }
   }, [paperContext, paperId, paperContext?.hasOCRData, paperContext?.detections?.length, switchToPaper]);
 
-  // 加载检测数据到 Citation Store (用于双向索引)
+  // Load detection data into Citation Store (for bidirectional indexing).
   useEffect(() => {
     if (paperContext.hasOCRData && paperContext.detections.length > 0) {
       console.log('[useAIPaperReader] Loading detections to CitationStore for paper:', paperId);
       
-      // 设置活动论文
+      // Set the active paper.
       setActivePaper(paperId);
       
-      // 加载检测数据 (带 paperId)
+      // Load detection data (with paperId).
       loadDetections(paperContext.detections, paperId);
       
       if (paperContext.metadata) {
@@ -168,20 +168,20 @@ export function useAIPaperReader(
       }
     }
     
-    // 不在卸载时重置 - 保留缓存供切换回来使用
+    // Do not reset on unmount - preserve cache for switching back.
   }, [paperContext.hasOCRData, paperContext.detections, paperContext.metadata, paperId, loadDetections, setMetadata, setActivePaper]);
 
-  // 注意：论文加载现在由 usePaperContext 内部的 effect 处理
-  // 当 pdfSource.arxivId 或 pdfSource.path 变化时会自动重新加载
+  // Note: Paper loading is now handled by the internal effect in usePaperContext.
+  // It automatically reloads when pdfSource.arxivId or pdfSource.path changes.
 
-  // 发送问题
+  // Send question
   const askPaper = useCallback(async (question: string) => {
     if (!isAgentReady || !paperContext.hasOCRData) {
       console.warn('Agent not ready or no OCR data');
       return;
     }
 
-    // 添加用户消息
+    // Add user message
     addChatMessage({
       role: 'user',
       content: question,
@@ -189,7 +189,7 @@ export function useAIPaperReader(
 
     setChatLoading(true);
 
-    // 添加 AI 响应占位符
+    // Add AI response placeholder
     addChatMessage({
       role: 'assistant',
       content: '',
@@ -253,7 +253,7 @@ export function useAIPaperReader(
     setChatError,
   ]);
 
-  // 生成洞察
+  // Generate insights
   const generateInsights = useCallback(async (types?: InsightType[]) => {
     if (!isAgentReady || !paperContext.hasOCRData) {
       console.warn('Agent not ready or no OCR data');
@@ -281,13 +281,13 @@ export function useAIPaperReader(
     setInsightsError,
   ]);
 
-  // 查找文本来源
+  // Find source for text
   const findSourceForText = useCallback((text: string): SourceCitation | null => {
     if (!paperContext.hasOCRData) return null;
     return sourceMatchingService.matchTextToSource(text, paperContext);
   }, [paperContext, sourceMatchingService]);
 
-  // 导航到来源
+  // Navigate to source
   const navigateToSource = useCallback((citation: SourceCitation) => {
     onNavigateToPage?.(citation.pageNumber);
     highlightFromCitation(citation);

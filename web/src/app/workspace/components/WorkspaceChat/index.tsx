@@ -1,19 +1,19 @@
 'use client';
 
 /**
- * WorkspaceChat - 工作区对话面板
+ * WorkspaceChat - Workspace Chat Panel
  *
  * @description
- * 提供完整的研究对话界面，包括：
- * - Header: Agent 状态指示、参与者信息
- * - MessageList: 消息展示与交互
- * - TaskPanel: 任务面板（可折叠）
- * - ActionBar: 快捷操作栏
- * - ChatInput: 消息输入框
+ * Provides a complete research conversation interface, including:
+ * - Header: Agent status indicator, participant info
+ * - MessageList: Message display and interaction
+ * - TaskPanel: Task panel (collapsible)
+ * - ActionBar: Quick action bar
+ * - ChatInput: Message input box
  *
- * Agent 集成:
- * - 通过 AgentStatusBadge 显示当前 Agent 运行状态
- * - 状态变化提供即时视觉反馈
+ * Agent integration:
+ * - Displays current Agent running status via AgentStatusBadge
+ * - State changes provide immediate visual feedback
  *
  * @example
  * ```tsx
@@ -119,7 +119,7 @@ export const WorkspaceChat = memo(function WorkspaceChat({
     setSessionPopoverOpen(false);
   }, [switchToSession]);
 
-  // 滚动到被回复的消息
+  // Scroll to the replied message
   const handleReplyClick = useCallback((messageId: string) => {
     const element = document.getElementById(`message-${messageId}`);
     if (element) {
@@ -129,7 +129,7 @@ export const WorkspaceChat = memo(function WorkspaceChat({
     }
   }, []);
 
-  // 处理交互事件
+  // Handle interaction events
   const handleInteraction = useCallback((event: InteractionEvent) => {
     onInteraction?.(event);
   }, [onInteraction]);

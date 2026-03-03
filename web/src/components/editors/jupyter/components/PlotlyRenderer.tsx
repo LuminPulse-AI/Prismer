@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * PlotlyRenderer - 渲染 Plotly 图表
- * 
- * 动态加载 plotly.js 以减少初始包大小
+ * PlotlyRenderer - Renders Plotly Charts
+ *
+ * Dynamically loads plotly.js to reduce initial bundle size
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -12,7 +12,7 @@ interface PlotlyRendererProps {
   data: unknown;
 }
 
-// Plotly 图表数据类型
+// Plotly chart data type
 interface PlotlyFigure {
   data: Array<Record<string, unknown>>;
   layout?: Record<string, unknown>;
@@ -31,14 +31,14 @@ export default function PlotlyRenderer({ data }: PlotlyRendererProps) {
       if (!containerRef.current || !data) return;
 
       try {
-        // 动态导入 plotly.js
+        // Dynamically import plotly.js
         // @ts-expect-error - plotly.js-dist-min may not be installed
         const Plotly = await import('plotly.js-dist-min').catch(() => null);
         
         if (!mounted) return;
 
         if (!Plotly) {
-          // 如果 plotly 未安装，显示提示
+          // If plotly is not installed, show a message
           setError('Plotly.js not installed. Run: npm install plotly.js-dist-min');
           setIsLoading(false);
           return;
@@ -46,7 +46,7 @@ export default function PlotlyRenderer({ data }: PlotlyRendererProps) {
 
         const figure = data as PlotlyFigure;
         
-        // 合并默认配置
+        // Merge with default config
         const layout = {
           ...figure.layout,
           paper_bgcolor: 'transparent',
@@ -84,7 +84,7 @@ export default function PlotlyRenderer({ data }: PlotlyRendererProps) {
     return () => {
       mounted = false;
       if (containerRef.current) {
-        // 清理 Plotly 实例
+        // Clean up Plotly instance
         // @ts-expect-error - plotly.js-dist-min may not be installed
         import('plotly.js-dist-min')
           .then((Plotly: { purge: (el: HTMLElement) => void }) => {
@@ -103,7 +103,7 @@ export default function PlotlyRenderer({ data }: PlotlyRendererProps) {
         <div className="font-medium">Chart Error</div>
         <div className="text-yellow-400/70 text-xs mt-1">{error}</div>
         
-        {/* 显示原始 JSON 数据 */}
+        {/* Show raw JSON data */}
         <details className="mt-2">
           <summary className="cursor-pointer text-xs text-yellow-400/50 hover:text-yellow-400">
             View raw data

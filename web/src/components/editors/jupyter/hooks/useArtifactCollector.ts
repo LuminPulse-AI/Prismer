@@ -1,8 +1,8 @@
 /**
- * useArtifactCollector - 自动收集 Cell 输出中的 Artifacts
- * 
- * 监听 cell:output 和 cell:executed 事件，
- * 自动检测并添加到 ArtifactStore
+ * useArtifactCollector - Automatically Collect Artifacts from Cell Outputs
+ *
+ * Listens to cell:output and cell:executed events,
+ * automatically detects and adds artifacts to ArtifactStore.
  */
 
 import { useEffect, useCallback, useRef } from 'react';
@@ -13,9 +13,9 @@ import { useNotebookStore } from '../store/notebookStore';
 import type { Output } from '../types';
 
 interface UseArtifactCollectorOptions {
-  /** 是否启用收集 */
+  /** Whether to enable collection */
   enabled?: boolean;
-  /** 执行完成时是否清除旧 Artifacts */
+  /** Whether to clear old artifacts when execution starts */
   clearOnExecute?: boolean;
 }
 
@@ -25,10 +25,10 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
   const addArtifacts = useArtifactStore((state) => state.addArtifacts);
   const clearCellArtifacts = useArtifactStore((state) => state.clearCellArtifacts);
   
-  // 获取 artifacts 用于去重检查
+  // Get artifacts for deduplication check
   const artifactsRef = useRef<Record<string, DetectedArtifact>>({});
   
-  // 订阅 artifacts 变化
+  // Subscribe to artifacts changes
   useEffect(() => {
     return useArtifactStore.subscribe((state) => {
       artifactsRef.current = state.artifacts;
@@ -37,23 +37,23 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
   
   const cells = useNotebookStore((state) => state.cells);
   
-  // 追踪已处理的输出，避免重复
+  // Track processed outputs to avoid duplicates
   const processedOutputs = useRef<Set<string>>(new Set());
 
-  // 处理单个输出
+  // Handle a single output
   const handleOutput = useCallback((data: { cellId: string; output: Output }) => {
     if (!enabled) return;
     
     const { cellId, output } = data;
     
-    // 生成输出标识
+    // Generate output identifier
     const outputKey = `${cellId}_${JSON.stringify(output).slice(0, 100)}`;
     if (processedOutputs.current.has(outputKey)) {
       return;
     }
     processedOutputs.current.add(outputKey);
     
-    // 检测 Artifacts
+    // Detect artifacts
     const cell = cells.find(c => c.id === cellId);
     if (!cell || cell.type !== 'code') return;
     
@@ -68,7 +68,7 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
     }
   }, [enabled, cells, addArtifacts]);
 
-  // 处理执行开始 - 清除旧 Artifacts
+  // Handle execution start - clear old artifacts
   const handleExecuting = useCallback((data: { cellId: string }) => {
     if (!enabled || !clearOnExecute) return;
     
@@ -76,32 +76,32 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
     console.log(`[ArtifactCollector] Clearing artifacts for cell ${cellId}`);
     clearCellArtifacts(cellId);
     
-    // 清除已处理输出的缓存
+    // Clear processed output cache
     const keysToRemove = Array.from(processedOutputs.current)
       .filter(key => key.startsWith(cellId));
     keysToRemove.forEach(key => processedOutputs.current.delete(key));
   }, [enabled, clearOnExecute, clearCellArtifacts]);
 
-  // 处理执行完成 - 扫描所有输出
+  // Handle execution complete - scan all outputs
   const handleExecuted = useCallback((data: { cellId: string; success: boolean }) => {
     if (!enabled) return;
     
     const { cellId, success } = data;
     if (!success) return;
     
-    // 获取 Cell 的所有输出
+    // Get all outputs for the cell
     const cell = cells.find(c => c.id === cellId);
     if (!cell || cell.type !== 'code') return;
     
     const codeCell = cell as { outputs: Output[] };
     
-    // 检测所有输出中的 Artifacts
+    // Detect artifacts in all outputs
     const result = detectAllArtifacts(cellId, codeCell.outputs);
     
     if (result.hasArtifacts) {
       console.log(`[ArtifactCollector] Found ${result.artifacts.length} artifacts after execution`);
       
-      // 避免重复添加 - 使用 ref 中的当前状态
+      // Avoid duplicate additions - use current state from ref
       const currentArtifacts = artifactsRef.current;
       const existing = Object.values(currentArtifacts).filter(
         (a: DetectedArtifact) => a.cellId === cellId
@@ -121,7 +121,7 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
     }
   }, [enabled, cells, addArtifacts]);
 
-  // 订阅事件
+  // Subscribe to events
   useEffect(() => {
     if (!enabled) return;
 
@@ -136,7 +136,7 @@ export function useArtifactCollector(options: UseArtifactCollectorOptions = {}) 
     };
   }, [enabled, handleOutput, handleExecuting, handleExecuted]);
 
-  // 手动扫描所有 Cells
+  // Manually scan all cells
   const scanAllCells = useCallback(() => {
     if (!enabled) return;
 

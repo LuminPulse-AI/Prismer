@@ -1,34 +1,34 @@
 /**
  * Paper Context Types
- * 
- * 定义论文上下文的核心类型，用于 AI-Native PDF Reader
- * 所有类型都是接口化的，支持扩展和自定义
+ *
+ * Core type definitions for paper context, used by the AI-Native PDF Reader.
+ * All types are interface-based, supporting extension and customization.
  */
 
 // ============================================================
-// PDF Source Types - 支持文件和链接
+// PDF Source Types - Supports files and URLs
 // ============================================================
 
 /**
- * PDF 来源类型
+ * PDF source type
  */
 export type PDFSourceType = 'file' | 'url' | 'arxiv' | 'blob';
 
 /**
- * PDF 来源接口 - 统一文件和链接的访问方式
+ * PDF source interface - Unified access for files and URLs
  */
 export interface PDFSource {
   type: PDFSourceType;
-  /** 文件路径或 URL */
+  /** File path or URL */
   path: string;
-  /** ArXiv ID (可选，用于加载预处理的 OCR 数据) */
+  /** ArXiv ID (optional, used to load preprocessed OCR data) */
   arxivId?: string;
-  /** Blob 数据 (当 type 为 'blob' 时) */
+  /** Blob data (when type is 'blob') */
   blob?: Blob;
 }
 
 /**
- * 从不同来源创建 PDFSource 的工厂函数类型
+ * Factory function types for creating PDFSource from different sources
  */
 export interface PDFSourceFactory {
   fromFile: (filePath: string, arxivId?: string) => PDFSource;
@@ -38,19 +38,19 @@ export interface PDFSourceFactory {
 }
 
 // ============================================================
-// OCR Data Types - 来自预处理流水线
+// OCR Data Types - From the preprocessing pipeline
 // ============================================================
 
 /**
- * 边界框坐标
+ * Bounding box coordinates
  */
 export interface BoundingBox {
-  /** 原始坐标 (PDF 单位) */
+  /** Original coordinates (PDF units) */
   x1: number;
   y1: number;
   x2: number;
   y2: number;
-  /** 像素坐标 (用于渲染) */
+  /** Pixel coordinates (for rendering) */
   x1_px: number;
   y1_px: number;
   x2_px: number;
@@ -58,7 +58,7 @@ export interface BoundingBox {
 }
 
 /**
- * 检测标签类型
+ * Detection label type
  */
 export type DetectionLabel = 
   | 'title' 
@@ -77,7 +77,7 @@ export type DetectionLabel =
   | 'diagram';
 
 /**
- * 检测元数据 - 用于图片/表格/公式等特殊内容
+ * Detection metadata - For special content such as images, tables, and equations
  */
 export interface DetectionMetadata {
   image_path?: string | null;
@@ -88,23 +88,23 @@ export interface DetectionMetadata {
 }
 
 /**
- * 单个检测结果 (带唯一ID，支持双向索引)
+ * Single detection result (with unique ID, supports bidirectional indexing)
  */
 export interface Detection {
-  /** 唯一标识符 - 格式: p{page}_{type}_{index} */
+  /** Unique identifier - Format: p{page}_{type}_{index} */
   id: string;
   label: DetectionLabel;
   boxes: BoundingBox[];
-  /** 实际文本内容 (Markdown/LaTeX/HTML table) */
+  /** Actual text content (Markdown/LaTeX/HTML table) */
   text: string;
-  /** 原始文本格式 (兼容旧格式) */
+  /** Raw text format (backward compatible) */
   raw_text?: string;
-  /** 检测元数据 */
+  /** Detection metadata */
   metadata?: DetectionMetadata;
 }
 
 /**
- * 提取的图片信息
+ * Extracted image information
  */
 export interface ExtractedImage {
   detection_id: string;
@@ -116,18 +116,18 @@ export interface ExtractedImage {
 }
 
 /**
- * 页面检测结果
+ * Page detection results
  */
 export interface PageDetection {
   page_number: number;
   detections: Detection[];
-  /** 提取的图片列表 */
+  /** List of extracted images */
   extracted_images?: ExtractedImage[];
   image_count?: number;
 }
 
 /**
- * 页面元信息
+ * Page metadata
  */
 export interface PageMeta {
   page: number;
@@ -137,7 +137,7 @@ export interface PageMeta {
 }
 
 /**
- * 双向索引信息
+ * Bidirectional indexing information
  */
 export interface BidirectionalIndexingInfo {
   detection_ids_count: number;
@@ -146,7 +146,7 @@ export interface BidirectionalIndexingInfo {
 }
 
 /**
- * 论文元数据
+ * Paper metadata
  */
 export interface PaperMetadata {
   arxiv_id: string;
@@ -157,21 +157,21 @@ export interface PaperMetadata {
   updated?: string;
   pdf_url?: string;
   categories: string[];
-  /** OCR 处理时间戳 */
+  /** OCR processing timestamp */
   ocr_timestamp?: string;
   total_pages: number;
   total_processing_time?: number;
   total_detections?: number;
   total_images_extracted?: number;
   page_metas: PageMeta[];
-  /** 双向索引信息 */
+  /** Bidirectional indexing information */
   bidirectional_indexing?: BidirectionalIndexingInfo;
-  /** 扩展字段 */
+  /** Extension fields */
   [key: string]: unknown;
 }
 
 /**
- * 页面内容 (OCR 结果)
+ * Page content (OCR results)
  */
 export interface PageContent {
   page_number: number;
@@ -187,7 +187,7 @@ export interface PageContent {
 }
 
 /**
- * OCR 完整结果
+ * Full OCR result
  */
 export interface OCRResult {
   success: boolean;
@@ -199,7 +199,7 @@ export interface OCRResult {
 }
 
 /**
- * 图像资源
+ * Image asset
  */
 export interface ImageAsset {
   id: string;
@@ -211,45 +211,45 @@ export interface ImageAsset {
 }
 
 // ============================================================
-// Paper Context - 完整的论文上下文
+// Paper Context - Complete paper context
 // ============================================================
 
 /**
- * OCR 数据可用等级
- * - L3_hires: 完整检测 overlay + 图片提取 + 双向索引 + 全文 markdown
- * - L2_fast: 全文 markdown 可用，无检测 overlay
- * - L1_raw: 无 OCR 数据，PDF.js 直接渲染
+ * OCR data availability level
+ * - L3_hires: Full detection overlay + image extraction + bidirectional indexing + full-text markdown
+ * - L2_fast: Full-text markdown available, no detection overlay
+ * - L1_raw: No OCR data, PDF.js direct rendering
  */
 export type OCRLevel = 'L3_hires' | 'L2_fast' | 'L1_raw';
 
 /**
- * 论文上下文 - 包含所有预处理数据
+ * Paper context - Contains all preprocessed data
  */
 export interface PaperContext {
-  /** 来源信息 */
+  /** Source information */
   source: PDFSource;
-  /** 元数据 */
+  /** Metadata */
   metadata: PaperMetadata | null;
-  /** Markdown 全文 */
+  /** Full-text markdown */
   markdown: string;
-  /** 分页内容 */
+  /** Paginated content */
   pages: PageContent[];
-  /** 检测结果 */
+  /** Detection results */
   detections: PageDetection[];
-  /** 图像资源 */
+  /** Image assets */
   images: ImageAsset[];
-  /** 是否有预处理数据 */
+  /** Whether preprocessed data is available */
   hasOCRData: boolean;
-  /** OCR 数据可用等级 */
+  /** OCR data availability level */
   ocrLevel: OCRLevel;
-  /** 加载状态 */
+  /** Loading state */
   loadingState: PaperLoadingState;
-  /** 错误信息 */
+  /** Error message */
   error?: string;
 }
 
 /**
- * 加载状态
+ * Loading state
  */
 export type PaperLoadingState = 
   | 'idle'
@@ -263,7 +263,7 @@ export type PaperLoadingState =
 // ============================================================
 
 /**
- * 洞察类型
+ * Insight type
  */
 export type InsightType = 
   | 'core_problem'
@@ -274,40 +274,40 @@ export type InsightType =
   | 'custom';
 
 /**
- * 来源引用 (支持双向索引)
+ * Source citation (supports bidirectional indexing)
  */
 export interface SourceCitation {
   id: string;
-  /** Detection ID - 用于双向索引 */
+  /** Detection ID - Used for bidirectional indexing */
   detection_id?: string;
-  /** 引用的原文文本 */
+  /** Cited original text */
   text: string;
-  /** 页码 */
+  /** Page number */
   pageNumber: number;
-  /** 精确位置 */
+  /** Precise position */
   bbox?: BoundingBox;
-  /** 章节提示 */
+  /** Section hint */
   sectionHint?: string;
-  /** 匹配置信度 */
+  /** Match confidence */
   confidence?: number;
 }
 
 /**
- * AI 生成内容中的引用 (用于双向索引)
+ * Citation in AI-generated content (for bidirectional indexing)
  */
 export interface Citation {
   /** Detection ID */
   detection_id: string;
-  /** 页码 */
+  /** Page number */
   page_number: number;
-  /** 原文摘录 */
+  /** Original text excerpt */
   excerpt: string;
-  /** 相关度 0-1 */
+  /** Relevance score 0-1 */
   relevance: number;
 }
 
 /**
- * 论文洞察
+ * Paper insight
  */
 export interface PaperInsight {
   id: string;
@@ -317,12 +317,12 @@ export interface PaperInsight {
   citations: SourceCitation[];
   confidence: number;
   generatedAt: number;
-  /** 是否已展开查看详情 */
+  /** Whether details are expanded */
   expanded?: boolean;
 }
 
 /**
- * 聊天消息
+ * Chat message
  */
 export interface ChatMessage {
   id: string;
@@ -330,14 +330,14 @@ export interface ChatMessage {
   content: string;
   citations?: SourceCitation[];
   timestamp: number;
-  /** 是否正在流式输出 */
+  /** Whether streaming output is in progress */
   streaming?: boolean;
-  /** 工具调用记录 */
+  /** Tool call records */
   toolCalls?: ToolCallRecord[];
 }
 
 /**
- * 工具调用记录
+ * Tool call record
  */
 export interface ToolCallRecord {
   id: string;
@@ -348,7 +348,7 @@ export interface ToolCallRecord {
 }
 
 /**
- * 提取类型
+ * Extract type
  */
 export type ExtractType = 
   | 'highlight'
@@ -358,7 +358,7 @@ export type ExtractType =
   | 'ai_insight';
 
 /**
- * 提取内容
+ * Extracted content
  */
 export interface Extract {
   id: string;
@@ -368,9 +368,9 @@ export interface Extract {
   aiExplanation?: string;
   createdAt: number;
   tags: string[];
-  /** 用户注释 */
+  /** User annotation */
   note?: string;
-  /** 高亮颜色 (用于 highlight 类型) */
+  /** Highlight color (for highlight type) */
   color?: string;
 }
 
@@ -379,25 +379,25 @@ export interface Extract {
 // ============================================================
 
 /**
- * Agent 配置
+ * Agent configuration
  */
 export interface AgentConfig {
-  /** 模型名称 */
+  /** Model name */
   model: string;
   /** API Base URL */
   baseUrl: string;
   /** API Key */
   apiKey: string;
-  /** 系统指令 */
+  /** System instructions */
   instructions?: string;
-  /** 温度 */
+  /** Temperature */
   temperature?: number;
-  /** 最大 tokens */
+  /** Max tokens */
   maxTokens?: number;
 }
 
 /**
- * 流式事件类型
+ * Streaming event type
  */
 export type StreamEventType = 
   | 'text_delta'
@@ -409,7 +409,7 @@ export type StreamEventType =
   | 'done';
 
 /**
- * 流式事件
+ * Streaming event
  */
 export interface StreamEvent {
   type: StreamEventType;
@@ -418,13 +418,13 @@ export interface StreamEvent {
 }
 
 /**
- * Paper Agent 服务接口
+ * Paper Agent service interface
  */
 export interface IPaperAgentService {
-  /** 初始化 Agent */
+  /** Initialize the agent */
   initialize(config: AgentConfig): Promise<void>;
-  
-  /** 发送问题并获取流式响应 */
+
+  /** Send a question and receive a streaming response */
   askPaper(
     question: string,
     context: PaperContext,
@@ -432,22 +432,22 @@ export interface IPaperAgentService {
     conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
   ): Promise<void>;
   
-  /** 生成论文洞察 */
+  /** Generate paper insights */
   generateInsights(
     context: PaperContext,
     types?: InsightType[]
   ): Promise<PaperInsight[]>;
   
-  /** 解释图表 */
+  /** Explain a figure */
   explainFigure(
     figureId: string,
     context: PaperContext
   ): Promise<string>;
   
-  /** 取消当前请求 */
+  /** Cancel the current request */
   cancel(): void;
   
-  /** 是否正在处理 */
+  /** Whether processing is in progress */
   isProcessing: boolean;
 }
 
@@ -456,11 +456,11 @@ export interface IPaperAgentService {
 // ============================================================
 
 /**
- * 来源匹配服务接口
+ * Source matching service interface
  */
 export interface ISourceMatchingService {
-  /** 
-   * 将文本匹配到 PDF 位置 
+  /**
+   * Match text to a PDF location
    */
   matchTextToSource(
     text: string,
@@ -468,7 +468,7 @@ export interface ISourceMatchingService {
   ): SourceCitation | null;
   
   /**
-   * 批量匹配
+   * Batch matching
    */
   matchMultiple(
     texts: string[],
@@ -476,7 +476,7 @@ export interface ISourceMatchingService {
   ): SourceCitation[];
   
   /**
-   * 根据页码和坐标获取文本
+   * Get text at a specific page and coordinates
    */
   getTextAtPosition(
     pageNumber: number,
@@ -490,20 +490,20 @@ export interface ISourceMatchingService {
 // ============================================================
 
 /**
- * Paper Context Provider 接口
+ * Paper Context Provider interface
  */
 export interface IPaperContextProvider {
-  /** 从 PDF Source 加载上下文 */
+  /** Load context from a PDF source */
   loadContext(source: PDFSource): Promise<PaperContext>;
   
-  /** 加载 OCR 数据 (如果可用) */
+  /** Load OCR data (if available) */
   loadOCRData(arxivId: string): Promise<{
     metadata: PaperMetadata | null;
     ocrResult: OCRResult | null;
     detections: PageDetection[];
   } | null>;
   
-  /** 检查是否有预处理数据 */
+  /** Check whether preprocessed data is available */
   hasPreprocessedData(arxivId: string): Promise<boolean>;
 }
 
@@ -512,7 +512,7 @@ export interface IPaperContextProvider {
 // ============================================================
 
 /**
- * 创建 PDF Source 的工厂函数
+ * Factory functions for creating PDF sources
  */
 export const createPDFSource: PDFSourceFactory = {
   fromFile: (filePath: string, arxivId?: string): PDFSource => ({
@@ -543,7 +543,7 @@ export const createPDFSource: PDFSourceFactory = {
 };
 
 /**
- * 创建空的 Paper Context
+ * Create an empty Paper Context
  */
 export function createEmptyPaperContext(source: PDFSource): PaperContext {
   return {
@@ -560,14 +560,14 @@ export function createEmptyPaperContext(source: PDFSource): PaperContext {
 }
 
 /**
- * 检测标签是否为可交互类型
+ * Check whether a detection label is an interactive type
  */
 export function isInteractiveLabel(label: DetectionLabel): boolean {
   return ['image', 'table', 'equation'].includes(label);
 }
 
 /**
- * 获取检测标签的显示名称
+ * Get the display name for a detection label
  */
 export function getLabelDisplayName(label: DetectionLabel): string {
   const names: Record<DetectionLabel, string> = {

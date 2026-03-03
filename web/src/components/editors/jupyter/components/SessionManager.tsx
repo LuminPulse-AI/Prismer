@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * SessionManager - Jupyter Session 管理组件
- * 
- * 功能：
- * - 列出所有 sessions
- * - 创建/切换/删除 session
- * - 显示 kernel 状态
+ * SessionManager - Jupyter Session Management Component
+ *
+ * Features:
+ * - List all sessions
+ * - Create/switch/delete sessions
+ * - Display kernel status
  */
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
@@ -29,7 +29,7 @@ import {
 import type { KernelStatus } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface JupyterSession {
@@ -58,7 +58,7 @@ interface SessionManagerProps {
 }
 
 // ============================================================
-// SessionManager 组件
+// SessionManager Component
 // ============================================================
 
 export const SessionManager = memo(function SessionManager({
@@ -77,12 +77,12 @@ export const SessionManager = memo(function SessionManager({
   const [error, setError] = useState<string | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   
-  // 创建对话框
+  // Create dialog
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  // 构建请求头
+  // Build request headers
   const getHeaders = useCallback(() => {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export const SessionManager = memo(function SessionManager({
     return headers;
   }, [token]);
 
-  // 获取 sessions
+  // Fetch sessions
   const fetchSessions = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -116,7 +116,7 @@ export const SessionManager = memo(function SessionManager({
     }
   }, [serverUrl, getHeaders]);
 
-  // 获取 kernels
+  // Fetch kernels
   const fetchKernels = useCallback(async () => {
     try {
       const response = await fetch(`${serverUrl}/api/kernels`, {
@@ -132,12 +132,12 @@ export const SessionManager = memo(function SessionManager({
     }
   }, [serverUrl, getHeaders]);
 
-  // 初始加载
+  // Initial load
   useEffect(() => {
     fetchSessions();
     fetchKernels();
     
-    // 定时刷新
+    // Periodic refresh
     const interval = setInterval(() => {
       fetchSessions();
       fetchKernels();
@@ -146,7 +146,7 @@ export const SessionManager = memo(function SessionManager({
     return () => clearInterval(interval);
   }, [fetchSessions, fetchKernels]);
 
-  // 创建 session
+  // Create session
   const createSession = useCallback(async () => {
     if (!newSessionName.trim()) return;
 
@@ -177,7 +177,7 @@ export const SessionManager = memo(function SessionManager({
     }
   }, [serverUrl, getHeaders, newSessionName, fetchSessions]);
 
-  // 删除 session
+  // Delete session
   const deleteSession = useCallback(async (sessionId: string) => {
     if (!confirm('Are you sure you want to delete this session?')) return;
 
@@ -198,7 +198,7 @@ export const SessionManager = memo(function SessionManager({
     }
   }, [serverUrl, getHeaders, fetchSessions, onSessionDelete]);
 
-  // 获取状态颜色
+  // Get status color
   const getStatusColor = (state: string) => {
     switch (state) {
       case 'idle':
@@ -362,7 +362,7 @@ export const SessionManager = memo(function SessionManager({
 });
 
 // ============================================================
-// SessionItem 组件
+// SessionItem Component
 // ============================================================
 
 interface SessionItemProps {

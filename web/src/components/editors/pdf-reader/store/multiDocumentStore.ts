@@ -1,8 +1,8 @@
 /**
  * Multi-Document Store
  * 
- * 管理多个打开的 PDF 文档的状态
- * 支持：文档打开/关闭、标签切换、独立视图状态
+ * Manages the state of multiple open PDF documents
+ * Supports: document open/close, tab switching, independent view state
  */
 
 import { create } from "zustand";
@@ -21,57 +21,57 @@ export interface DocumentViewState {
 }
 
 export interface DocumentInstance {
-  /** 文档唯一 ID */
+  /** Unique document ID */
   id: string;
-  /** PDF 源信息 */
+  /** PDF source information */
   source: PDFSource;
-  /** 论文上下文（加载后填充） */
+  /** Paper context (populated after loading) */
   paperContext: PaperContext | null;
-  /** 视图状态 */
+  /** View state */
   viewState: DocumentViewState;
-  /** 总页数 */
+  /** Total page count */
   numPages: number;
-  /** 加载状态 */
+  /** Loading state */
   loadingState: "idle" | "loading" | "loaded" | "error";
-  /** 错误信息 */
+  /** Error message */
   error?: string;
-  /** 是否有未保存更改（笔记等） */
+  /** Whether there are unsaved changes (notes, etc.) */
   isDirty: boolean;
-  /** 打开时间戳 */
+  /** Opened timestamp */
   openedAt: number;
 }
 
 export interface MultiDocumentState {
-  /** 已打开的文档 Map */
+  /** Map of opened documents */
   documents: Map<string, DocumentInstance>;
-  /** 当前活动文档 ID */
+  /** Current active document ID */
   activeDocumentId: string | null;
-  /** 文档标签顺序 */
+  /** Document tab order */
   tabOrder: string[];
 }
 
 export interface MultiDocumentActions {
-  /** 打开新文档 */
+  /** Open a new document */
   openDocument: (source: PDFSource) => string;
-  /** 关闭文档 */
+  /** Close a document */
   closeDocument: (id: string) => void;
-  /** 切换活动文档 */
+  /** Switch active document */
   setActiveDocument: (id: string) => void;
-  /** 更新文档视图状态 */
+  /** Update document view state */
   updateViewState: (id: string, state: Partial<DocumentViewState>) => void;
-  /** 设置文档总页数 */
+  /** Set document total page count */
   setDocumentNumPages: (id: string, numPages: number) => void;
-  /** 设置文档 Paper Context */
+  /** Set document Paper Context */
   setDocumentContext: (id: string, context: PaperContext | null) => void;
-  /** 设置文档加载状态 */
+  /** Set document loading state */
   setDocumentLoadingState: (id: string, state: DocumentInstance["loadingState"], error?: string) => void;
-  /** 设置文档脏标记 */
+  /** Set document dirty flag */
   setDocumentDirty: (id: string, isDirty: boolean) => void;
-  /** 调整标签顺序 */
+  /** Reorder tabs */
   reorderTabs: (fromIndex: number, toIndex: number) => void;
-  /** 获取当前活动文档 */
+  /** Get current active document */
   getActiveDocument: () => DocumentInstance | null;
-  /** 重置所有状态 */
+  /** Reset all state */
   reset: () => void;
 }
 
@@ -102,10 +102,10 @@ export const useMultiDocumentStore = create<MultiDocumentState & MultiDocumentAc
     openDocument: (source: PDFSource) => {
       const id = source.arxivId || `doc-${Date.now()}`;
       
-      // 检查是否已打开
+      // Check if already open
       const existingDoc = get().documents.get(id);
       if (existingDoc) {
-        // 如果已打开，直接切换到该文档
+        // If already open, switch to that document directly
         set({ activeDocumentId: id });
         return id;
       }
@@ -141,12 +141,12 @@ export const useMultiDocumentStore = create<MultiDocumentState & MultiDocumentAc
         
         const newTabOrder = state.tabOrder.filter((tabId) => tabId !== id);
         
-        // 如果关闭的是活动文档，切换到下一个
+        // If the closed document is the active one, switch to the next
         let newActiveId = state.activeDocumentId;
         if (state.activeDocumentId === id) {
           const closedIndex = state.tabOrder.indexOf(id);
           if (newTabOrder.length > 0) {
-            // 优先选择右边的，否则选择左边的
+            // Prefer the one on the right, otherwise select the one on the left
             newActiveId = newTabOrder[Math.min(closedIndex, newTabOrder.length - 1)];
           } else {
             newActiveId = null;

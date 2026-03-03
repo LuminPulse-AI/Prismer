@@ -1,11 +1,11 @@
 /**
- * ExecutionManager - 执行管理器
- * 
- * 负责：
- * - 执行队列管理
- * - 自动重试机制
- * - 执行状态追踪
- * - 超时处理
+ * ExecutionManager - Execution Manager
+ *
+ * Responsibilities:
+ * - Execution queue management
+ * - Auto-retry mechanism
+ * - Execution state tracking
+ * - Timeout handling
  */
 
 import { SafetyGuard } from './SafetyGuard';
@@ -14,7 +14,7 @@ import { emit } from '../store/eventBus';
 import type { Output, ExecutionState } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface ExecutionTask {
@@ -68,7 +68,7 @@ export interface ExecutionManagerEvents {
 }
 
 // ============================================================
-// ExecutionManager 类
+// ExecutionManager Class
 // ============================================================
 
 export class ExecutionManager {
@@ -86,8 +86,8 @@ export class ExecutionManager {
     events: ExecutionManagerEvents = {}
   ) {
     this.config = {
-      maxConcurrent: 1,  // Jupyter kernel 单线程
-      defaultTimeout: 60000,  // 60 秒
+      maxConcurrent: 1,  // Jupyter kernel is single-threaded
+      defaultTimeout: 60000,  // 60 seconds
       maxRetries: 3,
       retryDelay: 1000,
       autoRetryOnError: true,
@@ -98,21 +98,21 @@ export class ExecutionManager {
   }
 
   /**
-   * 设置 Jupyter Service
+   * Set Jupyter Service
    */
   setJupyterService(service: JupyterService): void {
     this.jupyterService = service;
   }
 
   /**
-   * 设置 Safety Guard
+   * Set Safety Guard
    */
   setSafetyGuard(guard: SafetyGuard): void {
     this.safetyGuard = guard;
   }
 
   /**
-   * 添加执行任务
+   * Add execution task
    */
   enqueue(
     cellId: string,
@@ -136,7 +136,7 @@ export class ExecutionManager {
       outputs: [],
     };
 
-    // 按优先级插入队列
+    // Insert into queue by priority
     const insertIndex = this.queue.findIndex(t => t.priority < task.priority);
     if (insertIndex === -1) {
       this.queue.push(task);
@@ -151,10 +151,10 @@ export class ExecutionManager {
   }
 
   /**
-   * 取消任务
+   * Cancel task
    */
   cancel(taskId: string): boolean {
-    // 从队列中移除
+    // Remove from queue
     const queueIndex = this.queue.findIndex(t => t.id === taskId);
     if (queueIndex !== -1) {
       this.queue[queueIndex].status = 'cancelled';
@@ -163,11 +163,11 @@ export class ExecutionManager {
       return true;
     }
 
-    // 取消正在运行的任务
+    // Cancel running task
     const runningTask = this.runningTasks.get(taskId);
     if (runningTask) {
       runningTask.status = 'cancelled';
-      // 中断 kernel 执行
+      // Interrupt kernel execution
       this.jupyterService?.interruptKernel();
       return true;
     }
@@ -176,7 +176,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 取消所有任务
+   * Cancel all tasks
    */
   cancelAll(): void {
     this.queue.forEach(t => t.status = 'cancelled');
@@ -187,7 +187,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 处理队列
+   * Process queue
    */
   private async processQueue(): Promise<void> {
     if (this.isProcessing) return;
@@ -205,7 +205,7 @@ export class ExecutionManager {
         const task = this.queue.shift();
         if (!task) break;
 
-        // 安全检查
+        // Safety check
         const safetyCheck = this.safetyGuard.checkCode(task.code);
         if (safetyCheck.blocked) {
           task.status = 'error';
@@ -214,7 +214,7 @@ export class ExecutionManager {
           continue;
         }
 
-        // 执行限制检查
+        // Execution limit check
         const canExecute = this.safetyGuard.canExecute();
         if (!canExecute.allowed) {
           task.status = 'error';
@@ -231,7 +231,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 执行单个任务
+   * Execute a single task
    */
   private async executeTask(task: ExecutionTask): Promise<void> {
     task.status = 'running';
@@ -267,7 +267,7 @@ export class ExecutionManager {
           executionCount: result.executionCount,
         });
       } else {
-        // 检查是否可以重试
+        // Check if retry is possible
         if (this.shouldRetry(task, result.error)) {
           await this.retryTask(task);
         } else {
@@ -312,7 +312,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 带超时的执行
+   * Execute with timeout
    */
   private async executeWithTimeout(task: ExecutionTask): Promise<{
     success: boolean;
@@ -336,13 +336,13 @@ export class ExecutionManager {
 
       const handle = this.jupyterService.execute(task.cellId, task.code);
 
-      // 收集输出
+      // Collect outputs
       handle.onOutput((output) => {
         outputs.push(output);
         task.outputs = outputs;
       });
 
-      // 设置超时
+      // Set timeout
       timeoutId = setTimeout(() => {
         handle.cancel();
         task.status = 'timeout';
@@ -354,7 +354,7 @@ export class ExecutionManager {
         });
       }, task.timeout);
 
-      // 等待完成
+      // Wait for completion
       handle.done
         .then((result) => {
           if (timeoutId) clearTimeout(timeoutId);
@@ -380,7 +380,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 判断是否应该重试
+   * Determine whether to retry
    */
   private shouldRetry(task: ExecutionTask, error?: string): boolean {
     if (!this.config.autoRetryOnError) return false;
@@ -388,7 +388,7 @@ export class ExecutionManager {
     if (task.status === 'cancelled') return false;
     if (task.status === 'timeout') return false;
 
-    // 某些错误不应该重试
+    // Some errors should not be retried
     const nonRetryableErrors = [
       'SyntaxError',
       'IndentationError',
@@ -405,13 +405,13 @@ export class ExecutionManager {
       }
     }
 
-    // 检查安全限制
+    // Check safety limits
     const canRetry = this.safetyGuard.canRetry(task.cellId);
     return canRetry.allowed;
   }
 
   /**
-   * 重试任务
+   * Retry task
    */
   private async retryTask(task: ExecutionTask): Promise<void> {
     task.retryCount++;
@@ -420,16 +420,16 @@ export class ExecutionManager {
     
     this.events.onRetry?.(task, task.retryCount);
 
-    // 延迟后重试
+    // Retry after delay
     await new Promise(resolve => setTimeout(resolve, this.config.retryDelay));
 
-    // 重新加入队列首位
+    // Re-add to front of queue
     this.queue.unshift(task);
     this.events.onQueueChange?.(this.queue);
   }
 
   /**
-   * 获取队列状态
+   * Get queue status
    */
   getQueueStatus(): {
     pending: number;
@@ -446,7 +446,7 @@ export class ExecutionManager {
   }
 
   /**
-   * 获取任务状态
+   * Get task status
    */
   getTask(taskId: string): ExecutionTask | undefined {
     return this.queue.find(t => t.id === taskId) || this.runningTasks.get(taskId);
@@ -454,7 +454,7 @@ export class ExecutionManager {
 }
 
 /**
- * 创建 ExecutionManager 实例
+ * Create an ExecutionManager instance
  */
 export function createExecutionManager(
   config?: Partial<ExecutionManagerConfig>,

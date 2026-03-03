@@ -2,8 +2,8 @@
 
 /**
  * MessageList
- * 
- * 消息列表组件 - 支持多种消息类型、Agent 动作展示和交互组件
+ *
+ * Message list component - Supports multiple message types, Agent action display, and interactive components
  */
 
 import React, { memo, useRef, useEffect, useMemo, useState, useCallback } from 'react';
@@ -16,16 +16,16 @@ import { useTimelineStore } from '../../stores/timelineStore';
 import { AgentThinkingPanel } from './AgentThinkingPanel';
 import type { ExtendedChatMessage, MessageContentType } from '../../types';
 
-// 为 Agent 生成唯一的渐变色
+// Generate unique gradient colors for an Agent
 function generateAgentColors(agentId: string): { c1: string; c2: string; c3: string } {
-  // 使用 ID 的 hash 值来生成颜色
+  // Use the hash value of the ID to generate colors
   let hash = 0;
   for (let i = 0; i < agentId.length; i++) {
     hash = ((hash << 5) - hash) + agentId.charCodeAt(i);
     hash |= 0;
   }
   
-  // 预定义一组美观的配色方案
+  // Predefined set of aesthetically pleasing color schemes
   const colorSchemes = [
     { c1: '#ec4899', c2: '#8b5cf6', c3: '#06b6d4' }, // pink-violet-cyan (default)
     { c1: '#f97316', c2: '#eab308', c3: '#22c55e' }, // orange-yellow-green
@@ -41,7 +41,7 @@ function generateAgentColors(agentId: string): { c1: string; c2: string; c3: str
   return colorSchemes[index];
 }
 
-// Agent 头像组件 - 使用 Siri Orb 变体
+// Agent avatar component - Uses Siri Orb variant
 const AgentAvatar = memo(function AgentAvatar({ 
   agentId, 
   size = 36 
@@ -61,7 +61,7 @@ const AgentAvatar = memo(function AgentAvatar({
   );
 });
 
-// 人类用户头像组件
+// Human user avatar component
 const UserAvatar = memo(function UserAvatar({ 
   name, 
   avatar,
@@ -71,7 +71,7 @@ const UserAvatar = memo(function UserAvatar({
   avatar?: string;
   size?: number;
 }) {
-  // 生成基于名字的颜色
+  // Generate colors based on name
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = ((hash << 5) - hash) + name.charCodeAt(i);
@@ -117,7 +117,7 @@ interface MessageListProps {
   onReplyClick?: (messageId: string) => void;
   onRetry?: (messageId: string) => void;
   onSuggestionClick?: (suggestion: string) => void;
-  /** 是否正在等待 Agent 回复（显示思考动画） */
+  /** Whether waiting for Agent response (shows thinking animation) */
   isAgentThinking?: boolean;
 }
 
@@ -128,7 +128,7 @@ const SUGGESTION_CHIPS = [
   'Summarize this paper',
 ];
 
-// 内容类型图标
+// Content type icon
 const ContentTypeIcon = ({ type }: { type: MessageContentType }) => {
   const iconClass = 'w-3 h-3';
   switch (type) {
@@ -296,7 +296,7 @@ function renderMarkdown(text: string, isUser: boolean): React.ReactNode {
   });
 }
 
-// 渲染消息内容
+// Render message content
 const MessageContent = memo(function MessageContent({ 
   content, 
   contentType,
@@ -329,7 +329,7 @@ const MessageContent = memo(function MessageContent({
     );
   }
 
-  // text / markdown — break-words 防止长行（如 LaTeX）撑破气泡
+  // text / markdown — break-words prevents long lines (e.g. LaTeX) from overflowing the bubble
   return (
     <div className={`text-sm leading-relaxed break-words break-all ${isUser ? 'text-white' : 'text-slate-900'}`}>
       {renderMarkdown(content, isUser)}
@@ -337,7 +337,7 @@ const MessageContent = memo(function MessageContent({
   );
 });
 
-// 引用标签
+// Reference tag
 const ReferenceTag = memo(function ReferenceTag({ 
   reference 
 }: { 
@@ -431,7 +431,7 @@ const MessageBubble = memo(function MessageBubble({
         )}
       </div>
 
-      {/* Content — min-w-0 防止气泡撑破父宽度 */}
+      {/* Content — min-w-0 prevents bubble from overflowing parent width */}
       <div className={`flex-1 min-w-0 max-w-[85%] ${isUser ? 'text-right' : ''}`}>
         {/* Sender info */}
         <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
@@ -569,7 +569,7 @@ export const MessageList = memo(function MessageList({
   const visibleMessageBound = useChatStore((s) => s.visibleMessageBound);
   const isViewingHistory = visibleMessageBound !== null;
 
-  // 自动滚动到底部 (仅在新消息时，或开始思考时)
+  // Auto-scroll to bottom (only on new messages or when thinking starts)
   useEffect(() => {
     if ((messages.length > prevLengthRef.current || isAgentThinking) && containerRef.current) {
       containerRef.current.scrollTo({

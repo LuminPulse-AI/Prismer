@@ -2,8 +2,8 @@
  * LLM Gateway Types
  *
  * @description
- * Phase 3E: LLM 网关类型定义
- * 支持多提供商、用量追踪和成本监控
+ * Phase 3E: LLM gateway type definitions
+ * Supports multi-provider, usage tracking, and cost monitoring
  */
 
 // ============================================================
@@ -11,33 +11,33 @@
 // ============================================================
 
 /**
- * 支持的 LLM 提供商
+ * Supported LLM providers
  */
 export type LLMProvider = 'anthropic' | 'openai' | 'prismer' | 'custom';
 
 /**
- * 模型信息
+ * Model information
  */
 export interface ModelInfo {
   id: string;
   name: string;
   provider: LLMProvider;
-  /** 输入价格 (USD per 1M tokens) */
+  /** Input price (USD per 1M tokens) */
   inputPricePerM: number;
-  /** 输出价格 (USD per 1M tokens) */
+  /** Output price (USD per 1M tokens) */
   outputPricePerM: number;
-  /** 上下文窗口大小 */
+  /** Context window size */
   contextWindow: number;
-  /** 最大输出 tokens */
+  /** Max output tokens */
   maxOutputTokens: number;
-  /** 是否支持推理模式 */
+  /** Whether reasoning mode is supported */
   reasoning?: boolean;
-  /** 是否支持视觉 */
+  /** Whether vision is supported */
   vision?: boolean;
 }
 
 /**
- * 提供商配置
+ * Provider configuration
  */
 export interface ProviderConfig {
   provider: LLMProvider;
@@ -52,72 +52,72 @@ export interface ProviderConfig {
 // ============================================================
 
 /**
- * LLM 使用量记录
+ * LLM usage record
  */
 export interface LLMUsage {
-  /** 请求 ID */
+  /** Request ID */
   requestId: string;
   /** Agent Instance ID */
   agentInstanceId?: string;
-  /** 用户 ID */
+  /** User ID */
   userId?: string;
-  /** 提供商 */
+  /** Provider */
   provider: LLMProvider;
-  /** 模型 */
+  /** Model */
   model: string;
-  /** 输入 tokens */
+  /** Input tokens */
   inputTokens: number;
-  /** 输出 tokens */
+  /** Output tokens */
   outputTokens: number;
-  /** 总 tokens */
+  /** Total tokens */
   totalTokens: number;
-  /** 费用 (USD) */
+  /** Cost (USD) */
   costUsd: number;
-  /** 延迟 (ms) */
+  /** Latency (ms) */
   latencyMs: number;
-  /** 来源组件 */
+  /** Source component */
   component?: string;
-  /** 成功/失败 */
+  /** Success/failure */
   success: boolean;
-  /** 错误信息 */
+  /** Error message */
   error?: string;
-  /** 时间戳 */
+  /** Timestamp */
   timestamp: Date;
 }
 
 /**
- * 使用量统计
+ * Usage statistics
  */
 export interface UsageStats {
-  /** 时间范围 */
+  /** Time period */
   period: {
     start: Date;
     end: Date;
   };
-  /** 总请求数 */
+  /** Total requests */
   totalRequests: number;
-  /** 成功请求数 */
+  /** Successful requests */
   successfulRequests: number;
-  /** 失败请求数 */
+  /** Failed requests */
   failedRequests: number;
-  /** 总输入 tokens */
+  /** Total input tokens */
   totalInputTokens: number;
-  /** 总输出 tokens */
+  /** Total output tokens */
   totalOutputTokens: number;
-  /** 总 tokens */
+  /** Total tokens */
   totalTokens: number;
-  /** 总费用 (USD) */
+  /** Total cost (USD) */
   totalCostUsd: number;
-  /** 平均延迟 (ms) */
+  /** Average latency (ms) */
   avgLatencyMs: number;
-  /** 按模型统计 */
+  /** Statistics by model */
   byModel: Record<string, {
     requests: number;
     inputTokens: number;
     outputTokens: number;
     costUsd: number;
   }>;
-  /** 按组件统计 */
+  /** Statistics by component */
   byComponent: Record<string, {
     requests: number;
     inputTokens: number;
@@ -131,7 +131,7 @@ export interface UsageStats {
 // ============================================================
 
 /**
- * Chat 请求
+ * Chat request
  */
 export interface ChatRequest {
   messages: ChatMessage[];
@@ -139,16 +139,16 @@ export interface ChatRequest {
   stream?: boolean;
   temperature?: number;
   maxTokens?: number;
-  /** 来源组件 (用于追踪) */
+  /** Source component (for tracking) */
   component?: string;
   /** Agent Instance ID */
   agentInstanceId?: string;
-  /** 用户 ID */
+  /** User ID */
   userId?: string;
 }
 
 /**
- * Chat 消息
+ * Chat message
  */
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -156,7 +156,7 @@ export interface ChatMessage {
 }
 
 /**
- * Chat 响应
+ * Chat response
  */
 export interface ChatResponse {
   id: string;
@@ -175,7 +175,7 @@ export interface ChatResponse {
 // ============================================================
 
 /**
- * 模型定价表 (USD per 1M tokens)
+ * Model pricing table (USD per 1M tokens)
  */
 export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   // Anthropic
@@ -195,7 +195,7 @@ export const MODEL_PRICING: Record<string, { input: number; output: number }> = 
 };
 
 /**
- * 计算 API 调用成本
+ * Calculate API call cost
  */
 export function calculateCost(
   model: string,

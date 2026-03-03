@@ -1,15 +1,15 @@
 /**
  * Notebook Store
  *
- * 独立于文档的笔记本管理
- * - 支持跨论文笔记
- * - 来源追溯
- * - 笔记本持久化
+ * Document-independent notebook management
+ * - Supports cross-paper notes
+ * - Source tracing
+ * - Notebook persistence
  *
- * 数据策略：API-first + IndexedDB fallback
- * - 优先通过 /api/v2/notebooks 与后端同步
- * - 后端不可用时回退到本地 IndexedDB
- * - 乐观更新：先更新本地状态，后台同步到 API
+ * Data strategy: API-first + IndexedDB fallback
+ * - Primarily syncs with backend via /api/v2/notebooks
+ * - Falls back to local IndexedDB when backend is unavailable
+ * - Optimistic updates: update local state first, sync to API in background
  */
 
 import { create } from 'zustand';
@@ -25,11 +25,11 @@ const EMPTY_ENTRIES: NoteEntry[] = [];
 const EMPTY_NOTEBOOKS: Notebook[] = [];
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 /**
- * 笔记条目类型
+ * Note entry type
  */
 export type NoteEntryType =
   | 'text'
@@ -41,22 +41,22 @@ export type NoteEntryType =
   | 'chat_excerpt';
 
 /**
- * 笔记条目
+ * Note entry
  */
 export interface NoteEntry {
   id: string;
   type: NoteEntryType;
 
-  /** 内容 (HTML/Markdown) */
+  /** Content (HTML/Markdown) */
   rawContent: string;
 
-  /** 解析后的引用列表 */
+  /** Parsed citation list */
   citations: Citation[];
 
-  /** 主要来源 */
+  /** Primary source */
   source?: Citation;
 
-  /** 用户批注 */
+  /** User annotation */
   annotation?: string;
 
   createdAt: number;
@@ -64,27 +64,27 @@ export interface NoteEntry {
 }
 
 /**
- * 笔记本
+ * Notebook
  */
 export interface Notebook {
   id: string;
   name: string;
   description?: string;
 
-  /** 关联的论文 ID 列表 (来源追溯) */
+  /** Associated paper ID list (source tracing) */
   paperIds: string[];
 
-  /** 笔记条目 */
+  /** Note entries */
   entries: NoteEntry[];
 
-  /** 标签 */
+  /** Tags */
   tags: string[];
 
   createdAt: number;
   updatedAt: number;
 }
 
-/** 后端 Notebook 响应 */
+/** Backend Notebook response */
 interface BackendNotebook {
   id: string;
   name: string;
@@ -98,7 +98,7 @@ interface BackendNotebook {
   notes?: BackendNote[];
 }
 
-/** 后端 Note 响应 */
+/** Backend Note response */
 interface BackendNote {
   id: string;
   title?: string;
@@ -166,17 +166,17 @@ function backendToNotebook(bn: BackendNotebook): Notebook {
 }
 
 // ============================================================
-// Store 状态
+// Store State
 // ============================================================
 
 interface NotebookState {
-  /** 笔记本列表 */
+  /** Notebook list */
   notebooks: Notebook[];
 
-  /** 当前活动笔记本 ID */
+  /** Current active notebook ID */
   activeNotebookId: string | null;
 
-  /** 待导入队列 */
+  /** Import queue */
   importQueue: Array<{
     id: string;
     type: NoteEntryType;
@@ -185,45 +185,45 @@ interface NotebookState {
     timestamp: number;
   }>;
 
-  /** 加载状态 */
+  /** Loading state */
   isLoading: boolean;
 
-  /** 是否有未保存的更改 */
+  /** Whether there are unsaved changes */
   isDirty: boolean;
 
-  /** 同步状态 */
+  /** Sync status */
   _synced: boolean;
 }
 
 interface NotebookActions {
-  // 笔记本管理
+  // Notebook management
   createNotebook: (name: string, description?: string) => Notebook;
   deleteNotebook: (id: string) => void;
   updateNotebook: (id: string, updates: Partial<Notebook>) => void;
   renameNotebook: (id: string, name: string) => void;
 
-  // 切换笔记本
+  // Switch notebook
   setActiveNotebook: (id: string | null) => void;
   getActiveNotebook: () => Notebook | null;
 
-  // 笔记条目管理
+  // Note entry management
   addEntry: (entry: Omit<NoteEntry, 'id' | 'createdAt' | 'citations'>) => void;
   updateEntry: (entryId: string, updates: Partial<NoteEntry>) => void;
   removeEntry: (entryId: string) => void;
   moveEntry: (entryId: string, direction: 'up' | 'down') => void;
 
-  // 导入队列
+  // Import queue
   addToImportQueue: (item: Omit<NotebookState['importQueue'][0], 'id' | 'timestamp'>) => void;
   removeFromImportQueue: (id: string) => void;
   importFromQueue: (id: string) => void;
   importAllFromQueue: () => void;
   clearImportQueue: () => void;
 
-  // 状态管理
+  // State management
   setLoading: (loading: boolean) => void;
   setDirty: (dirty: boolean) => void;
 
-  // 工具方法
+  // Utility methods
   getNotebooksByPaper: (paperId: string) => Notebook[];
   createOrGetDefaultNotebook: () => Notebook;
 
@@ -232,14 +232,14 @@ interface NotebookActions {
 }
 
 // ============================================================
-// Store 实现
+// Store Implementation
 // ============================================================
 
 export const useNotebookStore = create<NotebookState & NotebookActions>()(
   devtools(
     persist(
       (set, get) => ({
-        // 初始状态
+        // Initial state
         notebooks: [],
         activeNotebookId: null,
         importQueue: [],
@@ -269,7 +269,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
         },
 
         // ============================================================
-        // 笔记本管理
+        // Notebook management
         // ============================================================
 
         createNotebook: (name, description) => {
@@ -346,7 +346,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
         },
 
         // ============================================================
-        // 切换笔记本
+        // Switch notebook
         // ============================================================
 
         setActiveNotebook: (id) => {
@@ -360,7 +360,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
         },
 
         // ============================================================
-        // 笔记条目管理
+        // Note entry management
         // ============================================================
 
         addEntry: (entryData) => {
@@ -370,7 +370,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
             return;
           }
 
-          // 解析引用
+          // Parse citations
           const tags = citationTagParser.parse(entryData.rawContent);
           const citations = tags.length > 0
             ? citationMapper.mapToCitations(tags, {
@@ -386,7 +386,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
             createdAt: Date.now(),
           };
 
-          // 更新关联的论文列表
+          // Update associated paper list
           const paperIds = new Set(notebook.paperIds);
           if (entry.source?.paperId) {
             paperIds.add(entry.source.paperId);
@@ -435,7 +435,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
           const notebook = get().getActiveNotebook();
           if (!notebook) return;
 
-          // 如果更新了内容，重新解析引用
+          // If content was updated, re-parse citations
           let updatedCitations = updates.citations;
           if (updates.rawContent && !updates.citations) {
             const tags = citationTagParser.parse(updates.rawContent);
@@ -512,7 +512,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
         },
 
         // ============================================================
-        // 导入队列
+        // Import queue
         // ============================================================
 
         addToImportQueue: (item) => {
@@ -560,14 +560,14 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
         },
 
         // ============================================================
-        // 状态管理
+        // State management
         // ============================================================
 
         setLoading: (loading) => set({ isLoading: loading }),
         setDirty: (dirty) => set({ isDirty: dirty }),
 
         // ============================================================
-        // 工具方法
+        // Utility methods
         // ============================================================
 
         getNotebooksByPaper: (paperId) => {
@@ -578,13 +578,13 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
           let notebook = get().getActiveNotebook();
 
           if (!notebook) {
-            // 查找最近更新的笔记本
+            // Find the most recently updated notebook
             const notebooks = get().notebooks.sort((a, b) => b.updatedAt - a.updatedAt);
             notebook = notebooks[0];
           }
 
           if (!notebook) {
-            // 创建默认笔记本
+            // Create default notebook
             notebook = get().createNotebook('Research Notes', 'Default notebook for research notes');
           } else {
             get().setActiveNotebook(notebook.id);
@@ -596,7 +596,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
       {
         name: 'notebook-storage',
         version: 1,
-        // 使用用户隔离存储，未登录用户不保存笔记本
+        // Use user-isolated storage; unauthenticated users do not persist notebooks
         storage: createUserIsolatedStorage('notebook-storage', true),
         partialize: (state) => ({
           notebooks: state.notebooks,
@@ -621,7 +621,7 @@ export const useNotebookStore = create<NotebookState & NotebookActions>()(
 // ============================================================
 
 /**
- * 获取活动笔记本
+ * Get active notebook
  */
 export function useActiveNotebook(): Notebook | null {
   return useNotebookStore(state => {
@@ -631,7 +631,7 @@ export function useActiveNotebook(): Notebook | null {
 }
 
 /**
- * 获取活动笔记本的条目
+ * Get entries for the active notebook
  */
 export function useNotebookEntries(): NoteEntry[] {
   return useNotebookStore(
@@ -644,14 +644,14 @@ export function useNotebookEntries(): NoteEntry[] {
 }
 
 /**
- * 获取导入队列
+ * Get import queue
  */
 export function useImportQueue() {
   return useNotebookStore(state => state.importQueue);
 }
 
 /**
- * 获取所有笔记本
+ * Get all notebooks
  */
 export function useNotebooks(): Notebook[] {
   return useNotebookStore(
@@ -663,7 +663,7 @@ export function useNotebooks(): Notebook[] {
 }
 
 /**
- * 清除所有笔记本（用于登出时）
+ * Clear all notebooks (used on logout)
  */
 export function clearAllNotebooks(): void {
   useNotebookStore.setState({

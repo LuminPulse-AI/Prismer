@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * AgentCell - AI Agent 响应组件
- * 
- * 显示 Agent 的回复，包括：
- * - 文本回复（Markdown）
- * - 代码建议（带确认执行功能）
- * - 思考过程
+ * AgentCell - AI Agent Response Component
+ *
+ * Displays the Agent's reply, including:
+ * - Text responses (Markdown)
+ * - Code suggestions (with confirm-to-execute)
+ * - Thinking process
  */
 
 import React, { useState } from 'react';
@@ -77,7 +77,7 @@ export function AgentCell({ cell, onExecuteCode, onInsertCode }: AgentCellProps)
 }
 
 // ============================================================
-// 子组件
+// Sub-components
 // ============================================================
 
 function ThinkingSection({ content }: { content: string }) {

@@ -1,10 +1,10 @@
 /**
  * Context Builder
  * 
- * 构建多论文上下文用于 AI 对话
- * - 支持单论文和多论文模式
- * - Token 预算管理
- * - 智能压缩
+ * Builds multi-paper context for AI conversations
+ * - Supports single and multi-paper modes
+ * - Token budget management
+ * - Smart compression
  */
 
 import { PaperContext, PageDetection, Detection, PaperMetadata } from '@/types/paperContext';
@@ -13,11 +13,11 @@ import { paperAliasAssigner } from './citationMapper';
 import { ChatMessage } from '../store/chatSessionStore';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 /**
- * 论文上下文输入
+ * Paper context input
  */
 export interface PaperContextInput {
   id: string;
@@ -27,60 +27,60 @@ export interface PaperContextInput {
 }
 
 /**
- * 上下文构建选项
+ * Context build options
  */
 export interface ContextBuildOptions {
-  /** 目标论文列表 */
+  /** Target paper list */
   papers: PaperContextInput[];
   
-  /** 用户选择 */
+  /** User selection */
   selection?: {
     paperId: string;
     detectionIds: string[];
     expandRadius?: number;
   };
   
-  /** 会话历史 */
+  /** Conversation history */
   conversationHistory?: ChatMessage[];
   historyLimit?: number;
   
-  /** Token 限制 */
+  /** Token limit */
   maxTokens: number;
   
-  /** 包含选项 */
+  /** Include options */
   includeFigures: boolean;
   includeEquations: boolean;
   includeReferences: boolean;
 }
 
 /**
- * 构建结果
+ * Build result
  */
 export interface BuiltContext {
-  /** 系统提示词 */
+  /** System prompt */
   systemPrompt: string;
   
-  /** 用户上下文 */
+  /** Paper context */
   paperContext: string;
   
-  /** 论文别名映射 */
+  /** Paper alias mapping */
   paperAliasMap: PaperAliasMap;
   
-  /** 估算 Token 数 */
+  /** Estimated token count */
   estimatedTokens: number;
   
-  /** 模式 */
+  /** Mode */
   mode: 'single' | 'multi';
   
-  /** Detection ID 到论文的映射 */
+  /** Detection ID to paper mapping */
   detectionToPaper: Map<string, string>;
 }
 
 // ============================================================
-// 常量
+// Constants
 // ============================================================
 
-const TOKENS_PER_CHAR = 0.25; // 粗略估算
+const TOKENS_PER_CHAR = 0.25; // Rough estimate
 
 const SECTION_PRIORITIES: Record<string, number> = {
   title: 1.0,
@@ -96,32 +96,32 @@ const SECTION_PRIORITIES: Record<string, number> = {
 };
 
 // ============================================================
-// ContextBuilder 类
+// ContextBuilder Class
 // ============================================================
 
 export class ContextBuilder {
   /**
-   * 构建完整上下文
+   * Build complete context
    */
   build(options: ContextBuildOptions): BuiltContext {
     const { papers } = options;
     const isMultiPaper = papers.length > 1;
     
-    // 分配论文别名
+    // Assign paper aliases
     const paperIds = papers.map(p => p.id);
     const paperAliasMap = paperAliasAssigner.assignAliases(paperIds);
     
-    // 构建系统提示词
+    // Build system prompt
     const systemPrompt = this.buildSystemPrompt(papers, paperAliasMap, isMultiPaper);
-    
-    // 构建论文上下文
+
+    // Build paper context
     const { paperContext, detectionToPaper } = this.buildPaperContext(
       papers,
       paperAliasMap,
       options
     );
     
-    // 估算 Token
+    // Estimate tokens
     const totalChars = systemPrompt.length + paperContext.length;
     const estimatedTokens = Math.ceil(totalChars * TOKENS_PER_CHAR);
     
@@ -136,7 +136,7 @@ export class ContextBuilder {
   }
   
   /**
-   * 构建系统提示词
+   * Build system prompt
    */
   private buildSystemPrompt(
     papers: PaperContextInput[],
@@ -145,13 +145,13 @@ export class ContextBuilder {
   ): string {
     const lines: string[] = [];
     
-    // 角色定义
+    // Role definition
     lines.push('# Role');
     lines.push('');
     lines.push('You are an expert academic paper analyst. Your task is to help users understand and analyze research papers.');
     lines.push('');
     
-    // 论文标识
+    // Paper identification
     lines.push('# Papers in This Session');
     lines.push('');
     
@@ -162,7 +162,7 @@ export class ContextBuilder {
     }
     lines.push('');
     
-    // 引用格式
+    // Citation format
     lines.push('# Citation Format');
     lines.push('');
     
@@ -183,7 +183,7 @@ export class ContextBuilder {
     }
     lines.push('');
     
-    // 输出要求
+    // Output guidelines
     lines.push('# Output Guidelines');
     lines.push('');
     lines.push('1. Provide accurate, well-structured responses');
@@ -196,7 +196,7 @@ export class ContextBuilder {
   }
   
   /**
-   * 构建论文上下文
+   * Build paper context
    */
   private buildPaperContext(
     papers: PaperContextInput[],
@@ -207,7 +207,7 @@ export class ContextBuilder {
     const detectionToPaper = new Map<string, string>();
     const isMultiPaper = papers.length > 1;
     
-    // 计算每篇论文的 token 预算
+    // Calculate token budget per paper
     const primaryPapers = papers.filter(p => p.priority === 'primary');
     const referencePapers = papers.filter(p => p.priority === 'reference');
     
@@ -223,7 +223,7 @@ export class ContextBuilder {
       lines.push(`## [Paper ${alias}] ${paper.title}`);
       lines.push('');
       
-      // 构建论文内容
+      // Build paper content
       const content = this.buildSinglePaperContext(
         paper,
         alias || 'A',
@@ -244,7 +244,7 @@ export class ContextBuilder {
   }
   
   /**
-   * 构建单篇论文的上下文
+   * Build context for a single paper
    */
   private buildSinglePaperContext(
     paper: PaperContextInput,
@@ -260,16 +260,16 @@ export class ContextBuilder {
     
     const { context } = paper;
     
-    // 添加元数据
+    // Add metadata
     if (context.metadata) {
       const meta = context.metadata;
       lines.push(`**Authors**: ${meta.authors?.join(', ') || 'Unknown'}`);
       if (meta.arxivId) lines.push(`**ArXiv**: ${meta.arxivId}`);
       lines.push('');
-      currentChars += 200; // 估算
+      currentChars += 200; // Estimate
     }
     
-    // 处理 detections
+    // Process detections
     if (context.detections && context.detections.length > 0) {
       const allDetections: Array<{ detection: Detection; pageNum: number }> = [];
       
@@ -282,32 +282,32 @@ export class ContextBuilder {
         }
       }
       
-      // 按优先级排序
+      // Sort by priority
       const sortedDetections = this.prioritizeDetections(allDetections, options);
       
-      // 添加 detections
+      // Add detections
       let currentSection = '';
       
       for (const { detection, pageNum } of sortedDetections) {
         if (currentChars >= charBudget) break;
         
-        // 过滤类型
+        // Filter by type
         if (!options.includeFigures && detection.label === 'image') continue;
         if (!options.includeEquations && detection.label === 'equation') continue;
         if (!options.includeReferences && detection.label === 'reference') continue;
         
-        // 获取内容
+        // Get content
         const text = detection.raw_text || detection.text || '';
         if (!text || text.length < 10) continue;
         
-        // 构建 ID
+        // Build ID
         const detectionId = detection.id || `p${pageNum}_${detection.label}_0`;
         const fullId = isMultiPaper ? `${alias}:${detectionId}` : detectionId;
         
-        // 记录映射
+        // Record mapping
         detectionToPaper.set(detectionId, paper.id);
         
-        // 检查是否需要新的章节标题
+        // Check if a new section heading is needed
         const sectionLabel = this.getSectionLabel(detection.label);
         if (sectionLabel && sectionLabel !== currentSection) {
           currentSection = sectionLabel;
@@ -315,15 +315,15 @@ export class ContextBuilder {
           lines.push('');
         }
         
-        // 添加内容
-        const truncatedText = text.slice(0, 1000); // 单个 detection 最大长度
+        // Add content
+        const truncatedText = text.slice(0, 1000); // Max length per detection
         lines.push(`${fullId}: ${truncatedText}`);
         lines.push('');
         
         currentChars += truncatedText.length + 50;
       }
     } else if (context.markdown) {
-      // 使用 Markdown 作为后备
+      // Use markdown as fallback
       const truncated = context.markdown.slice(0, charBudget);
       lines.push(truncated);
     }
@@ -332,14 +332,14 @@ export class ContextBuilder {
   }
   
   /**
-   * 按优先级排序 detections
+   * Sort detections by priority
    */
   private prioritizeDetections(
     detections: Array<{ detection: Detection; pageNum: number }>,
     options: ContextBuildOptions
   ): Array<{ detection: Detection; pageNum: number }> {
     return [...detections].sort((a, b) => {
-      // 如果有选择，优先选中的
+      // If there is a selection, prioritize selected items
       if (options.selection) {
         const aSelected = options.selection.detectionIds.includes(a.detection.id || '');
         const bSelected = options.selection.detectionIds.includes(b.detection.id || '');
@@ -347,18 +347,18 @@ export class ContextBuilder {
         if (bSelected && !aSelected) return 1;
       }
       
-      // 按类型优先级
+      // By type priority
       const aPriority = this.getLabelPriority(a.detection.label);
       const bPriority = this.getLabelPriority(b.detection.label);
       if (aPriority !== bPriority) return bPriority - aPriority;
       
-      // 按页码
+      // By page number
       return a.pageNum - b.pageNum;
     });
   }
   
   /**
-   * 获取标签优先级
+   * Get label priority
    */
   private getLabelPriority(label: string): number {
     switch (label) {
@@ -374,12 +374,12 @@ export class ContextBuilder {
   }
   
   /**
-   * 获取章节标签
+   * Get section label
    */
   private getSectionLabel(label: string): string | null {
     switch (label) {
       case 'title': return 'Title';
-      case 'sub_title': return null; // 使用实际标题
+      case 'sub_title': return null; // Use the actual title
       case 'text': return null;
       case 'equation': return 'Equations';
       case 'table': return 'Tables';
@@ -390,7 +390,7 @@ export class ContextBuilder {
   }
   
   /**
-   * 构建会话历史上下文
+   * Build conversation history context
    */
   buildConversationContext(
     messages: ChatMessage[],
@@ -404,7 +404,7 @@ export class ContextBuilder {
     
     for (const msg of recentMessages) {
       const role = msg.role === 'user' ? 'User' : 'Assistant';
-      // 去除标签以节省 token
+      // Strip tags to save tokens
       const content = msg.rawContent.replace(/\[\[.*?\]\]/g, '[citation]');
       const truncated = content.slice(0, 500);
       lines.push(`**${role}**: ${truncated}`);
@@ -416,7 +416,7 @@ export class ContextBuilder {
 }
 
 // ============================================================
-// 单例导出
+// Singleton Export
 // ============================================================
 
 export const contextBuilder = new ContextBuilder();

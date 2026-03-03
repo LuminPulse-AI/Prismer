@@ -1,19 +1,19 @@
 /**
- * ArtifactDetector - 从 Cell 输出中检测和提取 Artifacts
- * 
- * 支持检测：
- * - 图片 (PNG, JPEG, SVG, GIF)
- * - DataFrame (HTML 表格)
- * - Plotly 图表
- * - Matplotlib 图表
- * - 文件引用
+ * ArtifactDetector - Detect and Extract Artifacts from Cell Outputs
+ *
+ * Supported detections:
+ * - Images (PNG, JPEG, SVG, GIF)
+ * - DataFrames (HTML tables)
+ * - Plotly charts
+ * - Matplotlib charts
+ * - File references
  */
 
 import type { Output, MimeBundle } from '../types';
 import type { DetectedArtifact, ArtifactType, ArtifactMetadata } from '../store/artifactStore';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface DetectionResult {
@@ -29,7 +29,7 @@ export class ArtifactDetector {
   private idCounter = 0;
 
   /**
-   * 从单个 Output 中检测 Artifacts
+   * Detect artifacts from a single output
    */
   detect(cellId: string, output: Output, outputIndex: number): DetectedArtifact[] {
     const artifacts: DetectedArtifact[] = [];
@@ -37,7 +37,7 @@ export class ArtifactDetector {
     if (output.type === 'display_data' || output.type === 'execute_result') {
       const data = output.data as MimeBundle;
 
-      // 检测 PNG 图片
+      // Detect PNG images
       if (data['image/png']) {
         const artifact = this.createImageArtifact(
           cellId, outputIndex, 'image/png', data['image/png'] as string
@@ -45,7 +45,7 @@ export class ArtifactDetector {
         if (artifact) artifacts.push(artifact);
       }
 
-      // 检测 JPEG 图片
+      // Detect JPEG images
       if (data['image/jpeg']) {
         const artifact = this.createImageArtifact(
           cellId, outputIndex, 'image/jpeg', data['image/jpeg'] as string
@@ -53,7 +53,7 @@ export class ArtifactDetector {
         if (artifact) artifacts.push(artifact);
       }
 
-      // 检测 SVG 图片
+      // Detect SVG images
       if (data['image/svg+xml']) {
         const artifact = this.createSVGArtifact(
           cellId, outputIndex, data['image/svg+xml'] as string
@@ -61,7 +61,7 @@ export class ArtifactDetector {
         if (artifact) artifacts.push(artifact);
       }
 
-      // 检测 GIF 图片
+      // Detect GIF images
       if (data['image/gif']) {
         const artifact = this.createImageArtifact(
           cellId, outputIndex, 'image/gif', data['image/gif'] as string
@@ -69,7 +69,7 @@ export class ArtifactDetector {
         if (artifact) artifacts.push(artifact);
       }
 
-      // 检测 Plotly 图表
+      // Detect Plotly charts
       if (data['application/vnd.plotly.v1+json']) {
         const artifact = this.createPlotlyArtifact(
           cellId, outputIndex, data['application/vnd.plotly.v1+json'] as object
@@ -77,7 +77,7 @@ export class ArtifactDetector {
         if (artifact) artifacts.push(artifact);
       }
 
-      // 检测 DataFrame (HTML 表格)
+      // Detect DataFrame (HTML table)
       if (data['text/html']) {
         const html = data['text/html'] as string;
         if (this.isDataFrame(html)) {
@@ -93,7 +93,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 从多个 Outputs 中检测所有 Artifacts
+   * Detect all artifacts from multiple outputs
    */
   detectAll(cellId: string, outputs: Output[]): DetectionResult {
     const artifacts: DetectedArtifact[] = [];
@@ -110,7 +110,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 创建图片 Artifact
+   * Create image artifact
    */
   private createImageArtifact(
     cellId: string,
@@ -144,7 +144,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 创建 SVG Artifact
+   * Create SVG artifact
    */
   private createSVGArtifact(
     cellId: string,
@@ -175,7 +175,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 创建 Plotly 图表 Artifact
+   * Create Plotly chart artifact
    */
   private createPlotlyArtifact(
     cellId: string,
@@ -204,7 +204,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 创建 DataFrame Artifact
+   * Create DataFrame artifact
    */
   private createDataFrameArtifact(
     cellId: string,
@@ -235,14 +235,14 @@ export class ArtifactDetector {
   }
 
   /**
-   * 检测是否是 DataFrame HTML
+   * Check if HTML is a DataFrame
    */
   private isDataFrame(html: string): boolean {
-    // pandas DataFrame 特征
+    // pandas DataFrame characteristics
     if (html.includes('dataframe') || html.includes('DataFrame')) {
       return true;
     }
-    // 通用表格检测
+    // Generic table detection
     if (html.includes('<table') && html.includes('<thead') && html.includes('<tbody')) {
       return true;
     }
@@ -250,7 +250,7 @@ export class ArtifactDetector {
   }
 
   /**
-   * 生成唯一 ID
+   * Generate unique ID
    */
   private generateId(): string {
     this.idCounter++;
@@ -258,24 +258,24 @@ export class ArtifactDetector {
   }
 
   /**
-   * 估算 Base64 数据大小
+   * Estimate Base64 data size
    */
   private estimateBase64Size(base64: string): number {
-    // Base64 编码约增加 33% 大小
+    // Base64 encoding increases size by ~33%
     return Math.floor((base64.length * 3) / 4);
   }
 
   /**
-   * 提取图片尺寸 (简化实现)
+   * Extract image dimensions (simplified implementation)
    */
   private extractImageDimensions(base64: string, mimeType: string): { width?: number; height?: number } {
-    // 对于 PNG，可以从 header 中提取
-    // 这里简化处理，返回未知
+    // For PNG, dimensions could be extracted from the header
+    // Simplified here, returns unknown
     return {};
   }
 
   /**
-   * 提取 SVG 尺寸
+   * Extract SVG dimensions
    */
   private extractSVGDimensions(svg: string): { width?: number; height?: number } {
     const widthMatch = svg.match(/width="(\d+)/);
@@ -288,30 +288,30 @@ export class ArtifactDetector {
   }
 
   /**
-   * 提取表格尺寸
+   * Extract table dimensions
    */
   private extractTableDimensions(html: string): { rows?: number; columns?: number } {
     const rowMatches = html.match(/<tr/g);
     const headerMatches = html.match(/<th/g);
     
     return {
-      rows: rowMatches ? Math.max(0, rowMatches.length - 1) : undefined, // 减去 header 行
+      rows: rowMatches ? Math.max(0, rowMatches.length - 1) : undefined, // Subtract header row
       columns: headerMatches ? headerMatches.length : undefined,
     };
   }
 
   /**
-   * 创建缩略图 (简化实现)
+   * Create thumbnail (simplified implementation)
    */
   private createThumbnail(base64: string, mimeType: string): string | undefined {
-    // 直接使用原图作为缩略图
-    // 生产环境可以使用 canvas 缩放
+    // Use original image as thumbnail directly
+    // Production environments can use canvas for scaling
     return `data:${mimeType};base64,${base64}`;
   }
 }
 
 // ============================================================
-// 单例导出
+// Singleton Export
 // ============================================================
 
 export const artifactDetector = new ArtifactDetector();

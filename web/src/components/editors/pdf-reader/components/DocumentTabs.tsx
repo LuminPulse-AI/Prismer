@@ -1,8 +1,8 @@
 /**
  * Document Tabs Component
  * 
- * 多文档标签页组件
- * 支持：切换、关闭、添加文档
+ * Multi-document tab component.
+ * Supports: switching, closing, and adding documents.
  */
 
 "use client";
@@ -23,30 +23,30 @@ import {
 // ============================================================
 
 export interface OpenDocument {
-  /** 文档唯一 ID */
+  /** Unique document ID */
   id: string;
-  /** 文档标题 */
+  /** Document title */
   title: string;
-  /** ArXiv ID (如果有) */
+  /** ArXiv ID (if available) */
   arxivId?: string;
-  /** 是否有未保存更改 */
+  /** Whether there are unsaved changes */
   isDirty?: boolean;
 }
 
 export interface DocumentTabsProps {
-  /** 已打开的文档列表 */
+  /** List of open documents */
   documents: OpenDocument[];
-  /** 当前活动文档 ID */
+  /** Currently active document ID */
   activeDocumentId: string | null;
-  /** 切换文档 */
+  /** Switch document */
   onSelectDocument: (id: string) => void;
-  /** 关闭文档 */
+  /** Close document */
   onCloseDocument: (id: string) => void;
-  /** 添加新文档（兼容旧接口） */
+  /** Add new document (backward compatible) */
   onAddDocument: () => void;
-  /** 从 Assets 添加文档（可选，有值时显示下拉菜单） */
+  /** Add document from Assets (optional, shows dropdown menu when provided) */
   onAddFromAssets?: () => void;
-  /** 自定义样式 */
+  /** Custom styles */
   className?: string;
 }
 
@@ -74,7 +74,7 @@ const DocumentTab: React.FC<DocumentTabProps> = ({
     onClose();
   }, [onClose]);
 
-  // 截断标题 - 增加显示长度
+  // Truncate title - increased display length
   const displayTitle = document.title.length > 30
     ? document.title.slice(0, 27) + '...'
     : document.title;
@@ -258,10 +258,10 @@ export interface AddDocumentDialogProps {
 /**
  * Add Document Dialog
  * 
- * TODO: 在 Phase 2 实现完整功能
- * - 从 Library 选择论文
- * - 输入 arXiv ID
- * - 上传本地文件
+ * TODO: Implement full functionality in Phase 2
+ * - Select papers from Library
+ * - Enter arXiv ID
+ * - Upload local files
  */
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   isOpen,
@@ -270,7 +270,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // 简单的对话框占位
+  // Simple dialog placeholder
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <motion.div
@@ -322,7 +322,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
           </button>
           <button
             onClick={() => {
-              // TODO: 实现添加逻辑
+              // TODO: Implement add logic
               onClose();
             }}
             className="px-4 py-2 text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg"

@@ -1,7 +1,7 @@
 /**
  * Workspace Page
  *
- * 工作空间入口页面
+ * Workspace entry page
  * Redirects to the most recent workspace or creates a default one
  */
 

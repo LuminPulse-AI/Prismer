@@ -1,17 +1,18 @@
 'use client';
 
 /**
- * ArtifactsPanel - 产物管理面板 (重构版)
- * 
- * 功能：
- * - 实时显示执行产物（自动订阅 ArtifactStore）
- * - 按类型分组（图片、DataFrame、图表）
- * - 缩略图预览
- * - 点击放大查看
- * - 导出下载
+ * ArtifactsPanel - Artifact Management Panel (Refactored)
+ *
+ * Features:
+ * - Real-time display of execution artifacts (auto-subscribes to ArtifactStore)
+ * - Grouped by type (images, DataFrames, charts)
+ * - Thumbnail previews
+ * - Click to enlarge
+ * - Export and download
  */
 
 import React, { useState, useCallback, useMemo, memo, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import {
   Image as ImageIcon,
   Table2,
@@ -40,7 +41,7 @@ import { useArtifactCollector } from '../hooks/useArtifactCollector';
 import { componentEventBus } from '@/lib/events';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface ArtifactsPanelProps {
@@ -49,20 +50,20 @@ interface ArtifactsPanelProps {
 }
 
 // ============================================================
-// ArtifactsPanel 组件
+// ArtifactsPanel Component
 // ============================================================
 
 export const ArtifactsPanel = memo(function ArtifactsPanel({
   onGoToCell,
   className = '',
 }: ArtifactsPanelProps) {
-  // 使用 ArtifactStore
+  // Use ArtifactStore
   const artifacts = useArtifacts();
   const artifactCount = useArtifactCount();
   const clearAll = useArtifactStore((state) => state.clearAll);
   const removeArtifact = useArtifactStore((state) => state.removeArtifact);
   
-  // 启用 Artifact 收集器
+  // Enable Artifact collector
   const { scanAllCells } = useArtifactCollector({ enabled: true });
 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -71,7 +72,7 @@ export const ArtifactsPanel = memo(function ArtifactsPanel({
   const [previewArtifact, setPreviewArtifact] = useState<DetectedArtifact | null>(null);
   const [isScanning, setIsScanning] = useState(false);
 
-  // 按类型分组
+  // Group by type
   const groupedArtifacts = useMemo(() => {
     const groups: Record<string, DetectedArtifact[]> = {
       image: [],
@@ -93,7 +94,7 @@ export const ArtifactsPanel = memo(function ArtifactsPanel({
     return groups;
   }, [artifacts]);
 
-  // 切换分组展开
+  // Toggle group expand/collapse
   const toggleGroup = useCallback((type: string) => {
     setExpandedGroups(prev => {
       const next = new Set(prev);
@@ -106,15 +107,15 @@ export const ArtifactsPanel = memo(function ArtifactsPanel({
     });
   }, []);
 
-  // 手动扫描
+  // Manual scan
   const handleScan = useCallback(async () => {
     setIsScanning(true);
-    await new Promise(resolve => setTimeout(resolve, 100)); // UI 更新
+    await new Promise(resolve => setTimeout(resolve, 100)); // UI update
     scanAllCells();
     setIsScanning(false);
   }, [scanAllCells]);
 
-  // 获取图标
+  // Get icon
   const getGroupIcon = (type: string) => {
     switch (type) {
       case 'image':
@@ -130,7 +131,7 @@ export const ArtifactsPanel = memo(function ArtifactsPanel({
     }
   };
 
-  // 获取标签
+  // Get label
   const getGroupLabel = (type: string) => {
     switch (type) {
       case 'image':
@@ -235,7 +236,7 @@ export const ArtifactsPanel = memo(function ArtifactsPanel({
 });
 
 // ============================================================
-// ArtifactGroup 组件
+// ArtifactGroup Component
 // ============================================================
 
 interface ArtifactGroupProps {
@@ -282,7 +283,7 @@ const ArtifactGroup = memo(function ArtifactGroup({
       {isExpanded && (
         <div className="px-3 pb-2">
           {type === 'image' ? (
-            // 图片缩略图网格
+            // Image thumbnail grid
             <div className="grid grid-cols-3 gap-2">
               {artifacts.map((artifact) => (
                 <ImageThumbnail
@@ -293,7 +294,7 @@ const ArtifactGroup = memo(function ArtifactGroup({
               ))}
             </div>
           ) : (
-            // 列表视图
+            // List view
             <div className="space-y-1">
               {artifacts.map((artifact) => (
                 <ArtifactItem
@@ -313,7 +314,7 @@ const ArtifactGroup = memo(function ArtifactGroup({
 });
 
 // ============================================================
-// ImageThumbnail 组件
+// ImageThumbnail Component
 // ============================================================
 
 interface ImageThumbnailProps {
@@ -352,7 +353,7 @@ const ImageThumbnail = memo(function ImageThumbnail({
 });
 
 // ============================================================
-// ArtifactItem 组件
+// ArtifactItem Component
 // ============================================================
 
 interface ArtifactItemProps {
@@ -433,7 +434,7 @@ const ArtifactItem = memo(function ArtifactItem({
 });
 
 // ============================================================
-// ArtifactPreview 组件
+// ArtifactPreview Component
 // ============================================================
 
 interface ArtifactPreviewProps {
@@ -447,13 +448,13 @@ const ArtifactPreview = memo(function ArtifactPreview({
   onClose,
   onGoToCell,
 }: ArtifactPreviewProps) {
-  // 下载功能
+  // Download functionality
   const handleDownload = useCallback(() => {
     let blob: Blob;
     let filename: string;
 
     if (artifact.type === 'image' && typeof artifact.data === 'string') {
-      // 从 data URL 提取数据
+      // Extract data from data URL
       const [header, base64] = artifact.data.split(',');
       const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png';
       const binary = atob(base64);
@@ -504,7 +505,7 @@ const ArtifactPreview = memo(function ArtifactPreview({
             {typeof artifact.data === 'string' ? (
               <div 
                 className="p-4 [&_table]:w-full [&_th]:text-left [&_th]:px-3 [&_th]:py-2 [&_td]:px-3 [&_td]:py-2 [&_tr]:border-b [&_tr]:border-slate-200"
-                dangerouslySetInnerHTML={{ __html: artifact.data }} 
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(artifact.data) }}
               />
             ) : (
               <pre className="p-4 font-mono text-xs text-slate-800">{JSON.stringify(artifact.data, null, 2)}</pre>
@@ -615,7 +616,7 @@ const ArtifactPreview = memo(function ArtifactPreview({
 });
 
 // ============================================================
-// 工具函数
+// Utility Functions
 // ============================================================
 
 function formatBytes(bytes: number): string {

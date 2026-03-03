@@ -2,8 +2,8 @@
  * LLM Gateway Module
  *
  * @description
- * Phase 3E: LLM 网关模块
- * 提供多提供商支持、用量追踪和成本监控
+ * Phase 3E: LLM gateway module
+ * Provides multi-provider support, usage tracking, and cost monitoring
  */
 
 // Types

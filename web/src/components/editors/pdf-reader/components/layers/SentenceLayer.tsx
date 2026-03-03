@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-// 句子数据结构（根据sentences.json）
+// Sentence data structure (based on sentences.json)
 interface SentenceBox {
   line_no: number;
   bbox: [number, number, number, number]; // [x1, y1, x2, y2] normalized coordinates
@@ -56,7 +56,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
   const layerRef = useRef<HTMLDivElement>(null);
   const sentenceRectsRef = useRef<Map<number, DOMRect[]>>(new Map());
 
-  // 状态管理
+  // State management
   const [hoveredSentenceId, setHoveredSentenceId] = useState<number | null>(
     null
   );
@@ -72,12 +72,12 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
   >(new Set());
   const [isCommandPressed, setIsCommandPressed] = useState(false);
 
-  // 过滤当前页面的句子
+  // Filter sentences for the current page
   const pageSentences = sentences.filter(
     (sentence) => sentence.property.page === pageNumber
   );
 
-  // 监听键盘事件（cmd键）
+  // Listen for keyboard events (Cmd/Ctrl key)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
@@ -100,7 +100,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     };
   }, []);
 
-  // 坐标转换：将归一化坐标转换为实际像素坐标
+  // Coordinate conversion: convert normalized coordinates to actual pixel coordinates
   const convertCoordinates = useCallback(
     (bbox: [number, number, number, number]) => {
       const [x1, y1, x2, y2] = bbox;
@@ -114,14 +114,14 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     [pageWidth, pageHeight, scale]
   );
 
-  // 检查点是否在矩形内
+  // Check if a point is inside a rectangle
   const isPointInRect = useCallback((x: number, y: number, rect: DOMRect) => {
     return (
       x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
     );
   }, []);
 
-  // 检查两个矩形是否相交
+  // Check if two rectangles intersect
   const doRectsIntersect = useCallback(
     (
       rect1: DOMRect,
@@ -140,7 +140,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     []
   );
 
-  // 根据鼠标位置查找句子
+  // Find a sentence at the given mouse position
   const findSentenceAtPoint = useCallback(
     (x: number, y: number) => {
       for (const sentence of pageSentences) {
@@ -158,7 +158,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     [pageSentences, isPointInRect]
   );
 
-  // 查找选择区域内的句子
+  // Find sentences within the selection area
   const findSentencesInArea = useCallback(
     (selectionRect: {
       left: number;
@@ -289,7 +289,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
         return;
       }
 
-      // 开始拖选
+      // Start drag selection
       setIsSelecting(true);
       setSelectionArea({
         startX,
@@ -311,7 +311,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     ]
   );
 
-  // 处理拖选移动
+  // Handle drag selection movement
   const handleSelectionMove = useCallback(
     (e: React.MouseEvent) => {
       if (!isSelecting || !selectionArea) return;
@@ -323,7 +323,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
       const newSelectionArea = { ...selectionArea, endX, endY };
       setSelectionArea(newSelectionArea);
 
-      // 实时计算并预览拖选区域内的句子
+      // Calculate and preview sentences within the drag area in real time
       const selectionRect = {
         left: Math.min(newSelectionArea.startX, newSelectionArea.endX),
         top: Math.min(newSelectionArea.startY, newSelectionArea.endY),
@@ -331,30 +331,30 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
         height: Math.abs(newSelectionArea.endY - newSelectionArea.startY),
       };
 
-      // 只有在拖选区域足够大时才显示预览
+      // Only show preview when the drag area is large enough
       if (selectionRect.width > 3 && selectionRect.height > 3) {
         const intersectedSentences = findSentencesInArea(selectionRect);
 
         let previewSentences: Set<number>;
 
         if (isCommandPressed) {
-          // cmd键按下：显示增量选择预览（基于永久高亮状态）
+          // Cmd/Ctrl pressed: show incremental selection preview (based on persistent highlight state)
           previewSentences = new Set(selectedSentenceIds);
           intersectedSentences.forEach((id) => {
             if (previewSentences.has(id)) {
-              previewSentences.delete(id); // 取消选择
+              previewSentences.delete(id); // Deselect
             } else {
-              previewSentences.add(id); // 添加选择
+              previewSentences.add(id); // Add to selection
             }
           });
         } else {
-          // 普通拖选：显示替换选择预览
+          // Normal drag: show replacement selection preview
           previewSentences = intersectedSentences;
         }
 
         setPreviewSelectedSentences(previewSentences);
       } else {
-        // 拖选区域太小，清除预览
+        // Drag area too small, clear preview
         setPreviewSelectedSentences(new Set());
       }
     },
@@ -367,7 +367,7 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
     ]
   );
 
-  // 处理鼠标释放（完成拖选）
+  // Handle mouse up (complete drag selection)
   const handleMouseUp = useCallback(
     (e: React.MouseEvent) => {
       if (!isSelecting || !selectionArea) return;
@@ -617,10 +617,10 @@ export const SentenceLayer: React.FC<SentenceLayerProps> = ({
       onMouseUp={handleMouseUp}
       onClick={handleMouseClick}
     >
-      {/* 渲染句子高亮矩形 */}
+      {/* Render sentence highlight rectangles */}
       {renderSentenceRects()}
 
-      {/* 拖选区域指示器 */}
+      {/* Drag selection area indicator */}
       {isSelecting && selectionArea && (
         <div
           className="absolute border-2 border-blue-500 bg-blue-200 bg-opacity-20 pointer-events-none"

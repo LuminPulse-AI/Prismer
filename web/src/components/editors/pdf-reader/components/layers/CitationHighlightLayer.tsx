@@ -1,13 +1,13 @@
 /**
  * CitationHighlightLayer
  * 
- * 在 PDF 页面上渲染引用高亮
- * 用于显示 AI 生成内容与原文的双向索引关系
- * 
- * 特性:
- * - 激活时显示脉冲动画
- * - 悬停时显示预览边框
- * - 自动滚动时显示闪烁效果
+ * Renders citation highlights on PDF pages
+ * Displays bidirectional index relationships between AI-generated content and source text
+ *
+ * Features:
+ * - Pulse animation when active
+ * - Preview border on hover
+ * - Flash effect when auto-scrolling
  */
 
 import React, { useMemo, useEffect, useState } from 'react';
@@ -20,13 +20,13 @@ import { cn } from '@/lib/utils';
 // ============================================================
 
 interface CitationHighlightLayerProps {
-  /** 当前页码 */
+  /** Current page number */
   pageNumber: number;
-  /** 缩放比例 */
+  /** Zoom scale */
   scale: number;
-  /** PDF 页面原始尺寸 */
+  /** Original PDF page dimensions */
   pageDimensions: { width: number; height: number };
-  /** OCR 图像尺寸 (用于坐标转换) */
+  /** OCR image dimensions (for coordinate conversion) */
   ocrImageSize?: { width: number; height: number; dpi?: number };
 }
 
@@ -108,16 +108,16 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
     getPageDetections,
   } = useCitationStore();
 
-  // 追踪最近被添加的引用 (用于闪烁效果)
+  // Track recently added citations (for flash effect)
   const [flashingIds, setFlashingIds] = useState<Set<string>>(new Set());
   const [prevActiveCitations, setPrevActiveCitations] = useState<string[]>([]);
 
-  // 检测新激活的引用
+  // Detect newly activated citations
   useEffect(() => {
     const newCitations = activeCitations.filter(id => !prevActiveCitations.includes(id));
     if (newCitations.length > 0) {
       setFlashingIds(new Set(newCitations));
-      // 清除闪烁状态
+      // Clear flash state
       const timer = setTimeout(() => {
         setFlashingIds(new Set());
       }, 600);
@@ -126,12 +126,12 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
     setPrevActiveCitations(activeCitations);
   }, [activeCitations, prevActiveCitations]);
 
-  // 获取当前页的检测数据
+  // Get detection data for the current page
   const pageDetectionsList = useMemo(() => {
     return getPageDetections(pageNumber);
   }, [getPageDetections, pageNumber]);
 
-  // 筛选需要高亮的检测
+  // Filter detections that need highlighting
   const highlightedDetections = useMemo(() => {
     const result: Array<{
       detection: FlatDetection;
@@ -153,19 +153,19 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
     return result;
   }, [pageDetectionsList, activeCitations, hoveredCitation, flashingIds]);
 
-  // 如果没有需要高亮的检测，不渲染
+  // If there are no detections to highlight, don't render
   if (highlightedDetections.length === 0) {
     return null;
   }
 
-  // 坐标转换：从 OCR 像素坐标转换为百分比
+  // Coordinate conversion: convert from OCR pixel coordinates to percentages
   const convertCoords = (box: {
     x1_px: number;
     y1_px: number;
     x2_px: number;
     y2_px: number;
   }) => {
-    // 使用 OCR 图像尺寸进行转换（如果可用）
+    // Use OCR image dimensions for conversion (if available)
     const refWidth = ocrImageSize?.width || pageDimensions.width;
     const refHeight = ocrImageSize?.height || pageDimensions.height;
 
@@ -177,7 +177,7 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
     };
   };
 
-  // 获取标签类型的简短显示
+  // Get short display label for the detection type
   const getShortLabel = (label: string) => {
     const labelMap: Record<string, string> = {
       'title': 'Title',
@@ -195,7 +195,7 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
 
   return (
     <>
-      {/* 注入脉冲动画样式 */}
+      {/* Inject pulse animation styles */}
       <style>{pulseKeyframes}</style>
       
       <div 
@@ -213,11 +213,11 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
                     key={`${detection.id}-box-${boxIdx}`}
                     className={cn(
                       "absolute rounded",
-                      // 激活状态
+                      // Active state
                       isActive && "border-2 border-indigo-500 bg-indigo-500/10",
-                      // 悬停状态
+                      // Hover state
                       isHovered && !isActive && "border-2 border-amber-400 bg-amber-400/10",
-                      // 脉冲动画
+                      // Pulse animation
                       isActive && !isFlashing && "animate-[citation-pulse_2s_ease-in-out_infinite]"
                     )}
                     style={{
@@ -231,7 +231,7 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
                     animate={isFlashing ? "flash" : "active"}
                     exit="exit"
                   >
-                    {/* 顶部高亮条 */}
+                    {/* Top highlight bar */}
                     <motion.div
                       className={cn(
                         "absolute -top-0.5 left-0 right-0 h-1 rounded-t",
@@ -243,7 +243,7 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
                       transition={{ duration: 0.3 }}
                     />
                     
-                    {/* 引用标签 */}
+                    {/* Citation label */}
                     {isActive && boxIdx === 0 && (
                       <motion.div
                         className={cn(
@@ -267,7 +267,7 @@ export const CitationHighlightLayer: React.FC<CitationHighlightLayerProps> = ({
                       </motion.div>
                     )}
                     
-                    {/* 悬停时的简单标签 */}
+                    {/* Simple label on hover */}
                     {isHovered && !isActive && boxIdx === 0 && (
                       <motion.div
                         className={cn(

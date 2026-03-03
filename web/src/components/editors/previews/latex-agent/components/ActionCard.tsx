@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * ActionCard - 显示单个 Agent 行动的圆角卡片组件
- * 
- * 支持展示：
- * - 搜索论文
- * - 分析论文
- * - 得出结论
- * - 写入内容
+ * ActionCard - Rounded card component displaying a single agent action
+ *
+ * Supports displaying:
+ * - Paper search
+ * - Paper analysis
+ * - Conclusion drawing
+ * - Content writing
  */
 
 import React, { useState, memo } from 'react';

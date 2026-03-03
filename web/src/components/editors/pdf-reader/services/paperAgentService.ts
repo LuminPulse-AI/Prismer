@@ -1,8 +1,8 @@
 /**
  * Paper Agent Service
  * 
- * AI 代理服务，负责处理论文相关的 AI 交互
- * 通过服务端代理 /api/ai/chat 调用 AI API，避免在客户端暴露 API Key
+ * AI agent service for handling paper-related AI interactions.
+ * Calls AI API through server proxy /api/ai/chat to avoid exposing API keys on the client.
  */
 
 import {
@@ -18,7 +18,7 @@ import {
 import { aiChatStream, aiChat, type AIMessage } from '@/lib/services/ai-client';
 
 /**
- * 默认系统指令
+ * Default system instructions
  */
 const DEFAULT_INSTRUCTIONS = `You are an expert academic paper reader and research assistant.
 
@@ -47,7 +47,7 @@ Always base your answers on the actual content of the paper provided.
 If you're unsure about something, say so rather than making up information.`;
 
 /**
- * IMRAD 范式的洞察提示词
+ * IMRAD-based insight prompts
  */
 const INSIGHT_PROMPTS: Record<InsightType, string> = {
   core_problem: `Analyze the **Introduction** section:
@@ -101,8 +101,8 @@ Format as bullet points.
 };
 
 /**
- * Paper Agent Service 实现
- * 使用服务端代理 /api/ai/chat
+ * Paper Agent Service implementation
+ * Uses server proxy /api/ai/chat
  */
 export class PaperAgentService implements IPaperAgentService {
   private config: AgentConfig | null = null;
@@ -114,15 +114,15 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 初始化 Agent
-   * 注意：API Key 现在由服务端管理，客户端不需要
+   * Initialize Agent
+   * Note: API key is now managed server-side; client does not need it
    */
   async initialize(config: AgentConfig): Promise<void> {
     this.config = config;
   }
 
   /**
-   * 发送问题并获取流式响应
+   * Send question and get streaming response
    */
   async askPaper(
     question: string,
@@ -141,12 +141,12 @@ export class PaperAgentService implements IPaperAgentService {
       const systemPrompt = this.buildSystemPrompt(context);
       const userPrompt = this.buildUserPrompt(question, context);
 
-      // 构建消息数组
+      // Build messages array
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         { role: 'system', content: systemPrompt },
       ];
       
-      // 添加对话历史（如果有）
+      // Add conversation history (if available)
       if (conversationHistory && conversationHistory.length > 0) {
         const maxHistoryMessages = 20;
         const recentHistory = conversationHistory.slice(-maxHistoryMessages);
@@ -158,14 +158,14 @@ export class PaperAgentService implements IPaperAgentService {
         console.log(`[PaperAgentService] Including ${recentHistory.length} history messages`);
       }
       
-      // 添加当前问题
+      // Add current question
       if (conversationHistory && conversationHistory.length > 0) {
         messages.push({ role: 'user', content: question });
       } else {
         messages.push({ role: 'user', content: userPrompt });
       }
 
-      // 通过统一 AI 客户端发送流式请求
+      // Send streaming request through unified AI client
       let fullContent = '';
       for await (const chunk of aiChatStream({
         messages: messages as AIMessage[],
@@ -183,7 +183,7 @@ export class PaperAgentService implements IPaperAgentService {
         });
       }
 
-      // 提取引用
+      // Extract citations
       const citations = this.extractCitations(fullContent, context);
       if (citations.length > 0) {
         for (const citation of citations) {
@@ -203,9 +203,9 @@ export class PaperAgentService implements IPaperAgentService {
       
       let userFriendlyMessage = errorMessage;
       if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('Connection')) {
-        userFriendlyMessage = '网络错误: 无法连接到 AI 服务。请检查网络连接。';
+        userFriendlyMessage = 'Network error: Unable to connect to AI service. Please check your network connection.';
       } else if (errorMessage.includes('503')) {
-        userFriendlyMessage = 'AI 服务未配置。请联系管理员检查服务器配置。';
+        userFriendlyMessage = 'AI service is not configured. Please contact the administrator to check server configuration.';
       }
       
       console.error('[PaperAgentService] Error:', error);
@@ -219,7 +219,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 生成论文洞察
+   * Generate paper insights
    */
   async generateInsights(
     context: PaperContext,
@@ -246,7 +246,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 生成单个洞察
+   * Generate a single insight
    */
   private async generateSingleInsight(
     type: InsightType,
@@ -258,7 +258,7 @@ export class PaperAgentService implements IPaperAgentService {
     const insightPrompt = INSIGHT_PROMPTS[type];
     const userPrompt = this.buildUserPrompt(insightPrompt, context);
 
-    // 通过统一 AI 客户端发送请求（非流式）
+    // Send request through unified AI client (non-streaming)
     const result = await aiChat({
       messages: [
         { role: 'system', content: systemPrompt },
@@ -286,7 +286,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 获取洞察类型的标题
+   * Get title for insight type
    */
   private getInsightTitle(type: InsightType): string {
     const titles: Record<InsightType, string> = {
@@ -301,7 +301,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 解释图表
+   * Explain figure
    */
   async explainFigure(figureId: string, context: PaperContext): Promise<string> {
     if (!this.config) {
@@ -336,7 +336,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 取消当前请求
+   * Cancel current request
    */
   cancel(): void {
     if (this.abortController) {
@@ -346,7 +346,7 @@ export class PaperAgentService implements IPaperAgentService {
   }
 
   /**
-   * 构建系统提示词
+   * Build system prompt
    */
   private buildSystemPrompt(context: PaperContext): string {
     const baseInstructions = this.config?.instructions || DEFAULT_INSTRUCTIONS;
@@ -367,7 +367,7 @@ Categories: ${context.metadata.categories.join(', ')}
   }
 
   /**
-   * 构建用户提示词 (包含论文内容)
+   * Build user prompt (includes paper content)
    */
   private buildUserPrompt(question: string, context: PaperContext): string {
     let prompt = '';
@@ -392,7 +392,7 @@ Categories: ${context.metadata.categories.join(', ')}
   }
 
   /**
-   * 构建带 detection ID 的内容
+   * Build content with detection IDs
    */
   private buildContentWithDetectionIds(pageDetections: PageDetection[]): string {
     const lines: string[] = [];
@@ -425,13 +425,13 @@ Categories: ${context.metadata.categories.join(', ')}
   }
 
   /**
-   * 从响应中提取引用
+   * Extract citations from response
    */
   private extractCitations(content: string, context: PaperContext): SourceCitation[] {
     const citations: SourceCitation[] = [];
     const seenIds = new Set<string>();
     
-    // 匹配 [[detection_id]] 格式
+    // Match [[detection_id]] format
     const detectionIdPattern = /\[\[(p\d+_\w+_\d+)\]\]/g;
     const detectionMatches = content.matchAll(detectionIdPattern);
 
@@ -455,7 +455,7 @@ Categories: ${context.metadata.categories.join(', ')}
       });
     }
     
-    // 兼容旧的 [Page X] 格式
+    // Compatible with legacy [Page X] format
     const pagePattern = /\[(?:Section\s+[\w.]+,?\s*)?Page\s+(\d+)\]/gi;
     const pageMatches = content.matchAll(pagePattern);
 
@@ -481,7 +481,7 @@ Categories: ${context.metadata.categories.join(', ')}
   }
 
   /**
-   * 从 context 中查找 detection 文本
+   * Find detection text from context
    */
   private findDetectionText(detectionId: string, context: PaperContext): string | null {
     if (!context.detections) return null;
@@ -499,7 +499,7 @@ Categories: ${context.metadata.categories.join(', ')}
   }
 
   /**
-   * 提取引号中的文本
+   * Extract quoted text
    */
   private extractQuotedText(text: string): string | null {
     const quotePattern = /[""]([^""]+)[""]|'([^']+)'/g;
@@ -515,14 +515,14 @@ Categories: ${context.metadata.categories.join(', ')}
 }
 
 /**
- * 创建 Agent Service 实例
+ * Create Agent Service instance
  */
 export function createPaperAgentService(): IPaperAgentService {
   return new PaperAgentService();
 }
 
 /**
- * 单例实例
+ * Singleton instance
  */
 let defaultAgentService: IPaperAgentService | null = null;
 
@@ -534,11 +534,11 @@ export function getDefaultPaperAgentService(): IPaperAgentService {
 }
 
 /**
- * 从运行时配置创建 Agent 配置
- * 注意：API Key 现在由服务端管理，客户端只需要模型配置
+ * Create Agent config from runtime configuration
+ * Note: API key is now managed server-side; client only needs model config
  */
 export async function createAgentConfigAsync(): Promise<AgentConfig> {
-  // 检查 AI 服务是否可用
+  // Check if AI service is available
   try {
     const response = await fetch('/api/config/client');
     if (response.ok) {
@@ -552,9 +552,9 @@ export async function createAgentConfigAsync(): Promise<AgentConfig> {
   }
   
   return {
-    model: 'default', // 服务端会使用配置的默认模型
-    baseUrl: '/api/ai', // 使用服务端代理
-    apiKey: '', // 不再需要，由服务端管理
+    model: 'default', // Server will use the configured default model
+    baseUrl: '/api/ai', // Use server proxy
+    apiKey: '', // No longer needed, managed server-side
     instructions: DEFAULT_INSTRUCTIONS,
     temperature: 0.7,
     maxTokens: 2000,
@@ -562,8 +562,8 @@ export async function createAgentConfigAsync(): Promise<AgentConfig> {
 }
 
 /**
- * 同步版本 - 用于 fallback
- * @deprecated 使用 createAgentConfigAsync
+ * Synchronous version - for fallback
+ * @deprecated Use createAgentConfigAsync
  */
 export function createAgentConfigFromEnv(): AgentConfig {
   return {

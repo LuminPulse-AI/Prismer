@@ -1,8 +1,8 @@
 /**
  * Paper Context Provider
  * 
- * 负责加载和管理论文上下文数据
- * 支持从文件、URL、ArXiv 等多种来源加载
+ * Responsible for loading and managing paper context data.
+ * Supports loading from files, URLs, ArXiv, and other sources.
  */
 
 import {
@@ -17,13 +17,13 @@ import {
 } from '@/types/paperContext';
 
 /**
- * OCR 数据的基础路径
- * 使用 API 路由，支持本地和远程数据源切换
+ * Base path for OCR data
+ * Uses API routes, supports switching between local and remote data sources
  */
 const OCR_DATA_BASE_PATH = '/api/ocr';
 
 /**
- * Paper Context Provider 实现
+ * Paper Context Provider implementation
  */
 export class PaperContextProvider implements IPaperContextProvider {
   private basePath: string;
@@ -33,12 +33,12 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * 从 PDF Source 加载完整上下文
+   * Load full context from PDF Source
    *
-   * 三级回退链:
-   * - L3 hires: detections + markdown + images (完整 overlay)
-   * - L2 fast:  markdown 可用但无 detections (基础 AI 分析)
-   * - L1 raw:   无 OCR 数据 (PDF.js 直接渲染)
+   * Three-level fallback chain:
+   * - L3 hires: detections + markdown + images (full overlay)
+   * - L2 fast:  markdown available but no detections (basic AI analysis)
+   * - L1 raw:   no OCR data (PDF.js direct rendering)
    */
   async loadContext(source: PDFSource): Promise<PaperContext> {
     const context = createEmptyPaperContext(source);
@@ -93,8 +93,8 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * 加载 OCR 预处理数据
-   * 从 public/data/output 文件夹加载
+   * Load OCR preprocessed data
+   * Loads from public/data/output directory
    */
   async loadOCRData(arxivId: string): Promise<{
     metadata: PaperMetadata | null;
@@ -102,10 +102,10 @@ export class PaperContextProvider implements IPaperContextProvider {
     detections: PageDetection[];
   } | null> {
     try {
-      // 使用 API 路由格式：/api/ocr/{arxivId}/{file}
+      // Use API route format: /api/ocr/{arxivId}/{file}
       const basePath = `${this.basePath}/${arxivId}`;
 
-      // 并行加载所有数据文件
+      // Load all data files in parallel
       const [metadataRes, ocrRes, detectionsRes] = await Promise.allSettled([
         fetch(`${basePath}/metadata.json`),
         fetch(`${basePath}/ocr_result.json`),
@@ -116,22 +116,22 @@ export class PaperContextProvider implements IPaperContextProvider {
       let ocrResult: OCRResult | null = null;
       let detections: PageDetection[] = [];
 
-      // 解析 metadata
+      // Parse metadata
       if (metadataRes.status === 'fulfilled' && metadataRes.value.ok) {
         metadata = await metadataRes.value.json();
       }
 
-      // 解析 OCR 结果
+      // Parse OCR result
       if (ocrRes.status === 'fulfilled' && ocrRes.value.ok) {
         ocrResult = await ocrRes.value.json();
       }
 
-      // 解析检测结果
+      // Parse detection results
       if (detectionsRes.status === 'fulfilled' && detectionsRes.value.ok) {
         detections = await detectionsRes.value.json();
       }
 
-      // 如果没有任何数据，返回 null
+      // If no data is available, return null
       if (!metadata && !ocrResult && detections.length === 0) {
         return null;
       }
@@ -144,7 +144,7 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * L2 回退: 单独加载 markdown 内容 (当完整 OCR 数据不可用时)
+   * L2 fallback: Load markdown content separately (when full OCR data is unavailable)
    */
   private async loadMarkdownFallback(arxivId: string): Promise<string | null> {
     try {
@@ -157,7 +157,7 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * 检查是否有预处理数据
+   * Check if preprocessed data exists
    */
   async hasPreprocessedData(arxivId: string): Promise<boolean> {
     try {
@@ -171,15 +171,15 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * 加载图像资源列表
-   * 从 public/data/output/{arxivId}/images 加载
+   * Load image asset list
+   * Loads from public/data/output/{arxivId}/images
    */
   private async loadImageAssets(
     arxivId: string,
     detections: PageDetection[]
   ): Promise<ImageAsset[]> {
     const images: ImageAsset[] = [];
-    // 使用 API 路由格式：/api/ocr/{arxivId}/images/{filename}
+    // Use API route format: /api/ocr/{arxivId}/images/{filename}
     const basePath = `${this.basePath}/${arxivId}/images`;
 
     for (const page of detections) {
@@ -204,19 +204,19 @@ export class PaperContextProvider implements IPaperContextProvider {
   }
 
   /**
-   * 查找图像的说明文字
+   * Find image caption
    */
   private findCaption(
     detections: PageDetection['detections'],
     imageDetection: PageDetection['detections'][0]
   ): string | undefined {
-    // 查找紧随图像之后的 caption
+    // Find the caption immediately following the image
     const imageBox = imageDetection.boxes[0];
     if (!imageBox) return undefined;
 
     const captions = detections.filter(d => d.label === 'image_caption');
     
-    // 找到距离图像最近的 caption (在图像下方)
+    // Find the closest caption below the image
     let closestCaption: typeof captions[0] | undefined;
     let minDistance = Infinity;
 
@@ -224,10 +224,10 @@ export class PaperContextProvider implements IPaperContextProvider {
       const captionBox = caption.boxes[0];
       if (!captionBox) continue;
 
-      // caption 应该在图像下方
+      // Caption should be below the image
       if (captionBox.y1_px > imageBox.y2_px) {
         const distance = captionBox.y1_px - imageBox.y2_px;
-        if (distance < minDistance && distance < 100) { // 100px 阈值
+        if (distance < minDistance && distance < 100) { // 100px threshold
           minDistance = distance;
           closestCaption = caption;
         }
@@ -239,14 +239,14 @@ export class PaperContextProvider implements IPaperContextProvider {
 }
 
 /**
- * 创建默认的 Provider 实例
+ * Create default Provider instance
  */
 export function createPaperContextProvider(basePath?: string): IPaperContextProvider {
   return new PaperContextProvider(basePath);
 }
 
 /**
- * 单例实例
+ * Singleton instance
  */
 let defaultProvider: IPaperContextProvider | null = null;
 

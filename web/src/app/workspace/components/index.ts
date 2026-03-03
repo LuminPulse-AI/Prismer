@@ -2,16 +2,16 @@
  * Workspace Components Exports
  *
  * @description
- * 统一导出 Workspace 模块的所有组件，便于外部导入。
+ * Unified export of all Workspace module components for convenient external imports.
  *
- * 组件分类:
- * - Agent: Agent 状态和控制组件（Phase 1 核心）
- * - Chat: 对话面板相关组件
- * - Task: 任务面板组件
- * - Window: 窗口查看器组件
- * - Timeline: 时间线组件
- * - Interactive: 交互式组件
- * - Diff: 差异对比组件
+ * Component categories:
+ * - Agent: Agent status and control components (Phase 1 core)
+ * - Chat: Chat panel related components
+ * - Task: Task panel components
+ * - Window: Window viewer components
+ * - Timeline: Timeline components
+ * - Interactive: Interactive components
+ * - Diff: Diff viewer components
  */
 
 // Main layout

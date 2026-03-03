@@ -35,7 +35,7 @@ export const ShortcutsFloatingButton: React.FC<
 > = ({ isIndexPanelOpen, isOpen, onToggle }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
 
-  // 使用外部控制的状态或内部状态
+  // Use externally controlled state or internal state
   const isTooltipOpen = isOpen !== undefined ? isOpen : internalIsOpen;
 
   const handleToggle = useCallback(
@@ -49,7 +49,7 @@ export const ShortcutsFloatingButton: React.FC<
     [onToggle]
   );
 
-  // 处理 Escape 键关闭快捷键面板
+  // Handle Escape key to close shortcuts panel
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isTooltipOpen) {
@@ -89,7 +89,7 @@ export const ShortcutsFloatingButton: React.FC<
               ? "bg-gradient-to-br from-blue-50 to-blue-100 border-blue-300 scale-110 shadow-blue-200/60"
               : "border-gray-200/80 hover:border-blue-300/60 hover:scale-105"
           }`}
-          title="显示快捷键 (?)"
+          title="Show shortcuts (?)"
         >
           <HelpCircle
             className={`w-4 h-4 transition-all duration-300 ${
@@ -98,7 +98,7 @@ export const ShortcutsFloatingButton: React.FC<
                 : "text-gray-500 group-hover:text-blue-600 group-hover:rotate-12"
             }`}
           />
-          {/* 小装饰点 */}
+          {/* Small decorative dot */}
           <div
             className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full transition-all duration-300 ${
               isTooltipOpen ? "bg-blue-500 scale-100" : "bg-gray-400 scale-0"

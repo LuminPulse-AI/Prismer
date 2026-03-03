@@ -1,8 +1,8 @@
 /**
  * Mock Storage Adapter
  * 
- * 使用 public/data/output 作为论文数据源
- * Chat Sessions 和 Notebooks 使用 localStorage 临时存储
+ * Uses public/data/output as the paper data source
+ * Chat Sessions and Notebooks use localStorage for temporary storage
  */
 
 import type {
@@ -78,11 +78,11 @@ function setToStorage<T>(key: string, data: T): void {
 // ============================================================
 
 /**
- * 获取已处理论文列表
- * 通过 API 接口获取 public/data/output 目录下的论文
+ * Get list of processed papers
+ * Fetches papers from the public/data/output directory via API
  */
 async function fetchPaperIndex(): Promise<string[]> {
-  // 首先尝试获取 ocr_statistics.json 中的论文列表
+  // First try to get the paper list from ocr_statistics.json
   const stats = await fetchJSON<{
     total_papers: number;
     papers: Array<{ arxiv_id: string }>;
@@ -92,8 +92,8 @@ async function fetchPaperIndex(): Promise<string[]> {
     return stats.papers.map(p => p.arxiv_id);
   }
   
-  // 备用方案：硬编码一些已知的论文
-  // 在实际部署中，应该有一个 API 端点列出所有论文
+  // Fallback: hardcoded list of known papers
+  // In production, there should be an API endpoint listing all papers
   return [
     '2601.02346v1',  // Falcon-H1R
     '2512.24968v1',
@@ -117,14 +117,14 @@ export class MockStorageAdapter implements StorageAdapter {
   // ==========================================
   
   async listPapers(): Promise<PaperMeta[]> {
-    // 获取论文索引
+    // Get paper index
     if (!this.paperIndexCache) {
       this.paperIndexCache = await fetchPaperIndex();
     }
     
     const papers: PaperMeta[] = [];
     
-    // 并行加载所有论文的元数据
+    // Load all paper metadata in parallel
     const metadataPromises = this.paperIndexCache.map(async (paperId) => {
       const metadata = await fetchJSON<PaperMetadata>(
         `${BASE_PATH}/${paperId}/metadata.json`
@@ -154,7 +154,7 @@ export class MockStorageAdapter implements StorageAdapter {
       }
     }
     
-    // 按发布日期排序（最新的在前）
+    // Sort by publication date (newest first)
     papers.sort((a, b) => {
       if (!a.published || !b.published) return 0;
       return new Date(b.published).getTime() - new Date(a.published).getTime();
@@ -165,7 +165,7 @@ export class MockStorageAdapter implements StorageAdapter {
   
   async getPaper(paperId: string): Promise<PaperData | null> {
     try {
-      // 并行加载所有数据
+      // Load all data in parallel
       const [metadata, detectionsData, ocrResult, markdown] = await Promise.all([
         fetchJSON<PaperMetadata>(`${BASE_PATH}/${paperId}/metadata.json`),
         fetchJSON<{ pages: PageDetection[] }>(`${BASE_PATH}/${paperId}/detections.json`),

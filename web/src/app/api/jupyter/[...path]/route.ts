@@ -1,26 +1,26 @@
 /**
  * Jupyter Server Proxy
  *
- * 代理所有 Jupyter Server 请求，解决 CORS 问题
+ * Proxies all Jupyter Server requests to resolve CORS issues.
  *
- * 使用方式：
- * - 前端请求: /api/jupyter/{path}
- * - 代理到: JUPYTER_SERVER_URL/{path}
+ * Usage:
+ * - Frontend requests: /api/jupyter/{path}
+ * - Proxied to: JUPYTER_SERVER_URL/{path}
  *
- * 动态容器支持：
- * - 查询参数 ?port=XXXX 指定容器映射的 Jupyter 端口
- * - 无 port 参数时，使用 JUPYTER_SERVER_URL 环境变量或查询数据库
+ * Dynamic container support:
+ * - Query parameter ?port=XXXX specifies the container-mapped Jupyter port
+ * - Without a port parameter, uses the JUPYTER_SERVER_URL environment variable or queries the database
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// 从环境变量获取默认 Jupyter Server 配置
+// Get default Jupyter Server configuration from environment variables
 const DEFAULT_JUPYTER_URL = process.env.JUPYTER_SERVER_URL || 'http://localhost:8888';
 const JUPYTER_TOKEN = process.env.JUPYTER_TOKEN || '';
 
 /**
- * 解析目标 Jupyter Server URL
- * 优先级: query param port > env var > default
+ * Resolve the target Jupyter Server URL
+ * Priority: query param port > env var > default
  */
 function resolveJupyterUrl(request: NextRequest): string {
   const port = request.nextUrl.searchParams.get('port');
@@ -45,40 +45,40 @@ async function proxyRequest(
   const targetUrl = `${jupyterUrl}/${targetPath}${queryString}`;
 
   try {
-    // 构建请求头
+    // Build request headers
     const headers: Record<string, string> = {
       'Content-Type': request.headers.get('Content-Type') || 'application/json',
     };
 
-    // 添加 Token 认证
+    // Add token authentication
     if (JUPYTER_TOKEN) {
       headers['Authorization'] = `token ${JUPYTER_TOKEN}`;
     }
 
-    // 转发原始请求的认证头
+    // Forward the original request's authorization header
     const authHeader = request.headers.get('Authorization');
     if (authHeader) {
       headers['Authorization'] = authHeader;
     }
 
-    // 准备请求体
+    // Prepare request body
     let body: string | undefined;
     if (method !== 'GET' && method !== 'HEAD') {
       try {
         body = await request.text();
       } catch {
-        // 无请求体
+        // No request body
       }
     }
 
-    // 发送代理请求
+    // Send proxied request
     const response = await fetch(targetUrl, {
       method,
       headers,
       body,
     });
 
-    // 获取响应数据
+    // Get response data
     const contentType = response.headers.get('Content-Type') || '';
     let responseBody: string | ArrayBuffer;
 
@@ -88,7 +88,7 @@ async function proxyRequest(
       responseBody = await response.arrayBuffer();
     }
 
-    // 构建响应
+    // Build response
     return new NextResponse(responseBody, {
       status: response.status,
       statusText: response.statusText,

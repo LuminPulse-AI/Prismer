@@ -1,8 +1,8 @@
 /**
  * Workspace Messages API
  *
- * GET    /api/workspace/[id]/messages  - 获取消息列表 (cursor pagination)
- * POST   /api/workspace/[id]/messages  - 发送新消息
+ * GET    /api/workspace/[id]/messages  - Get message list (cursor pagination)
+ * POST   /api/workspace/[id]/messages  - Send a new message
  */
 
 import { NextRequest, NextResponse } from 'next/server';

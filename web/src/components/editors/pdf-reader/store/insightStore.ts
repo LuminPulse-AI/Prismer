@@ -1,10 +1,10 @@
 /**
  * Insight Store
  * 
- * 论文级别的 Quick Insights 管理
- * - 按论文缓存 insights
- * - 支持切换论文时自动切换
- * - 持久化到 IndexedDB
+ * Paper-level Quick Insights management
+ * - Caches insights per paper
+ * - Supports automatic switching when switching papers
+ * - Persists to IndexedDB
  */
 
 import { create } from 'zustand';
@@ -18,11 +18,11 @@ import { createUserIsolatedStorage } from '@/lib/storage/userStorageManager';
 const EMPTY_INSIGHTS: PaperInsight[] = [];
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 /**
- * 论文 Insights 缓存
+ * Paper Insights cache
  */
 export interface PaperInsightsCache {
   paperId: string;
@@ -33,77 +33,77 @@ export interface PaperInsightsCache {
 }
 
 // ============================================================
-// Store 状态
+// Store State
 // ============================================================
 
 interface InsightState {
-  /** 按论文缓存的 Insights */
+  /** Insights cached per paper */
   paperInsightsCache: Record<string, PaperInsightsCache>;
-  
-  /** 当前活动论文 ID */
+
+  /** Current active paper ID */
   currentPaperId: string | null;
-  
-  /** 加载状态 */
+
+  /** Loading state */
   isLoading: boolean;
-  
-  /** 错误信息 */
+
+  /** Error message */
   error: string | null;
 }
 
 interface InsightActions {
-  // 论文切换
+  // Paper switching
   setCurrentPaper: (paperId: string) => void;
-  
-  // Insights 管理
+
+  // Insights management
   setInsights: (paperId: string, insights: PaperInsight[], paperTitle?: string) => void;
   addInsight: (paperId: string, insight: PaperInsight) => void;
   clearInsights: (paperId: string) => void;
-  
-  // 缓存管理
+
+  // Cache management
   getCachedInsights: (paperId: string) => PaperInsightsCache | null;
   hasValidCache: (paperId: string, maxAge?: number) => boolean;
   clearCache: (paperId?: string) => void;
-  
-  // 当前论文的快捷访问
+
+  // Quick access for current paper
   getCurrentInsights: () => PaperInsight[];
-  
-  // 状态管理
+
+  // State management
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }
 
 // ============================================================
-// 常量
+// Constants
 // ============================================================
 
-/** 缓存版本号，用于失效旧缓存 */
+/** Cache version, used to invalidate old caches */
 const CACHE_VERSION = '1.0';
 
-/** 默认缓存有效期 (24小时) */
+/** Default cache TTL (24 hours) */
 const DEFAULT_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 
 // ============================================================
-// Store 实现
+// Store Implementation
 // ============================================================
 
 export const useInsightStore = create<InsightState & InsightActions>()(
   devtools(
     persist(
       (set, get) => ({
-        // 初始状态
+        // Initial state
         paperInsightsCache: {},
         currentPaperId: null,
         isLoading: false,
         error: null,
         
         // ============================================================
-        // 论文切换
+        // Paper switching
         // ============================================================
         
         setCurrentPaper: (paperId) => {
           const { currentPaperId } = get();
           
-          // 如果是同一篇论文，不做任何操作
+          // If the same paper, do nothing
           if (currentPaperId === paperId) return;
           
           set({ currentPaperId: paperId, error: null });
@@ -112,7 +112,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
         },
         
         // ============================================================
-        // Insights 管理
+        // Insights management
         // ============================================================
         
         setInsights: (paperId, insights, paperTitle) => {
@@ -173,7 +173,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
         },
         
         // ============================================================
-        // 缓存管理
+        // Cache management
         // ============================================================
         
         getCachedInsights: (paperId) => {
@@ -184,14 +184,14 @@ export const useInsightStore = create<InsightState & InsightActions>()(
           const cache = get().paperInsightsCache[paperId];
           if (!cache) return false;
           
-          // 版本检查
+          // Version check
           if (cache.version !== CACHE_VERSION) return false;
           
-          // 时间检查
+          // Time check
           const age = Date.now() - cache.generatedAt;
           if (age > maxAge) return false;
           
-          // 内容检查
+          // Content check
           if (!cache.insights || cache.insights.length === 0) return false;
           
           return true;
@@ -206,7 +206,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
         },
         
         // ============================================================
-        // 当前论文快捷访问
+        // Quick access for current paper
         // ============================================================
         
         getCurrentInsights: () => {
@@ -216,7 +216,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
         },
         
         // ============================================================
-        // 状态管理
+        // State management
         // ============================================================
         
         setLoading: (loading) => set({ isLoading: loading }),
@@ -225,7 +225,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
       {
         name: 'insight-storage',
         version: 1,
-        // 使用用户隔离存储，未登录用户不保存 insights 缓存
+        // Use user-isolated storage; unauthenticated users do not persist insights cache
         storage: createUserIsolatedStorage('insight-storage', true),
         partialize: (state) => ({
           paperInsightsCache: state.paperInsightsCache,
@@ -250,7 +250,7 @@ export const useInsightStore = create<InsightState & InsightActions>()(
 // ============================================================
 
 /**
- * 获取当前论文的 Insights
+ * Get Insights for the current paper
  */
 export function useCurrentInsights(): PaperInsight[] {
   return useInsightStore(
@@ -262,21 +262,21 @@ export function useCurrentInsights(): PaperInsight[] {
 }
 
 /**
- * 获取 Insight 加载状态
+ * Get Insight loading state
  */
 export function useInsightLoading(): boolean {
   return useInsightStore(state => state.isLoading);
 }
 
 /**
- * 获取 Insight 错误信息
+ * Get Insight error message
  */
 export function useInsightError(): string | null {
   return useInsightStore(state => state.error);
 }
 
 /**
- * 获取指定论文的 Insights
+ * Get Insights for a specific paper
  */
 export function usePaperInsights(paperId: string): PaperInsight[] {
   return useInsightStore(
@@ -287,7 +287,7 @@ export function usePaperInsights(paperId: string): PaperInsight[] {
 }
 
 /**
- * 检查指定论文是否有有效缓存
+ * Check if a specific paper has a valid cache
  */
 export function useHasInsightCache(paperId: string): boolean {
   return useInsightStore(state => {
@@ -299,7 +299,7 @@ export function useHasInsightCache(paperId: string): boolean {
 }
 
 /**
- * 清除所有 Insights 缓存（用于登出时）
+ * Clear all Insights cache (used on logout)
  */
 export function clearAllInsights(): void {
   useInsightStore.setState({

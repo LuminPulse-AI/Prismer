@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * DraggableCellList - 可拖拽排序的 Cell 列表
- * 
- * 使用 @dnd-kit 实现拖拽排序
+ * DraggableCellList - Drag-and-drop Sortable Cell List
+ *
+ * Uses @dnd-kit for drag-and-drop sorting
  */
 
 import React, { memo, useCallback, useMemo } from 'react';
@@ -30,7 +30,7 @@ import { GripVertical } from 'lucide-react';
 import type { Cell, CodeCell as CodeCellType, KernelStatus } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface DraggableCellListProps {
@@ -54,7 +54,7 @@ interface SortableCellItemProps {
 }
 
 // ============================================================
-// SortableCellItem 组件
+// SortableCellItem Component
 // ============================================================
 
 const SortableCellItem = memo(function SortableCellItem({
@@ -92,9 +92,9 @@ const SortableCellItem = memo(function SortableCellItem({
       className={`group relative ${isActive ? 'ring-2 ring-blue-500' : ''} ${isSelected ? 'bg-indigo-50' : ''}`}
       onClick={handleClick}
     >
-      {/* 位置指示器 */}
+      {/* Position indicator */}
       <div className="absolute left-0 top-0 bottom-0 w-8 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        {/* 拖拽手柄 */}
+        {/* Drag handle */}
         <button
           {...attributes}
           {...listeners}
@@ -103,11 +103,11 @@ const SortableCellItem = memo(function SortableCellItem({
         >
           <GripVertical size={14} />
         </button>
-        {/* 位置编号 */}
+        {/* Position number */}
         <span className="text-xs text-stone-400 mt-1">{index + 1}</span>
       </div>
 
-      {/* Cell 内容 */}
+      {/* Cell content */}
       <div className="ml-8">
         {children}
       </div>
@@ -116,7 +116,7 @@ const SortableCellItem = memo(function SortableCellItem({
 });
 
 // ============================================================
-// DraggableCellList 组件
+// DraggableCellList Component
 // ============================================================
 
 export const DraggableCellList = memo(function DraggableCellList({

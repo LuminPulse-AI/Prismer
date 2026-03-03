@@ -1,18 +1,18 @@
 /**
- * 引用导航器
- * 
- * 处理跨论文引用的跳转逻辑
+ * Citation Navigator
+ *
+ * Handles cross-paper citation navigation logic
  */
 
 import { Citation, CitationValidationResult } from '../types/citation';
 import { PDFSource } from '@/types/paperContext';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 /**
- * 导航目标
+ * Navigation target
  */
 export interface NavigationTarget {
   paperId: string;
@@ -21,7 +21,7 @@ export interface NavigationTarget {
 }
 
 /**
- * 导航结果
+ * Navigation result
  */
 export interface NavigationResult {
   success: boolean;
@@ -30,43 +30,43 @@ export interface NavigationResult {
 }
 
 /**
- * 文档状态检查器接口
- * 由外部 store 实现
+ * Document state checker interface
+ * Implemented by external stores
  */
 export interface DocumentStateChecker {
-  /** 检查论文是否已打开 */
+  /** Check if a paper is open */
   isDocumentOpen(paperId: string): boolean;
-  
-  /** 获取当前活动文档 ID */
+
+  /** Get the current active document ID */
   getActiveDocumentId(): string | null;
-  
-  /** 切换到指定文档 */
+
+  /** Switch to a specific document */
   switchToDocument(paperId: string): void;
-  
-  /** 打开新文档 */
+
+  /** Open a new document */
   openDocument(source: PDFSource): string;
-  
-  /** 获取论文标题 */
+
+  /** Get paper title */
   getPaperTitle(paperId: string): string | undefined;
 }
 
 /**
- * PDF 滚动控制器接口
- * 由外部 citation store 实现
+ * PDF scroll controller interface
+ * Implemented by external citation store
  */
 export interface PDFScrollController {
-  /** 滚动到指定 detection */
+  /** Scroll to a specific detection */
   scrollToDetection(detectionId: string, paperId?: string): void;
-  
-  /** 高亮指定 detection */
+
+  /** Highlight a specific detection */
   highlightDetection(detectionId: string, paperId?: string): void;
-  
-  /** 检查 detection 是否存在 */
+
+  /** Check if a detection exists */
   hasDetection(detectionId: string, paperId?: string): boolean;
 }
 
 // ============================================================
-// CitationNavigator 类
+// CitationNavigator Class
 // ============================================================
 
 export class CitationNavigator {
@@ -74,24 +74,24 @@ export class CitationNavigator {
   private scrollController: PDFScrollController | null = null;
   
   /**
-   * 注册文档状态检查器
+   * Register document state checker
    */
   registerDocumentChecker(checker: DocumentStateChecker): void {
     this.documentChecker = checker;
   }
   
   /**
-   * 注册滚动控制器
+   * Register scroll controller
    */
   registerScrollController(controller: PDFScrollController): void {
     this.scrollController = controller;
   }
   
   /**
-   * 导航到引用位置
-   * 
-   * @param citation - 目标引用
-   * @returns 导航结果
+   * Navigate to citation location
+   *
+   * @param citation - Target citation
+   * @returns Navigation result
    */
   async navigate(citation: Citation): Promise<NavigationResult> {
     if (!this.documentChecker || !this.scrollController) {
@@ -105,47 +105,47 @@ export class CitationNavigator {
     const { paperId, detectionId, pageNumber } = citation;
     const currentActiveId = this.documentChecker.getActiveDocumentId();
     
-    // Case 1: 目标论文是当前活动文档
+    // Case 1: Target paper is the current active document
     if (currentActiveId === paperId) {
       return this.scrollToTarget(detectionId, paperId);
     }
     
-    // Case 2: 目标论文已打开但不是当前活动
+    // Case 2: Target paper is open but not currently active
     if (this.documentChecker.isDocumentOpen(paperId)) {
       this.documentChecker.switchToDocument(paperId);
       
-      // 等待文档切换完成后滚动
+      // Wait for document switch to complete, then scroll
       await this.waitForDocumentSwitch(paperId);
       return this.scrollToTarget(detectionId, paperId);
     }
     
-    // Case 3: 目标论文未打开，需要加载
+    // Case 3: Target paper is not open, needs to be loaded
     return this.openAndNavigate(paperId, detectionId, pageNumber);
   }
   
   /**
-   * 检查是否可以导航到目标
+   * Check if navigation to target is possible
    */
   canNavigate(citation: Citation): boolean {
     if (!this.documentChecker) return false;
     
-    // 已打开的文档可以导航
+    // Open documents can be navigated to
     if (this.documentChecker.isDocumentOpen(citation.paperId)) {
       return true;
     }
     
-    // 未打开的文档也可以尝试打开
+    // Unopened documents can also be attempted
     return true;
   }
   
   /**
-   * 验证引用
+   * Validate citation
    */
   validateCitation(
     citation: Citation,
     availableDetections?: Map<string, Set<string>>
   ): CitationValidationResult {
-    // 如果没有提供检测数据，假设有效
+    // If no detection data provided, assume valid
     if (!availableDetections) {
       return { valid: true };
     }
@@ -156,7 +156,7 @@ export class CitationNavigator {
       return {
         valid: false,
         error: 'unknown_paper',
-        suggestion: `论文 ${citation.paperId} 未加载`,
+        suggestion: `Paper ${citation.paperId} is not loaded`,
       };
     }
     
@@ -164,7 +164,7 @@ export class CitationNavigator {
       return {
         valid: false,
         error: 'unknown_detection',
-        suggestion: `位置 ${citation.detectionId} 不存在`,
+        suggestion: `Detection ${citation.detectionId} does not exist`,
       };
     }
     
@@ -172,22 +172,22 @@ export class CitationNavigator {
   }
   
   /**
-   * 预加载论文 (用于优化跳转体验)
+   * Preload paper (for optimizing navigation experience)
    */
   async preloadPaper(paperId: string): Promise<void> {
     if (!this.documentChecker) return;
     
     if (this.documentChecker.isDocumentOpen(paperId)) {
-      return; // 已加载
+      return; // Already loaded
     }
     
-    // 可以在这里实现预加载逻辑
-    // 例如：预获取 PDF 元数据，预加载检测数据等
+    // Preloading logic can be implemented here
+    // e.g., prefetch PDF metadata, preload detection data, etc.
     console.log(`[CitationNavigator] Preloading paper: ${paperId}`);
   }
   
   // ============================================================
-  // 私有方法
+  // Private Methods
   // ============================================================
   
   private scrollToTarget(detectionId: string, paperId: string): NavigationResult {
@@ -230,20 +230,20 @@ export class CitationNavigator {
     }
     
     try {
-      // 构建 PDF 源
+      // Build PDF source
       const source: PDFSource = {
         type: 'arxiv',
         arxivId: paperId,
         path: `/api/ocr/${paperId}/pdf`,
       };
       
-      // 打开文档
+      // Open document
       const newDocId = this.documentChecker.openDocument(source);
       
-      // 等待文档加载
+      // Wait for document to load
       await this.waitForDocumentLoad(paperId);
       
-      // 滚动到目标
+      // Scroll to target
       return this.scrollToTarget(detectionId, paperId);
       
     } catch (error) {
@@ -257,16 +257,16 @@ export class CitationNavigator {
   
   private waitForDocumentSwitch(paperId: string): Promise<void> {
     return new Promise(resolve => {
-      // 简单延迟等待 React 状态更新
+      // Simple delay to wait for React state update
       setTimeout(resolve, 100);
     });
   }
   
   private waitForDocumentLoad(paperId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // 轮询检查文档是否加载完成
+      // Poll to check if document has finished loading
       let attempts = 0;
-      const maxAttempts = 50; // 最多等待 5 秒
+      const maxAttempts = 50; // Wait up to 5 seconds
       
       const checkInterval = setInterval(() => {
         attempts++;
@@ -279,7 +279,7 @@ export class CitationNavigator {
         
         if (attempts >= maxAttempts) {
           clearInterval(checkInterval);
-          // 即使超时也尝试继续
+          // Continue even if timed out
           resolve();
         }
       }, 100);
@@ -288,12 +288,12 @@ export class CitationNavigator {
 }
 
 // ============================================================
-// 便捷导航函数
+// Convenience Navigation Functions
 // ============================================================
 
 /**
- * 触发导航到指定 detection
- * 通过 CustomEvent 触发，由 PDFRenderer 监听
+ * Emit navigation to a specific detection
+ * Triggers a CustomEvent listened to by PDFRenderer
  */
 export function emitScrollToDetection(detectionId: string, paperId?: string): void {
   const event = new CustomEvent('pdf-scroll-to-detection', {
@@ -303,7 +303,7 @@ export function emitScrollToDetection(detectionId: string, paperId?: string): vo
 }
 
 /**
- * 触发导航到指定页面
+ * Emit navigation to a specific page
  */
 export function emitScrollToPage(pageNumber: number, paperId?: string): void {
   const event = new CustomEvent('pdf-scroll-to-page', {
@@ -313,7 +313,7 @@ export function emitScrollToPage(pageNumber: number, paperId?: string): void {
 }
 
 // ============================================================
-// 单例导出
+// Singleton Export
 // ============================================================
 
 export const citationNavigator = new CitationNavigator();

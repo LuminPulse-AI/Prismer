@@ -1,8 +1,8 @@
 /**
  * Workspace Participants API
  *
- * GET    /api/workspace/[id]/participants           - 参与者列表
- * POST   /api/workspace/[id]/participants           - 添加参与者
+ * GET    /api/workspace/[id]/participants           - List participants
+ * POST   /api/workspace/[id]/participants           - Add a participant
  */
 
 import { NextRequest, NextResponse } from 'next/server';

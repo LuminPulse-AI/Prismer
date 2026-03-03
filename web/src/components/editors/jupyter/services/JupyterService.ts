@@ -1,7 +1,7 @@
 /**
- * JupyterService - Jupyter Kernel 连接和代码执行服务
- * 
- * 使用 @jupyterlab/services 与远程 Jupyter Server 通信
+ * JupyterService - Jupyter Kernel Connection and Code Execution Service
+ *
+ * Communicates with a remote Jupyter Server via @jupyterlab/services.
  */
 
 import {
@@ -33,8 +33,8 @@ export interface JupyterServiceEvents {
 }
 
 /**
- * JupyterService 类
- * 封装与 Jupyter Server 的所有通信
+ * JupyterService class
+ * Encapsulates all communication with Jupyter Server.
  */
 export class JupyterService {
   private serverSettings: ServerConnection.ISettings | null = null;
@@ -50,18 +50,18 @@ export class JupyterService {
   }
 
   /**
-   * 连接到 Jupyter Server
+   * Connect to Jupyter Server
    */
   async connect(): Promise<void> {
     const token = this.config.token || '';
-    
-    // 确保 baseUrl 格式正确
+
+    // Ensure baseUrl is properly formatted
     let baseUrl = this.config.baseUrl;
     if (!baseUrl.endsWith('/')) {
       baseUrl += '/';
     }
     
-    // 构建 wsUrl，确保包含 token
+    // Build wsUrl, ensure token is included
     let wsUrl = this.config.wsUrl || baseUrl.replace(/^http/, 'ws');
     if (!wsUrl.endsWith('/')) {
       wsUrl += '/';
@@ -73,28 +73,28 @@ export class JupyterService {
       hasToken: !!token,
     });
 
-    // 创建服务器连接设置
+    // Create server connection settings
     this.serverSettings = ServerConnection.makeSettings({
       baseUrl,
       wsUrl,
       token,
-      appendToken: true, // 确保 token 添加到所有请求
+      appendToken: true, // Ensure token is added to all requests
     });
 
-    // 创建 Kernel 管理器
+    // Create kernel manager
     this.kernelManager = new KernelManager({
       serverSettings: this.serverSettings,
     });
 
-    // 等待 Kernel 管理器就绪
+    // Wait for kernel manager to be ready
     await this.kernelManager.ready;
     
     console.log('[JupyterService] Connected to Jupyter Server');
   }
 
   /**
-   * 释放本地连接（不杀 kernel）。
-   * Tab 切换、组件卸载时调用，kernel 在服务器端继续运行。
+   * Release local connection (without killing the kernel).
+   * Called on tab switch or component unmount; kernel continues running on server.
    */
   async disconnect(): Promise<void> {
     if (this.kernel) {
@@ -107,7 +107,7 @@ export class JupyterService {
   }
 
   /**
-   * 重连到已存在的 kernel（tab 切回时使用）
+   * Reconnect to an existing kernel (used when switching back to tab)
    */
   async connectToKernel(kernelId: string, name = 'python3'): Promise<string> {
     if (!this.kernelManager) {
@@ -124,7 +124,7 @@ export class JupyterService {
       this.events.onKernelStatus?.(this.mapKernelStatus(status));
     });
 
-    // 等待连接就绪
+    // Wait for connection to be ready
     await (this.kernel as any).ready;
 
     console.log(`[JupyterService] Reconnected to kernel: ${this.kernel.id}, status: ${this.kernel.status}`);
@@ -132,28 +132,28 @@ export class JupyterService {
   }
 
   /**
-   * 检查是否已连接
+   * Check if connected
    */
   isConnected(): boolean {
     return this.kernelManager !== null;
   }
 
   /**
-   * 检查 kernel 是否活跃
+   * Check if kernel is alive
    */
   isKernelAlive(): boolean {
     return this.kernel !== null && this.kernel.status !== 'dead';
   }
 
   /**
-   * 获取可用的 Kernel 类型
+   * Get available kernel types
    */
   async getKernelSpecs(): Promise<Array<{ name: string; displayName: string; language: string }>> {
     if (!this.kernelManager || !this.serverSettings) {
       throw new Error('Not connected to Jupyter Server');
     }
 
-    // 直接从 REST API 获取 kernel specs
+    // Fetch kernel specs directly from REST API
     try {
       const response = await ServerConnection.makeRequest(
         `${this.serverSettings.baseUrl}api/kernelspecs`,
@@ -185,22 +185,22 @@ export class JupyterService {
   }
 
   /**
-   * 启动新的 Kernel
+   * Start a new kernel
    */
   async startKernel(name = 'python3'): Promise<string> {
     if (!this.kernelManager) {
       throw new Error('Not connected to Jupyter Server');
     }
 
-    // 释放旧连接（不杀 kernel）
+    // Release old connection (without killing kernel)
     if (this.kernel) {
       try { this.kernel.dispose(); } catch { /* ignore */ }
     }
 
-    // 启动新 kernel
+    // Start new kernel
     this.kernel = await this.kernelManager.startNew({ name });
     
-    // 订阅状态变化
+    // Subscribe to status changes
     this.kernel.statusChanged.connect((_, status) => {
       this.events.onKernelStatus?.(this.mapKernelStatus(status));
     });
@@ -210,7 +210,7 @@ export class JupyterService {
   }
 
   /**
-   * 关闭当前 Kernel
+   * Shutdown current kernel
    */
   async shutdownKernel(): Promise<void> {
     if (this.kernel) {
@@ -221,7 +221,7 @@ export class JupyterService {
   }
 
   /**
-   * 中断当前执行
+   * Interrupt current execution
    */
   async interruptKernel(): Promise<void> {
     if (this.kernel) {
@@ -231,7 +231,7 @@ export class JupyterService {
   }
 
   /**
-   * 重启 Kernel
+   * Restart kernel
    */
   async restartKernel(): Promise<void> {
     if (this.kernel) {
@@ -241,7 +241,7 @@ export class JupyterService {
   }
 
   /**
-   * 获取当前 Kernel 状态
+   * Get current kernel status
    */
   getKernelStatus(): KernelStatus {
     if (!this.kernel) return 'disconnected';
@@ -249,14 +249,14 @@ export class JupyterService {
   }
 
   /**
-   * 获取当前 Kernel ID
+   * Get current kernel ID
    */
   getKernelId(): string | null {
     return this.kernel?.id || null;
   }
 
   /**
-   * 获取当前 Kernel 显示名称（如 Python 3）
+   * Get current kernel display name (e.g. Python 3)
    */
   getKernelName(): string | null {
     if (!this.kernel) return null;
@@ -265,7 +265,7 @@ export class JupyterService {
   }
 
   /**
-   * 列出服务器上所有运行中的 Kernel（用于切换/CRUD）
+   * List all running kernels on the server (for switching/CRUD)
    */
   async listRunningKernels(): Promise<Array<{ id: string; name: string }>> {
     if (!this.serverSettings) return [];
@@ -284,7 +284,7 @@ export class JupyterService {
   }
 
   /**
-   * 执行代码
+   * Execute code
    */
   execute(cellId: string, code: string): ExecutionHandle {
     if (!this.kernel) {
@@ -300,7 +300,7 @@ export class JupyterService {
       rejectComplete = reject;
     });
 
-    // 发送执行请求
+    // Send execution request
     const future = this.kernel.requestExecute({
       code,
       silent: false,
@@ -311,7 +311,7 @@ export class JupyterService {
 
     const msgId = future.msg.header.msg_id;
 
-    // 处理 IOPub 消息（输出）
+    // Handle IOPub messages (outputs)
     future.onIOPub = (msg: KernelMessage.IIOPubMessage) => {
       const output = this.parseIOPubMessage(msg);
       if (output) {
@@ -320,7 +320,7 @@ export class JupyterService {
       }
     };
 
-    // 处理执行回复
+    // Handle execution reply
     future.onReply = (msg: KernelMessage.IExecuteReplyMsg) => {
       const content = msg.content;
       this.executionCount = content.execution_count || this.executionCount + 1;

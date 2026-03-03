@@ -1,8 +1,8 @@
 /**
  * Demo Flow Controller
  * 
- * 事件驱动的 Demo 流程控制器
- * 等待组件实际完成操作后才推进到下一步
+ * Event-driven demo flow controller.
+ * Waits for components to actually complete operations before advancing to the next step.
  */
 
 import type { ComponentType, ExtendedChatMessage, ExtendedTimelineEvent, Task } from '../types';

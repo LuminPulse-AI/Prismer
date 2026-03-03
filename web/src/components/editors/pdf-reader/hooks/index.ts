@@ -1,7 +1,7 @@
 /**
  * PDF Reader Hooks
  * 
- * 导出所有 hooks
+ * Export all hooks
  */
 
 export * from './usePaperContext';

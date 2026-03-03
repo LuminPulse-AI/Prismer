@@ -2,8 +2,8 @@
 
 /**
  * ChatInput
- * 
- * 消息输入框组件 - 支持 @ 提及、# 引用素材、/快捷指令
+ *
+ * Message input component - Supports @ mentions, # material references, / quick commands
  */
 
 import React, { memo, useState, useCallback, useRef, useMemo, useEffect } from 'react';
@@ -39,7 +39,7 @@ const quickCommands = [
   { id: 'summary', label: 'Summary', command: '/summary ' },
 ];
 
-// 可引用的素材类型 (#)
+// Referenceable material types (#)
 interface ReferenceMaterial {
   id: string;
   type: 'paper' | 'code' | 'notes' | 'latex';
@@ -88,7 +88,7 @@ export const ChatInput = memo(function ChatInput({
   const [mentions, setMentions] = useState<string[]>([]);
   const [showCommands, setShowCommands] = useState(false);
   
-  // # 引用相关状态
+  // # reference related state
   const [showReferences, setShowReferences] = useState(false);
   const [referenceQuery, setReferenceQuery] = useState('');
   const [referenceIndex, setReferenceIndex] = useState(0);
@@ -136,7 +136,7 @@ export const ChatInput = memo(function ChatInput({
     ? (staticPlaceholder || 'Start the agent to chat...')
     : (value ? '' : placeholderTexts[placeholderIndex].slice(0, charIndex) + '|');
 
-  // 过滤可提及的参与者
+  // Filter mentionable participants
   const filteredParticipants = useMemo(() => {
     if (!mentionQuery) return participants;
     const query = mentionQuery.toLowerCase();
@@ -145,7 +145,7 @@ export const ChatInput = memo(function ChatInput({
     );
   }, [participants, mentionQuery]);
 
-  // 过滤可引用的素材
+  // Filter referenceable materials
   const filteredMaterials = useMemo(() => {
     if (!referenceQuery) return referenceMaterials;
     const query = referenceQuery.toLowerCase();
@@ -156,14 +156,14 @@ export const ChatInput = memo(function ChatInput({
     );
   }, [referenceQuery]);
 
-  // 处理输入变化
+  // Handle input change
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     const cursorPos = e.target.selectionStart;
     
     setValue(newValue);
 
-    // 检测 @ 符号 (提及人员)
+    // Detect @ symbol (mention people)
     const lastAtIndex = newValue.lastIndexOf('@', cursorPos - 1);
     if (lastAtIndex !== -1 && lastAtIndex >= mentionStartRef.current - 1) {
       const afterAt = newValue.slice(lastAtIndex + 1, cursorPos);
@@ -181,7 +181,7 @@ export const ChatInput = memo(function ChatInput({
     setShowMentions(false);
     mentionStartRef.current = -1;
 
-    // 检测 # 符号 (引用素材)
+    // Detect # symbol (reference materials)
     const lastHashIndex = newValue.lastIndexOf('#', cursorPos - 1);
     if (lastHashIndex !== -1 && lastHashIndex >= referenceStartRef.current - 1) {
       const afterHash = newValue.slice(lastHashIndex + 1, cursorPos);
@@ -199,7 +199,7 @@ export const ChatInput = memo(function ChatInput({
     setShowReferences(false);
     referenceStartRef.current = -1;
 
-    // 检测 / 命令
+    // Detect / commands
     if (newValue.startsWith('/') && !newValue.includes(' ')) {
       setShowCommands(true);
       setShowMentions(false);
@@ -209,7 +209,7 @@ export const ChatInput = memo(function ChatInput({
     }
   }, []);
 
-  // 插入提及
+  // Insert mention
   const insertMention = useCallback((participant: Participant) => {
     const start = mentionStartRef.current;
     const before = value.slice(0, start);
@@ -230,7 +230,7 @@ export const ChatInput = memo(function ChatInput({
     }, 0);
   }, [value]);
 
-  // 插入引用
+  // Insert reference
   const insertReference = useCallback((material: ReferenceMaterial) => {
     const start = referenceStartRef.current;
     const before = value.slice(0, start);
@@ -251,16 +251,16 @@ export const ChatInput = memo(function ChatInput({
     }, 0);
   }, [value]);
 
-  // 插入命令
+  // Insert command
   const insertCommand = useCallback((command: string) => {
     setValue(command);
     setShowCommands(false);
     inputRef.current?.focus();
   }, []);
 
-  // 键盘导航
+  // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // 提及列表导航 (@)
+    // Mention list navigation (@)
     if (showMentions && filteredParticipants.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -283,7 +283,7 @@ export const ChatInput = memo(function ChatInput({
       }
     }
 
-    // 引用列表导航 (#)
+    // Reference list navigation (#)
     if (showReferences && filteredMaterials.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -306,14 +306,14 @@ export const ChatInput = memo(function ChatInput({
       }
     }
 
-    // 发送消息
+    // Send message
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
   }, [showMentions, showReferences, filteredParticipants, filteredMaterials, mentionIndex, referenceIndex, insertMention, insertReference]);
 
-  // 提交
+  // Submit
   const handleSubmit = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
     const trimmed = value.trim();
@@ -330,7 +330,7 @@ export const ChatInput = memo(function ChatInput({
     }
   }, [value, disabled, onSend, mentions, references]);
 
-  // 点击外部关闭
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = () => {
       setShowMentions(false);
@@ -343,7 +343,7 @@ export const ChatInput = memo(function ChatInput({
 
   return (
     <div className="relative">
-      {/* 提及列表 (@) */}
+      {/* Mention list (@) */}
       <AnimatePresence>
         {showMentions && filteredParticipants.length > 0 && (
           <motion.div
@@ -397,7 +397,7 @@ export const ChatInput = memo(function ChatInput({
         )}
       </AnimatePresence>
 
-      {/* 引用列表 (#) */}
+      {/* Reference list (#) */}
       <AnimatePresence>
         {showReferences && filteredMaterials.length > 0 && (
           <motion.div
@@ -442,7 +442,7 @@ export const ChatInput = memo(function ChatInput({
         )}
       </AnimatePresence>
 
-      {/* 快捷命令 (/) */}
+      {/* Quick commands (/) */}
       <AnimatePresence>
         {showCommands && (
           <motion.div
@@ -488,12 +488,12 @@ export const ChatInput = memo(function ChatInput({
           <Paperclip className="w-5 h-5" />
         </button>
 
-        {/* 输入框容器 */}
+        {/* Input container */}
         <div className="flex-1 relative flex items-center">
-          {/* 已选择的标签 (@ 提及 和 # 引用) */}
+          {/* Selected tags (@ mentions and # references) */}
           {(mentions.length > 0 || references.length > 0) && (
             <div className="absolute -top-8 left-0 flex items-center gap-1 flex-wrap">
-              {/* @ 提及标签 */}
+              {/* @ mention tags */}
               {mentions.map((id) => {
                 const p = participants.find((p) => p.id === id);
                 if (!p) return null;
@@ -513,7 +513,7 @@ export const ChatInput = memo(function ChatInput({
                   </span>
                 );
               })}
-              {/* # 引用标签 */}
+              {/* # reference tags */}
               {references.map((id) => {
                 const m = referenceMaterials.find((m) => m.id === id);
                 if (!m) return null;
@@ -546,7 +546,7 @@ export const ChatInput = memo(function ChatInput({
             placeholder={displayPlaceholder}
             disabled={disabled}
             rows={1}
-            // iOS 移动端优化
+            // iOS mobile optimization
             enterKeyHint="send"
             autoComplete="off"
             autoCapitalize="sentences"
@@ -566,7 +566,7 @@ export const ChatInput = memo(function ChatInput({
               lineHeight: '40px',
               paddingTop: '0',
               paddingBottom: '0',
-              // 防止 iOS 自动缩放
+              // Prevent iOS auto-zoom
               fontSize: '16px',
             }}
           />
@@ -582,7 +582,7 @@ export const ChatInput = memo(function ChatInput({
           <Mic className="w-5 h-5" />
         </button>
 
-        {/* 发送按钮 */}
+        {/* Send button */}
         <button
           type="submit"
           disabled={!value.trim() || disabled}

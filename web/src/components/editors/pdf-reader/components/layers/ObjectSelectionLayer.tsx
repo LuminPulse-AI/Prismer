@@ -1,8 +1,8 @@
 /**
  * Object Selection Layer
  * 
- * 显示和交互 PDF 中的对象（图像、表格、公式等）
- * 数据来源于 OCR 检测结果
+ * Displays and interacts with PDF objects (images, tables, equations, etc.)
+ * Data sourced from OCR detection results
  */
 
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
@@ -30,9 +30,9 @@ interface ObjectSelectionLayerProps {
   pageHeight: number;
   scale: number;
   detections: PageDetection | null;
-  /** OCR 图像宽度 (用于坐标转换) */
+  /** OCR image width (for coordinate conversion) */
   ocrImageWidth?: number;
-  /** OCR 图像高度 (用于坐标转换) */
+  /** OCR image height (for coordinate conversion) */
   ocrImageHeight?: number;
   isEnabled: boolean;
   onObjectClick?: (detection: Detection, position: { x: number; y: number }) => void;
@@ -50,9 +50,9 @@ interface ObjectOverlayProps {
   pageWidth: number;
   pageHeight: number;
   scale: number;
-  /** OCR 图像宽度 */
+  /** OCR image width */
   ocrImageWidth?: number;
-  /** OCR 图像高度 */
+  /** OCR image height */
   ocrImageHeight?: number;
   isHovered: boolean;
   isSelected: boolean;
@@ -67,7 +67,7 @@ interface ObjectOverlayProps {
 // Constants
 // ============================================================
 
-// 可交互的对象类型 (基于 DetectionLabel) - 包含所有可能的视觉对象类型
+// Interactive object types (based on DetectionLabel) - includes all possible visual object types
 const OBJECT_LABELS = [
   'image', 
   'table', 
@@ -169,16 +169,16 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
 
   const config = LABEL_CONFIG[detection.label] || LABEL_CONFIG.image;
   
-  // OCR 像素坐标 -> PDF 页面坐标 -> 屏幕坐标
-  // OCR 图像尺寸 (e.g., 1224x1584 at 144 DPI) -> PDF 页面尺寸 (e.g., 612x792 at 72 DPI)
-  const ocrWidth = ocrImageWidth || 1224; // 默认值
+  // OCR pixel coordinates -> PDF page coordinates -> screen coordinates
+  // OCR image dimensions (e.g., 1224x1584 at 144 DPI) -> PDF page dimensions (e.g., 612x792 at 72 DPI)
+  const ocrWidth = ocrImageWidth || 1224; // Default value
   const ocrHeight = ocrImageHeight || 1584;
   
-  // 转换比例：将 OCR 像素坐标转换为 PDF 页面坐标
+  // Conversion ratio: convert OCR pixel coordinates to PDF page coordinates
   const scaleX = pageWidth / ocrWidth;
   const scaleY = pageHeight / ocrHeight;
   
-  // 使用 OCR 像素坐标，转换到 PDF 页面坐标，再乘以渲染比例
+  // Use OCR pixel coordinates, convert to PDF page coordinates, then multiply by render scale
   const ocrX1 = box.x1_px ?? box.x1;
   const ocrY1 = box.y1_px ?? box.y1;
   const ocrX2 = box.x2_px ?? box.x2;
@@ -199,7 +199,7 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
     onExplain();
   }, [onExplain]);
 
-  // 获取非常淡的填充色 (仅用于 isSelected 状态)
+  // Get a very light fill color (only for isSelected state)
   const getLightBgColor = () => {
     switch (detection.label) {
       case 'image': return 'rgba(16, 185, 129, 0.08)'; // emerald
@@ -214,8 +214,8 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
       className={cn(
         'absolute transition-all duration-200 cursor-pointer pointer-events-auto',
         'border-2 rounded-sm',
-        // hover: 虚线边框，不填充
-        // selected: 实线边框 + 非常淡的填充
+        // hover: dashed border, no fill
+        // selected: solid border + very light fill
         isSelected
           ? config.borderColor
           : isHovered
@@ -227,12 +227,12 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
         top: `${top}px`,
         width: `${width}px`,
         height: `${height}px`,
-        // 只有选中时才有填充
+        // Only apply fill when selected
         backgroundColor: isSelected ? getLightBgColor() : 'transparent',
       }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => {
-        // 如果已选中，不在 mouse leave 时取消 hover 状态（让操作面板保持）
+        // If selected, don't clear hover state on mouse leave (keep action panel visible)
         if (!isSelected) {
           onHover(false);
         }
@@ -241,7 +241,7 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
       data-object-id={`${detection.label}-${detection.boxes[0]?.x1}-${detection.boxes[0]?.y1}`}
       data-object-overlay="true"
     >
-      {/* Label Badge - hover 或 selected 时显示 */}
+      {/* Label Badge - shown on hover or selected */}
       {(isHovered || isSelected) && (
         <div
           className={cn(
@@ -258,7 +258,7 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
         </div>
       )}
 
-      {/* Action Buttons - 只有 selected 时显示，点击其他地方才消失 */}
+      {/* Action Buttons - only shown when selected, disappear when clicking elsewhere */}
       {isSelected && (
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-stone-200 z-[100]">
           <button
@@ -273,7 +273,7 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
             <Sparkles className="w-3.5 h-3.5" />
             Explain
           </button>
-          {/* Zoom 按钮 - 只对图片类型有效，公式/表格不显示 */}
+          {/* Zoom button - only for image types, not shown for equations/tables */}
           {['image', 'figure', 'chart', 'diagram'].includes(detection.label) && (
             <button
               onClick={(e) => {
@@ -290,7 +290,7 @@ const ObjectOverlay: React.FC<ObjectOverlayProps> = ({
               <ZoomIn className="w-4 h-4 text-stone-600" />
             </button>
           )}
-          {/* Add to Notes 按钮 - 当前禁用，显示为灰色 */}
+          {/* Add to Notes button - currently disabled, shown as grayed out */}
           <button
             disabled
             className={cn(
@@ -333,23 +333,23 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
   
   const { setRightPanelTab, setPendingQuestion, addExtract } = useAIStore();
 
-  // 全局点击监听器 - 点击其他地方时清除选中状态
+  // Global click listener - clear selection when clicking elsewhere
   useEffect(() => {
     if (!selectedObjectId) return;
     
     const handleGlobalClick = (e: MouseEvent) => {
-      // 检查点击目标是否在当前层内
+      // Check if click target is within the current layer
       const target = e.target as HTMLElement;
       const isInObjectLayer = target.closest('[data-object-selection-layer]');
       const isInObjectOverlay = target.closest('[data-object-overlay]');
       
-      // 如果点击不在对象覆盖层内，清除选中
+      // If click is not within an object overlay, clear selection
       if (!isInObjectOverlay) {
         setSelectedObjectId(null);
       }
     };
     
-    // 使用 capture 阶段确保我们能捕获到事件
+    // Use capture phase to ensure we catch the event
     document.addEventListener('mousedown', handleGlobalClick, true);
     
     return () => {
@@ -357,13 +357,13 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
     };
   }, [selectedObjectId]);
 
-  // 过滤出当前页面的对象（图像、表格等）
+  // Filter objects for the current page (images, tables, etc.)
   const objectDetections = useMemo(() => {
     if (!detections || detections.page_number !== pageNumber) {
       return [];
     }
     
-    // 过滤出可交互的对象类型
+    // Filter for interactive object types
     return detections.detections.filter(d => 
       OBJECT_LABELS.some(label => d.label === label)
     );
@@ -380,7 +380,7 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
 
   const handleObjectClick = useCallback((detection: Detection, position: { x: number; y: number }) => {
     const objectId = getObjectId(detection);
-    // 如果点击已选中的对象，则取消选中；否则选中新对象
+    // If clicking an already-selected object, deselect it; otherwise select the new object
     if (selectedObjectId === objectId) {
       setSelectedObjectId(null);
     } else {
@@ -389,25 +389,25 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
     onObjectClick?.(detection, position);
   }, [getObjectId, selectedObjectId, onObjectClick]);
 
-  // 点击容器空白区域时取消选中
+  // Deselect when clicking on empty area of the container
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
-    // 只有当点击的是容器本身时才取消选中
+    // Only deselect when clicking on the container itself
     if (e.target === e.currentTarget) {
       setSelectedObjectId(null);
     }
   }, []);
 
-  // 构建图片 URL - 直接使用 detection.id
+  // Build image URL - directly using detection.id
   const buildImageUrl = useCallback((detection: Detection): string => {
     if (!paperId) return '';
     
-    // 使用 API 路由获取图片，格式: /api/ocr/{arxivId}/images/{detection.id}.jpg
-    // detection.id 格式示例: "p1_image_0"
+    // Use API route to fetch images, format: /api/ocr/{arxivId}/images/{detection.id}.jpg
+    // detection.id format example: "p1_image_0"
     if (detection.id) {
       return `/api/ocr/${paperId}/images/${detection.id}.jpg`;
     }
     
-    // Fallback: 尝试从 metadata 获取
+    // Fallback: try to get from metadata
     if (detection.metadata?.image_path) {
       return `/api/ocr/${paperId}/${detection.metadata.image_path}`;
     }
@@ -416,56 +416,56 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
   }, [paperId]);
 
   const handleExplainObject = useCallback((detection: Detection) => {
-    // 生成解释请求
+    // Generate explanation request
     const labelName = LABEL_CONFIG[detection.label]?.label || detection.label;
     const question = `Please explain this ${labelName.toLowerCase()} on page ${pageNumber}. What does it show and why is it important to the paper?`;
     
-    // 设置待发送问题并切换到 chat 面板
-    // AskPaperChat 组件会监听 pendingQuestion 并自动发送
+    // Set the pending question and switch to the chat panel
+    // AskPaperChat listens for pendingQuestion and sends it automatically
     setPendingQuestion(question);
     setRightPanelTab('chat');
     
     onExplainObject?.(detection);
   }, [pageNumber, setPendingQuestion, setRightPanelTab, onExplainObject]);
 
-  // 放大查看对象 (图片/表格)
+  // Zoom in on an object (image/table)
   const handleZoomObject = useCallback((detection: Detection) => {
-    // 对于图片类型，显示放大视图
+    // For image types, display the zoomed view
     if (['image', 'figure', 'chart', 'diagram'].includes(detection.label)) {
       const imageUrl = buildImageUrl(detection);
       if (imageUrl) {
         setZoomedImageUrl(imageUrl);
       }
     }
-    // TODO: 对于表格/公式，可以考虑显示更详细的预览
+    // TODO: For tables/equations, consider showing a more detailed preview
   }, [buildImageUrl]);
 
-  // 提取对象到 Notes
+  // Extract object to Notes
   const handleExtractObject = useCallback((detection: Detection) => {
     const config = LABEL_CONFIG[detection.label] || LABEL_CONFIG.default;
     const labelName = config.label;
     const extractType = config.extractType;
     const box = detection.boxes[0];
     
-    // 使用 raw_text 或 metadata 中的信息
+    // Use raw_text or metadata information
     const rawText = detection.raw_text || '';
     
-    // 根据类型创建不同格式的内容
+    // Create content in different formats based on type
     let content = '';
     
     switch (extractType) {
       case 'table':
-        // 表格：使用原始文本或markdown格式
+        // Table: use raw text or markdown format
         content = rawText || `[Table from Page ${pageNumber}]`;
         break;
       case 'equation':
-        // 公式：使用 LaTeX 格式
+        // Equation: use LaTeX format
         content = rawText || `[Equation from Page ${pageNumber}]`;
         break;
       case 'figure':
-        // 图片：构建实际的图片路径
+        // Figure: build the actual image path
         const imagePath = buildImageUrl(detection);
-        // 使用 markdown 图片格式
+        // Use markdown image format
         content = imagePath 
           ? `![${labelName} from Page ${pageNumber}](${imagePath})`
           : `[${labelName} from Page ${pageNumber}]`;
@@ -474,7 +474,7 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
         content = rawText || `[${labelName} from Page ${pageNumber}]`;
     }
     
-    // 添加到 extracts
+    // Add to extracts
     addExtract({
       type: extractType,
       content: content,
@@ -487,10 +487,10 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
       tags: [detection.label],
     });
     
-    // 切换到 Notes 面板
+    // Switch to the Notes panel
     setRightPanelTab('notes');
     
-    // 清除选中状态
+    // Clear selection state
     setSelectedObjectId(null);
   }, [pageNumber, addExtract, setRightPanelTab, buildImageUrl]);
 
@@ -508,7 +508,7 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
         style={{
           width: pageWidth * scale,
           height: pageHeight * scale,
-          zIndex: 40, // 确保在 PDF 内容之上，高于 textLayer (z-index: 2)
+          zIndex: 40, // Ensure above PDF content, higher than textLayer (z-index: 2)
         }}
         onClick={handleContainerClick}
       >
@@ -536,7 +536,7 @@ export const ObjectSelectionLayer: React.FC<ObjectSelectionLayerProps> = ({
         })}
       </div>
 
-      {/* 图片放大预览模态框 */}
+      {/* Image zoom preview modal */}
       {zoomedImageUrl && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] pointer-events-auto"

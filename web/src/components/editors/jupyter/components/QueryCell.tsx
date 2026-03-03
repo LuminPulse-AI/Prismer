@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * QueryCell - 用户查询输入组件
- * 
- * 用于向 Agent 发送问题或指令
+ * QueryCell - User Query Input Component
+ *
+ * Used to send questions or instructions to the Agent
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
@@ -25,7 +25,7 @@ export function QueryCell({
   const [query, setQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 自动调整高度
+  // Auto-adjust height
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {

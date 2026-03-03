@@ -1,12 +1,12 @@
 /**
  * Component Event Forwarder
  *
- * 将组件事件转发到 Agent Server
+ * Forwards component events to the Agent Server
  *
- * 使用方式:
- * 1. WorkspaceView 调用 setComponentEventForwarder 设置转发函数
- * 2. 组件调用 forwardComponentEvent 报告事件
- * 3. 事件通过 WebSocket 发送到 Agent Server
+ * Usage:
+ * 1. WorkspaceView calls setComponentEventForwarder to set the forwarder function
+ * 2. Components call forwardComponentEvent to report events
+ * 3. Events are sent to the Agent Server via WebSocket
  */
 
 import { createLogger } from '@/lib/logger';
@@ -19,12 +19,12 @@ type ComponentEventForwarder = (
   data?: unknown
 ) => void;
 
-// 全局转发函数 (由 WorkspaceView 设置)
+// Global forwarder function (set by WorkspaceView)
 let globalForwarder: ComponentEventForwarder | null = null;
 
 /**
- * 设置组件事件转发函数
- * 由顶层组件 (WorkspaceView) 在挂载时调用
+ * Set the component event forwarder function
+ * Called by the top-level component (WorkspaceView) on mount
  */
 export function setComponentEventForwarder(forwarder: ComponentEventForwarder | null): void {
   globalForwarder = forwarder;
@@ -36,8 +36,8 @@ export function setComponentEventForwarder(forwarder: ComponentEventForwarder | 
 }
 
 /**
- * 转发组件事件到服务器
- * 组件在 ready/contentLoaded 等生命周期调用
+ * Forward a component event to the server
+ * Called by components during lifecycle events such as ready/contentLoaded
  */
 export function forwardComponentEvent(
   component: string,
@@ -53,7 +53,7 @@ export function forwardComponentEvent(
 }
 
 /**
- * 检查转发器是否已设置
+ * Check if the forwarder has been set
  */
 export function hasComponentEventForwarder(): boolean {
   return globalForwarder !== null;

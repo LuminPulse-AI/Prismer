@@ -1,12 +1,12 @@
 /**
  * Selection Popup
  * 
- * 选中文本后的弹出菜单
- * 
- * 操作：
- * - Add to Notes → 添加到 Notes 面板 (Coming Soon)
- * - Ask AI → 设置引用并跳转到 Chat 面板
- * - Translate → 翻译选中文本
+ * Popup menu shown after selecting text.
+ *
+ * Actions:
+ * - Add to Notes -> Add to Notes panel (Coming Soon)
+ * - Ask AI -> Set reference and switch to Chat panel
+ * - Translate -> Translate selected text
  */
 
 "use client";
@@ -62,7 +62,7 @@ const TranslationPanel: React.FC<TranslationPanelProps> = ({ text, onClose }) =>
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // 执行翻译
+  // Perform translation
   const doTranslate = useCallback(async (lang: TargetLanguage) => {
     setIsLoading(true);
     setError(null);
@@ -77,12 +77,12 @@ const TranslationPanel: React.FC<TranslationPanelProps> = ({ text, onClose }) =>
     }
   }, [text]);
 
-  // 初始翻译
+  // Initial translation
   useEffect(() => {
     doTranslate(targetLanguage);
   }, []);
 
-  // 切换语言
+  // Switch language
   const handleLanguageChange = (lang: TargetLanguage) => {
     setTargetLanguage(lang);
     setShowLanguageSelect(false);
@@ -188,7 +188,7 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
   const [showTranslation, setShowTranslation] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 点击外部关闭
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -201,7 +201,7 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
   }, [onClose]);
 
   /**
-   * Copy：复制选中文本到剪贴板
+   * Copy: Copy selected text to clipboard
    */
   const handleCopy = useCallback(async () => {
     if (!selectedText.trim()) return;
@@ -209,7 +209,7 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
     try {
       await navigator.clipboard.writeText(selectedText);
       setCopied(true);
-      // 1.5秒后重置复制状态
+      // Reset copy state after 1.5 seconds
       setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error('Failed to copy text:', err);
@@ -217,7 +217,7 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
   }, [selectedText]);
 
   /**
-   * Add to Notes：添加到 Notes 面板
+   * Add to Notes: Add to the Notes panel
    */
   const handleAddToNotes = useCallback(() => {
     if (!selectedText.trim()) return;
@@ -234,13 +234,13 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
       tags: [],
     });
 
-    // 切换到 Notes 面板
+    // Switch to the Notes panel
     setRightPanelTab('notes');
     onClose();
   }, [selectedText, pageNumber, addExtract, setRightPanelTab, onClose]);
 
   /**
-   * Ask AI：设置引用并跳转到 Chat 面板
+   * Ask AI: Set reference and switch to the Chat panel
    */
   const handleAskAI = useCallback(() => {
     setChatReference({
@@ -252,15 +252,15 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
   }, [selectedText, pageNumber, setChatReference, setRightPanelTab, onClose]);
 
   /**
-   * Translate：翻译选中文本
+   * Translate: Translate selected text
    */
   const handleTranslate = useCallback(() => {
     setShowTranslation(!showTranslation);
   }, [showTranslation]);
 
-  // 计算 PDF 阅读区域的一半宽度
+  // Calculate half the width of the PDF reading area
   const popupWidth = typeof window !== 'undefined' 
-    ? Math.min(window.innerWidth * 0.4, 600) // 约为 PDF 区域的一半
+    ? Math.min(window.innerWidth * 0.4, 600) // Approximately half of the PDF area
     : 400;
 
   // Calculate adjusted position
@@ -285,7 +285,7 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
       <div className="bg-white rounded-lg shadow-xl border border-stone-200 overflow-hidden min-w-[280px]">
         {/* Action Buttons */}
         <div className="p-1.5 flex items-center gap-1">
-          {/* Copy 按钮 */}
+          {/* Copy button */}
           <button
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md",
@@ -303,10 +303,10 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
             <span className="text-xs font-medium">{copied ? "Copied" : "Copy"}</span>
           </button>
 
-          {/* 分隔线 */}
+          {/* Separator */}
           <div className="w-px h-5 bg-stone-200" />
 
-          {/* Add to Notes 按钮 - Coming Soon */}
+          {/* Add to Notes button - Coming Soon */}
           <button
             className={cn(
               "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md",
@@ -319,10 +319,10 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
             <span className="text-xs font-medium">Notes</span>
           </button>
 
-          {/* 分隔线 */}
+          {/* Separator */}
           {hasAICapability && <div className="w-px h-5 bg-stone-200" />}
 
-          {/* Ask AI 按钮 */}
+          {/* Ask AI button */}
           {hasAICapability && (
             <button
               className={cn(
@@ -338,10 +338,10 @@ export const SelectionPopup: React.FC<SelectionPopupProps> = ({
             </button>
           )}
 
-          {/* 分隔线 */}
+          {/* Separator */}
           {isTranslationAvailable && <div className="w-px h-5 bg-stone-200" />}
 
-          {/* Translate 按钮 */}
+          {/* Translate button */}
           {isTranslationAvailable && (
             <button
               className={cn(

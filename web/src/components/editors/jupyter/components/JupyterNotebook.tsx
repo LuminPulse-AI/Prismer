@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * JupyterNotebook - Jupyter Notebook 主组件
- * 
- * Phase 5 增强：
- * - 拖拽排序 Cell
- * - Cell 类型切换
- * - Package/Session/Artifacts 侧边栏
- * - AI 对话区域优化
- * - Undo/Redo 支持
+ * JupyterNotebook - Jupyter Notebook Main Component
+ *
+ * Phase 5 enhancements:
+ * - Drag-and-drop cell reordering
+ * - Cell type switching
+ * - Package/Session/Artifacts sidebar
+ * - AI conversation area optimization
+ * - Undo/Redo support
  */
 
 import React, { useEffect, useCallback, useRef, useState, useMemo } from 'react';
@@ -79,7 +79,7 @@ import { AssetBrowser, type AssetItem } from '@/components/shared/AssetBrowser';
 import { componentEventBus } from '@/lib/events';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface JupyterNotebookProps {
@@ -90,14 +90,14 @@ interface JupyterNotebookProps {
   agentApiEndpoint?: string;
   agentApiKey?: string;
   className?: string;
-  /** 单元格主题：default | slate | indigo，与工程配色一致 */
+  /** Cell theme: default | slate | indigo, consistent with engineering color scheme */
   cellTheme?: CodeCellTheme;
 }
 
 type SidebarPanel = 'none' | 'variables' | 'packages' | 'sessions' | 'artifacts';
 
 // ============================================================
-// JupyterNotebook 组件
+// JupyterNotebook Component
 // ============================================================
 
 export function JupyterNotebook({
@@ -118,10 +118,10 @@ export function JupyterNotebook({
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showAssetBrowser, setShowAssetBrowser] = useState(false);
   
-  // 使用 Artifact Store
+  // Use Artifact Store
   const artifacts = useArtifacts();
   
-  // 启用 Artifact 收集器
+  // Enable Artifact collector
   useArtifactCollector({ enabled: true });
   
   // Code confirmation dialog state
@@ -185,10 +185,10 @@ export function JupyterNotebook({
   const getPendingEdit = useNotebookStore((state) => state.getPendingEdit);
 
   // ============================================================
-  // 自动连接管理 — 完全托管，无需用户干预
+  // Auto Connection Management — fully managed, no user intervention needed
   // ============================================================
 
-  // 连接到 Jupyter Server（内部方法，组件自动调用）
+  // Connect to Jupyter Server (internal method, called automatically by the component)
   const connect = useCallback(async () => {
     if (!serviceRef.current) return;
 
@@ -198,7 +198,7 @@ export function JupyterNotebook({
     try {
       await serviceRef.current.connect();
 
-      // 检查 store 中是否有之前的 kernelId（tab 切换回来的场景）
+      // Check if there is a previous kernelId in store (e.g. tab switch back)
       const existingKernelId = useNotebookStore.getState().kernelId;
       if (existingKernelId) {
         try {
@@ -209,11 +209,11 @@ export function JupyterNotebook({
           return;
         } catch (err) {
           console.warn('[Jupyter] Failed to reconnect to kernel, starting new one:', err);
-          // 旧 kernel 可能已超时关闭，启动新的
+          // Old kernel may have timed out, start a new one
         }
       }
 
-      // 没有已存在的 kernel 或重连失败 → 启动新 kernel
+      // No existing kernel or reconnection failed -> start a new kernel
       const newKernelId = await serviceRef.current.startKernel('python3');
       setKernelId(newKernelId);
       setKernelStatus('idle');
@@ -237,21 +237,21 @@ export function JupyterNotebook({
     }
   }, [setKernelId, setKernelStatus]);
 
-  // 初始化服务 + 自动连接
+  // Initialize service + auto connect
   useEffect(() => {
     const service = createJupyterService(
       { baseUrl: serverUrl, token, wsUrl },
       {
         onKernelStatus: (status) => {
           setKernelStatus(status);
-          // 自动重连：kernel dead 时尝试重新连接
+          // Auto-reconnect: attempt to reconnect when kernel is dead
           if (status === 'dead') {
             console.warn('[Jupyter] Kernel dead, scheduling auto-reconnect...');
             setTimeout(() => {
               const svc = serviceRef.current;
               if (svc) {
                 setKernelStatus('disconnected');
-                // 清除旧 kernelId 以强制启动新 kernel
+                // Clear old kernelId to force starting a new kernel
                 useNotebookStore.getState().setKernelId(null);
                 connect();
               }
@@ -266,11 +266,11 @@ export function JupyterNotebook({
     serviceRef.current = service;
     emitEvent({ type: 'ready' });
 
-    // 自动连接
+    // Auto connect
     connect();
 
     return () => {
-      // 组件卸载：只释放本地连接，不杀 kernel
+      // Component unmount: release local connection only, do not kill kernel
       service.disconnect();
     };
   }, [serverUrl, token, wsUrl, setKernelStatus, appendCellOutput, connect]);
@@ -297,7 +297,7 @@ export function JupyterNotebook({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // 执行 Cell
+  // Execute Cell
   const executeCell = useCallback(async (cellId: string) => {
     const service = serviceRef.current;
     // Get fresh state from store to avoid stale closure
@@ -559,19 +559,19 @@ export function JupyterNotebook({
     };
   }, [cells, activeCellId, kernelStatus, addCodeCell, addMarkdownCell, executeCell, connect]);
 
-  // 执行代码（从 Agent 或对话框）
+  // Execute code (from Agent or confirmation dialog)
   const executeCode = useCallback(async (code: string) => {
     const cellId = addCodeCell(code, activeCellId || undefined, 'agent');
     setTimeout(() => executeCell(cellId), 100);
   }, [addCodeCell, activeCellId, executeCell]);
 
-  // 插入代码（不执行）
+  // Insert code (without executing)
   const insertCode = useCallback((code: string) => {
     addCodeCell(code, activeCellId || undefined, 'agent');
     setConfirmDialog({ isOpen: false, code: '' });
   }, [addCodeCell, activeCellId]);
 
-  // 执行所有 Cells
+  // Execute all Cells
   const executeAllCells = useCallback(async () => {
     for (const cell of cells) {
       if (cell.type === 'code') {
@@ -580,14 +580,14 @@ export function JupyterNotebook({
     }
   }, [cells, executeCell]);
 
-  // 中断执行
+  // Interrupt execution
   const interruptExecution = useCallback(async () => {
     if (serviceRef.current) {
       await serviceRef.current.interruptKernel();
     }
   }, []);
 
-  // 重启 Kernel
+  // Restart Kernel
   const restartKernel = useCallback(async () => {
     if (serviceRef.current) {
       await serviceRef.current.restartKernel();
@@ -595,7 +595,7 @@ export function JupyterNotebook({
     }
   }, [clearAllOutputs]);
 
-  // 处理 Cell AI 操作
+  // Handle Cell AI action
   const handleCellAIAction = useCallback((cellId: string, action: CellAIAction) => {
     const cell = cells.find(c => c.id === cellId);
     if (!cell || cell.type !== 'code') return;
@@ -604,25 +604,25 @@ export function JupyterNotebook({
     setContextCellId(cellId);
 
     const prompts: Record<CellAIAction, string> = {
-      explain: `请解释这段代码的功能：\n\`\`\`python\n${codeCell.source}\n\`\`\``,
-      fix: `这段代码可能有问题，请帮我修复：\n\`\`\`python\n${codeCell.source}\n\`\`\``,
-      optimize: `请优化这段代码的性能：\n\`\`\`python\n${codeCell.source}\n\`\`\``,
-      document: `请为这段代码添加文档和注释：\n\`\`\`python\n${codeCell.source}\n\`\`\``,
-      ask: '', // 用户自己输入
+      explain: `Please explain what this code does:\n\`\`\`python\n${codeCell.source}\n\`\`\``,
+      fix: `This code may have issues, please help me fix it:\n\`\`\`python\n${codeCell.source}\n\`\`\``,
+      optimize: `Please optimize the performance of this code:\n\`\`\`python\n${codeCell.source}\n\`\`\``,
+      document: `Please add documentation and comments to this code:\n\`\`\`python\n${codeCell.source}\n\`\`\``,
+      ask: '', // User provides their own input
     };
 
     if (action === 'ask') {
-      // 只设置上下文，让用户输入问题
+      // Only set context, let the user type their question
       return;
     }
 
     handleAgentQuery(prompts[action]);
   }, [cells, setContextCellId]);
 
-  // 处理 Agent 查询
+  // Handle Agent query
   const handleAgentQuery = useCallback(async (query: string) => {
     if (!agentApiEndpoint) {
-      // 模拟 Agent 响应（用于演示）
+      // Mock Agent response (for demo purposes)
       setAgentLoading(true);
       addConversation('user', query, contextCellId || undefined);
       
@@ -652,7 +652,7 @@ export function JupyterNotebook({
       return;
     }
 
-    // 实际 API 调用...
+    // Actual API call...
     setAgentLoading(true);
     addConversation('user', query, contextCellId || undefined);
 
@@ -707,7 +707,7 @@ export function JupyterNotebook({
     }
   }, [agentApiEndpoint, agentApiKey, cells, kernelStatus, conversationHistory, addConversation, contextCellId, setContextCellId]);
 
-  // 处理 Agent Action - 执行代码
+  // Handle Agent Action - execute code
   const handleAgentExecuteCode = useCallback((code: string) => {
     if (agentMode === 'interactive') {
       setConfirmDialog({
@@ -720,7 +720,7 @@ export function JupyterNotebook({
     }
   }, [agentMode, executeCode]);
 
-  // 处理确认对话框确认
+  // Handle confirmation dialog confirm
   const handleConfirmExecute = useCallback((code: string) => {
     setConfirmDialog({ isOpen: false, code: '' });
     executeCode(code);
@@ -729,7 +729,7 @@ export function JupyterNotebook({
   // Note: Initial cells are now added by demo flow via demo:addAndRunCell event
   // No default "Hello World" cell needed
 
-  // 键盘快捷键
+  // Keyboard shortcuts
   const { shortcuts } = useKeyboardShortcuts({
     runCell: () => activeCellId && executeCell(activeCellId),
     runCellAndAdvance: () => {
@@ -763,7 +763,7 @@ export function JupyterNotebook({
     showKeyboardShortcuts: () => setShowShortcuts(true),
   }, { enabled: true });
 
-  // 渲染状态指示器
+  // Render status indicator
   const renderStatusIndicator = () => {
     switch (kernelStatus) {
       case 'idle':
@@ -780,7 +780,7 @@ export function JupyterNotebook({
     }
   };
 
-  // 渲染 Cell
+  // Render Cell
   const renderCell = useCallback((cell: Cell, index: number) => {
     if (cell.type !== 'code') return null;
     
@@ -820,12 +820,12 @@ export function JupyterNotebook({
     confirmEdit, rejectEdit,
   ]);
 
-  // 切换侧边栏
+  // Toggle sidebar
   const toggleSidebar = (panel: SidebarPanel) => {
     setSidebarPanel(current => current === panel ? 'none' : panel);
   };
 
-  // Kernel CRUD: 列出运行中的 kernel（下拉打开时拉取）
+  // Kernel CRUD: list running kernels (fetched when dropdown opens)
   const [runningKernels, setRunningKernels] = useState<Array<{ id: string; name: string }>>([]);
   const onKernelDropdownOpen = useCallback((open: boolean) => {
     if (open && serviceRef.current) {
@@ -880,7 +880,7 @@ export function JupyterNotebook({
       {/* Toolbar */}
       <div className="flex items-center justify-between h-10 px-3 py-2 bg-white border-b border-stone-200">
         <div className="flex items-center gap-2">
-          {/* 统一 Kernel 状态 + CRUD 下拉 */}
+          {/* Unified Kernel status + CRUD dropdown */}
           <DropdownMenu onOpenChange={onKernelDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <button
@@ -956,7 +956,7 @@ export function JupyterNotebook({
 
           <div className="w-px h-5 bg-stone-200" />
 
-          {/* 执行控制 */}
+          {/* Execution controls */}
           <button
             onClick={executeAllCells}
             disabled={kernelStatus !== 'idle'}
@@ -1056,9 +1056,9 @@ export function JupyterNotebook({
           */}
         </div>
 
-        {/* 右侧工具栏 */}
+        {/* Right toolbar */}
         <div className="flex items-center gap-2">
-          {/* 侧边栏切换 */}
+          {/* Sidebar toggles */}
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5 overflow-hidden">
             <button
               onClick={() => toggleSidebar('variables')}
@@ -1181,7 +1181,7 @@ export function JupyterNotebook({
           */}
         </div>
 
-        {/* Sidebar — 浮动面板 */}
+        {/* Sidebar — floating panel */}
         {sidebarPanel !== 'none' && (
           <div className="absolute right-3 top-3 bottom-3 w-80 bg-white border border-stone-200 rounded-xl shadow-lg flex flex-col overflow-hidden z-10">
             {sidebarPanel === 'variables' && (

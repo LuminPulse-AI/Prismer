@@ -1,10 +1,10 @@
 /**
  * ActionCard Types
- * 
- * 通用 Agent 行动类型定义
+ *
+ * Generic agent action type definitions
  */
 
-/** Agent 动作类型 */
+/** Agent action type */
 export type AgentActionType =
   | 'search_papers'
   | 'analyze_paper'
@@ -13,10 +13,10 @@ export type AgentActionType =
   | 'execute_code'
   | 'thinking';
 
-/** 动作状态 */
+/** Action status */
 export type ActionStatus = 'pending' | 'running' | 'completed' | 'error';
 
-/** 论文引用 */
+/** Paper reference */
 export interface PaperReference {
   id: string;
   title: string;
@@ -28,7 +28,7 @@ export interface PaperReference {
   source: 'arxiv' | 'semantic_scholar' | 'google_scholar';
 }
 
-/** Agent 动作 */
+/** Agent action */
 export interface AgentAction {
   id: string;
   type: AgentActionType;

@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * StreamingOutput - 流式输出组件
- * 
- * 优化实时输出渲染：
- * - 防抖合并频繁更新
- * - 缓冲区批量追加
- * - 自动滚动到底部
- * - 行数限制
+ * StreamingOutput - Streaming Output Component
+ *
+ * Optimized real-time output rendering:
+ * - Debounce to merge frequent updates
+ * - Buffer batch appending
+ * - Auto-scroll to bottom
+ * - Line count limit
  */
 
 import React, { 
@@ -21,7 +21,7 @@ import React, {
 import { ChevronDown, ChevronUp, Trash2, Download } from 'lucide-react';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface StreamingOutputProps {
@@ -42,14 +42,14 @@ interface BufferState {
 }
 
 // ============================================================
-// 常量
+// Constants
 // ============================================================
 
 const DEFAULT_MAX_LINES = 1000;
 const DEFAULT_DEBOUNCE_MS = 50;
 
 // ============================================================
-// StreamingOutput 组件
+// StreamingOutput Component
 // ============================================================
 
 export const StreamingOutput = memo(function StreamingOutput({
@@ -74,7 +74,7 @@ export const StreamingOutput = memo(function StreamingOutput({
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAtBottomRef = useRef(true);
 
-  // 刷新缓冲区到显示
+  // Flush buffer to display
   const flushBuffer = useCallback(() => {
     if (pendingContentRef.current === '') return;
 
@@ -85,7 +85,7 @@ export const StreamingOutput = memo(function StreamingOutput({
       let finalContent = newContent;
       let truncated = prev.truncated;
       
-      // 行数限制
+      // Line count limit
       if (lines.length > maxLines) {
         const trimmedLines = lines.slice(-maxLines);
         finalContent = trimmedLines.join('\n');
@@ -102,20 +102,20 @@ export const StreamingOutput = memo(function StreamingOutput({
     });
   }, [maxLines]);
 
-  // 追加内容（带防抖）
+  // Append content (with debounce)
   const appendContent = useCallback((text: string) => {
     pendingContentRef.current += text;
 
-    // 清除之前的定时器
+    // Clear previous timer
     if (flushTimeoutRef.current) {
       clearTimeout(flushTimeoutRef.current);
     }
 
-    // 设置新的防抖定时器
+    // Set new debounce timer
     flushTimeoutRef.current = setTimeout(flushBuffer, debounceMs);
   }, [flushBuffer, debounceMs]);
 
-  // 自动滚动到底部
+  // Auto-scroll to bottom
   useEffect(() => {
     if (!autoScroll || isCollapsed) return;
     if (!containerRef.current) return;
@@ -124,7 +124,7 @@ export const StreamingOutput = memo(function StreamingOutput({
     containerRef.current.scrollTop = containerRef.current.scrollHeight;
   }, [buffer.content, autoScroll, isCollapsed]);
 
-  // 检测是否在底部
+  // Detect if scrolled to bottom
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
     
@@ -132,7 +132,7 @@ export const StreamingOutput = memo(function StreamingOutput({
     isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 50;
   }, []);
 
-  // 清理定时器
+  // Cleanup timers
   useEffect(() => {
     return () => {
       if (flushTimeoutRef.current) {
@@ -141,7 +141,7 @@ export const StreamingOutput = memo(function StreamingOutput({
     };
   }, []);
 
-  // 初始内容变化时重置
+  // Reset when initial content changes
   useEffect(() => {
     setBuffer({
       content: initialContent,
@@ -151,7 +151,7 @@ export const StreamingOutput = memo(function StreamingOutput({
     pendingContentRef.current = '';
   }, [initialContent]);
 
-  // 下载输出
+  // Download output
   const handleDownload = useCallback(() => {
     const blob = new Blob([buffer.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -164,7 +164,7 @@ export const StreamingOutput = memo(function StreamingOutput({
     URL.revokeObjectURL(url);
   }, [buffer.content, cellId]);
 
-  // 样式
+  // Styles
   const isError = streamName === 'stderr';
   const baseClass = isError 
     ? 'text-red-400 bg-red-900/20' 

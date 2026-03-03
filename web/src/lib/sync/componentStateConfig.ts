@@ -1,8 +1,8 @@
 /**
  * Component State Sync Configuration
  *
- * 定义每个组件状态字段的同步策略
- * 用于控制哪些状态需要同步、持久化、以及移动端访问权限
+ * Defines the sync strategy for each component state field
+ * Controls which states need syncing, persistence, and mobile access permissions
  */
 
 import type { ComponentStates } from '@/types/workspace';
@@ -11,29 +11,29 @@ import type { ComponentStates } from '@/types/workspace';
 // Types
 // ============================================================
 
-/** 同步模式 */
+/** Sync mode */
 export type SyncMode = 'bidirectional' | 'broadcast' | 'local';
 
-/** 移动端访问权限 */
+/** Mobile access permission */
 export type MobileAccess = 'read' | 'write' | 'none';
 
-/** 字段同步配置 */
+/** Field sync configuration */
 export interface FieldSyncConfig {
-  /** 同步模式 */
+  /** Sync mode */
   sync: SyncMode;
-  /** 是否持久化 */
+  /** Whether to persist */
   persistence: boolean;
-  /** 移动端访问权限 */
+  /** Mobile access permission */
   mobileAccess: MobileAccess;
 }
 
-/** 组件状态同步配置 */
+/** Component state sync configuration */
 export interface ComponentStateSyncConfig<T> {
   componentType: keyof ComponentStates;
   description: string;
-  /** 移动端是否需要此组件状态 */
+  /** Whether mobile needs this component state */
   mobileRelevant: boolean;
-  /** 字段级配置 */
+  /** Field-level configuration */
   fields: {
     [K in keyof T]?: FieldSyncConfig;
   };
@@ -44,12 +44,12 @@ export interface ComponentStateSyncConfig<T> {
 // ============================================================
 
 /**
- * PDF Reader 状态同步配置
+ * PDF Reader state sync configuration
  */
 export const pdfReaderConfig: ComponentStateSyncConfig<ComponentStates['pdf-reader']> = {
   componentType: 'pdf-reader',
-  description: 'PDF 阅读器状态',
-  mobileRelevant: false, // 移动端没有 PDF 阅读器
+  description: 'PDF reader state',
+  mobileRelevant: false, // Mobile does not have a PDF reader
   fields: {
     documentId: { sync: 'bidirectional', persistence: true, mobileAccess: 'read' },
     currentPage: { sync: 'bidirectional', persistence: true, mobileAccess: 'read' },
@@ -60,11 +60,11 @@ export const pdfReaderConfig: ComponentStateSyncConfig<ComponentStates['pdf-read
 };
 
 /**
- * LaTeX Editor 状态同步配置
+ * LaTeX Editor state sync configuration
  */
 export const latexEditorConfig: ComponentStateSyncConfig<ComponentStates['latex-editor']> = {
   componentType: 'latex-editor',
-  description: 'LaTeX 编辑器状态',
+  description: 'LaTeX editor state',
   mobileRelevant: false,
   fields: {
     activeFile: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -75,11 +75,11 @@ export const latexEditorConfig: ComponentStateSyncConfig<ComponentStates['latex-
 };
 
 /**
- * Code Playground 状态同步配置
+ * Code Playground state sync configuration
  */
 export const codePlaygroundConfig: ComponentStateSyncConfig<ComponentStates['code-playground']> = {
   componentType: 'code-playground',
-  description: '代码编辑器状态',
+  description: 'Code editor state',
   mobileRelevant: false,
   fields: {
     mode: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -91,11 +91,11 @@ export const codePlaygroundConfig: ComponentStateSyncConfig<ComponentStates['cod
 };
 
 /**
- * AI Editor 状态同步配置
+ * AI Editor state sync configuration
  */
 export const aiEditorConfig: ComponentStateSyncConfig<ComponentStates['ai-editor']> = {
   componentType: 'ai-editor',
-  description: 'AI 编辑器状态',
+  description: 'AI editor state',
   mobileRelevant: false,
   fields: {
     content: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -104,11 +104,11 @@ export const aiEditorConfig: ComponentStateSyncConfig<ComponentStates['ai-editor
 };
 
 /**
- * AG Grid 状态同步配置
+ * AG Grid state sync configuration
  */
 export const agGridConfig: ComponentStateSyncConfig<ComponentStates['ag-grid']> = {
   componentType: 'ag-grid',
-  description: '数据表格状态',
+  description: 'Data grid state',
   mobileRelevant: false,
   fields: {
     selectedRowIds: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -118,11 +118,11 @@ export const agGridConfig: ComponentStateSyncConfig<ComponentStates['ag-grid']> 
 };
 
 /**
- * Jupyter Notebook 状态同步配置
+ * Jupyter Notebook state sync configuration
  */
 export const jupyterNotebookConfig: ComponentStateSyncConfig<ComponentStates['jupyter-notebook']> = {
   componentType: 'jupyter-notebook',
-  description: 'Jupyter Notebook 状态',
+  description: 'Jupyter Notebook state',
   mobileRelevant: false,
   fields: {
     activeCellIndex: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -135,11 +135,11 @@ export const jupyterNotebookConfig: ComponentStateSyncConfig<ComponentStates['ju
 };
 
 /**
- * Bento Gallery 状态同步配置
+ * Bento Gallery state sync configuration
  */
 export const bentoGalleryConfig: ComponentStateSyncConfig<ComponentStates['bento-gallery']> = {
   componentType: 'bento-gallery',
-  description: '图片画廊状态',
+  description: 'Image gallery state',
   mobileRelevant: false,
   fields: {
     selectedImageId: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -147,11 +147,11 @@ export const bentoGalleryConfig: ComponentStateSyncConfig<ComponentStates['bento
 };
 
 /**
- * Three Viewer 状态同步配置
+ * Three Viewer state sync configuration
  */
 export const threeViewerConfig: ComponentStateSyncConfig<ComponentStates['three-viewer']> = {
   componentType: 'three-viewer',
-  description: '3D 查看器状态',
+  description: '3D viewer state',
   mobileRelevant: false,
   fields: {
     modelId: { sync: 'bidirectional', persistence: true, mobileAccess: 'none' },
@@ -163,7 +163,7 @@ export const threeViewerConfig: ComponentStateSyncConfig<ComponentStates['three-
 // Registry
 // ============================================================
 
-/** 所有组件状态配置 */
+/** All component state configurations */
 export const componentStateConfigs: Record<string, ComponentStateSyncConfig<any>> = {
   'pdf-reader': pdfReaderConfig,
   'latex-editor': latexEditorConfig,
@@ -180,14 +180,14 @@ export const componentStateConfigs: Record<string, ComponentStateSyncConfig<any>
 // ============================================================
 
 /**
- * 获取组件的同步配置
+ * Get sync configuration for a component
  */
 export function getComponentConfig(componentType: string): ComponentStateSyncConfig<any> | undefined {
   return componentStateConfigs[componentType];
 }
 
 /**
- * 检查字段是否需要同步
+ * Check if a field needs syncing
  */
 export function shouldSyncField(
   componentType: string,
@@ -201,7 +201,7 @@ export function shouldSyncField(
 }
 
 /**
- * 检查字段是否需要持久化
+ * Check if a field needs persistence
  */
 export function shouldPersistField(
   componentType: string,
@@ -215,7 +215,7 @@ export function shouldPersistField(
 }
 
 /**
- * 检查移动端是否可以访问字段
+ * Check if mobile can access a field
  */
 export function canMobileAccess(
   componentType: string,
@@ -235,7 +235,7 @@ export function canMobileAccess(
 }
 
 /**
- * 过滤组件状态，仅保留需要同步的字段
+ * Filter component state, keeping only fields that need syncing
  */
 export function filterSyncableState<T extends Record<string, any>>(
   componentType: string,
@@ -254,7 +254,7 @@ export function filterSyncableState<T extends Record<string, any>>(
 }
 
 /**
- * 过滤组件状态，仅保留需要持久化的字段
+ * Filter component state, keeping only fields that need persistence
  */
 export function filterPersistableState<T extends Record<string, any>>(
   componentType: string,
@@ -273,7 +273,7 @@ export function filterPersistableState<T extends Record<string, any>>(
 }
 
 /**
- * 过滤组件状态，仅保留移动端可访问的字段
+ * Filter component state, keeping only fields accessible by mobile
  */
 export function filterMobileAccessibleState<T extends Record<string, any>>(
   componentType: string,
@@ -292,7 +292,7 @@ export function filterMobileAccessibleState<T extends Record<string, any>>(
 }
 
 /**
- * 获取移动端相关的组件类型
+ * Get mobile-relevant component types
  */
 export function getMobileRelevantComponents(): string[] {
   return Object.entries(componentStateConfigs)
@@ -301,7 +301,7 @@ export function getMobileRelevantComponents(): string[] {
 }
 
 /**
- * 过滤整个 ComponentStates，仅保留移动端相关的状态
+ * Filter entire ComponentStates, keeping only mobile-relevant state
  */
 export function filterComponentStatesForMobile(
   states: Record<string, any>

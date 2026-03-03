@@ -20,16 +20,16 @@ export const CanvasLayer: React.FC<CanvasLayerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // 页面加载成功处理
+  // Handle page load success
   const handleLoadSuccess = useCallback((page: any) => {
     const { width, height } = page;
     onLoadSuccess?.({ width, height });
   }, [onLoadSuccess]);
 
-  // 性能优化：使用离屏渲染
+  // Performance optimization: use offscreen rendering
   useEffect(() => {
     if (canvasRef.current) {
-      // 设置CSS变量以支持硬件加速
+      // Set CSS properties for hardware acceleration
       canvasRef.current.style.setProperty('will-change', 'transform');
       canvasRef.current.style.setProperty('transform-style', 'preserve-3d');
     }
@@ -49,7 +49,7 @@ export const CanvasLayer: React.FC<CanvasLayerProps> = ({
         renderTextLayer={false}
         renderAnnotationLayer={false}
         className="pdf-canvas"
-        // 性能优化配置
+        // Performance optimization config
         loading={
           <div className="flex items-center justify-center w-full h-96 bg-gray-50">
             <div className="w-6 h-6 border-2 border-[var(--main-color)] border-t-transparent rounded-full animate-spin"></div>

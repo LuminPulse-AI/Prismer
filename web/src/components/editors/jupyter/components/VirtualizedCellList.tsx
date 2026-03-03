@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * VirtualizedCellList - 虚拟化 Cell 列表
- * 
- * 使用 @tanstack/react-virtual 实现虚拟滚动
- * 只渲染可见区域的 Cell，提升大型 Notebook 性能
+ * VirtualizedCellList - Virtualized Cell List
+ *
+ * Uses @tanstack/react-virtual for virtual scrolling.
+ * Only renders cells in the visible area, improving performance for large notebooks.
  */
 
 import React, { useRef, useCallback, useMemo, memo } from 'react';
@@ -20,7 +20,7 @@ import type {
 } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface VirtualizedCellListProps {
@@ -48,7 +48,7 @@ interface CellItem {
 }
 
 // ============================================================
-// VirtualizedCellList 组件
+// VirtualizedCellList Component
 // ============================================================
 
 export const VirtualizedCellList = memo(function VirtualizedCellList({
@@ -69,11 +69,11 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
 }: VirtualizedCellListProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // 合并 agent 响应和 code cells 为统一列表
+  // Merge agent responses and code cells into a unified list
   const items = useMemo((): CellItem[] => {
     const allItems: CellItem[] = [];
     
-    // Agent 响应放在前面
+    // Agent responses come first
     agentResponses.forEach((response, index) => {
       allItems.push({
         type: 'agent',
@@ -98,14 +98,14 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
     return allItems;
   }, [cells, agentResponses]);
 
-  // 动态估算每个 Cell 的高度
+  // Dynamically estimate each cell's height
   const estimateSize = useCallback((index: number) => {
     const item = items[index];
     if (!item) return estimatedCellHeight;
 
     if (item.type === 'agent') {
       const agentCell = item.data as AgentCellType;
-      // 根据内容长度估算高度
+      // Estimate height based on content length
       const contentLines = agentCell.content.split('\n').length;
       const actionsHeight = (agentCell.actions?.length || 0) * 100;
       return Math.max(100, contentLines * 24 + actionsHeight + 60);
@@ -115,20 +115,20 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
       const codeCell = item.data as CodeCellType;
       const sourceLines = codeCell.source.split('\n').length;
       const outputHeight = codeCell.outputs.length > 0 ? 100 : 0;
-      // 代码行高约 19px，加上 header 和 padding
+      // Code line height ~19px, plus header and padding
       return Math.max(80, sourceLines * 19 + 60 + outputHeight);
     }
 
     return estimatedCellHeight;
   }, [items, estimatedCellHeight]);
 
-  // 创建虚拟化器
+  // Create virtualizer
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
     estimateSize,
     overscan,
-    // 启用动态尺寸测量
+    // Enable dynamic size measurement
     measureElement: (element) => {
       return element.getBoundingClientRect().height;
     },
@@ -136,7 +136,7 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
 
   const virtualItems = virtualizer.getVirtualItems();
 
-  // 渲染单个 Cell
+  // Render a single cell
   const renderCell = useCallback((item: CellItem, virtualIndex: number) => {
     if (item.type === 'agent') {
       const agentCell = item.data as AgentCellType;
@@ -224,7 +224,7 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
           );
         })}
 
-        {/* Add Cell Button - 固定在底部 */}
+        {/* Add Cell Button - Fixed at bottom */}
         <div
           style={{
             position: 'absolute',
@@ -252,7 +252,7 @@ export const VirtualizedCellList = memo(function VirtualizedCellList({
 // ============================================================
 
 /**
- * 滚动到指定 Cell
+ * Scroll to a specific cell
  */
 export function useScrollToCell(
   virtualizerRef: React.RefObject<ReturnType<typeof useVirtualizer> | null>,

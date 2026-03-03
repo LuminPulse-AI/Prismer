@@ -33,24 +33,24 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
   const [inputValue, setInputValue] = useState(searchQuery);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 防抖搜索
+  // Debounced search
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleInputChange = useCallback((value: string) => {
     setInputValue(value);
     
-    // 清除之前的防抖定时器
+    // Clear previous debounce timer
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
     
-    // 设置新的防抖定时器
+    // Set new debounce timer
     debounceTimeout.current = setTimeout(() => {
       onSearchQueryChange(value);
     }, 300);
   }, [onSearchQueryChange]);
 
-  // 处理键盘快捷键
+  // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -64,18 +64,18 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
     }
   }, [onGoToNextResult, onGoToPrevResult]);
 
-  // 清除搜索
+  // Clear search
   const handleClearSearch = useCallback(() => {
     setInputValue('');
     onClearSearch();
     setIsExpanded(false);
   }, [onClearSearch]);
 
-  // 切换搜索栏展开状态
+  // Toggle search bar expanded state
   const toggleExpanded = useCallback(() => {
     setIsExpanded(prev => {
       if (!prev) {
-        // 展开时聚焦输入框
+        // Focus input when expanding
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
@@ -84,7 +84,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
     });
   }, []);
 
-  // 监听全局键盘快捷键 Ctrl+F
+  // Listen for global keyboard shortcut Ctrl+F
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'f') {
@@ -100,7 +100,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
-  // 清理防抖定时器
+  // Clean up debounce timer
   useEffect(() => {
     return () => {
       if (debounceTimeout.current) {
@@ -111,7 +111,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
 
   return (
     <div className={`search-toolbar ${className}`}>
-      {/* 搜索按钮（折叠状态） */}
+      {/* Search button (collapsed state) */}
       {!isExpanded && (
         <Button
           variant="outline"
@@ -125,7 +125,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
         </Button>
       )}
 
-      {/* 搜索栏（展开状态） */}
+      {/* Search bar (expanded state) */}
       {isExpanded && (
         <div className="flex items-center bg-white rounded-lg shadow-lg border border-gray-200 p-2 min-w-80">
           <div className="flex items-center flex-1">
@@ -141,7 +141,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
             />
           </div>
 
-          {/* 搜索结果导航 */}
+          {/* Search result navigation */}
           {searchResults.length > 0 && (
             <div className="flex items-center space-x-1 ml-2 border-l border-gray-200 pl-2">
               <span className="text-xs text-gray-600 whitespace-nowrap">
@@ -172,14 +172,14 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
             </div>
           )}
 
-          {/* 无结果提示 */}
+          {/* No results hint */}
           {inputValue && searchResults.length === 0 && (
             <div className="ml-2 text-xs text-gray-500">
               No matches found
             </div>
           )}
 
-          {/* 关闭按钮 */}
+          {/* Close button */}
           <Button
             variant="ghost"
             size="sm"
@@ -192,7 +192,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
         </div>
       )}
 
-      {/* 搜索结果预览（当有结果时显示） */}
+      {/* Search result preview (shown when results are available) */}
       {isExpanded && searchResults.length > 0 && currentSearchIndex >= 0 && (
         <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-3 min-w-80 max-w-96 z-50">
           <div className="text-xs text-gray-500 mb-1">
@@ -204,7 +204,7 @@ export const SearchToolbar: React.FC<SearchToolbarProps> = ({
         </div>
       )}
 
-      {/* 搜索快捷键提示 */}
+      {/* Search keyboard shortcuts hint */}
       {isExpanded && !inputValue && (
         <div className="absolute top-full left-0 mt-1 bg-gray-800 text-white text-xs p-2 rounded shadow-lg whitespace-nowrap">
           <div>Enter: Next result</div>

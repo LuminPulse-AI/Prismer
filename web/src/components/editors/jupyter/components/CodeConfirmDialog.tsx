@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * CodeConfirmDialog - 代码执行确认对话框
- * 
- * 用于在交互模式下确认 Agent 生成的代码是否执行
- * 支持代码 Diff 展示和安全警告
+ * CodeConfirmDialog - Code Execution Confirmation Dialog
+ *
+ * Used in interactive mode to confirm whether to execute Agent-generated code.
+ * Supports code diff display and security warnings.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -22,7 +22,7 @@ import Editor from '@monaco-editor/react';
 interface CodeConfirmDialogProps {
   isOpen: boolean;
   code: string;
-  originalCode?: string; // 如果是更新操作，显示 diff
+  originalCode?: string; // If this is an update operation, show diff
   warnings?: string[];
   description?: string;
   onConfirm: (code: string) => void;
@@ -44,7 +44,7 @@ export function CodeConfirmDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 更新代码当 prop 变化
+  // Update code when prop changes
   useEffect(() => {
     setCode(initialCode);
     setIsEditing(false);

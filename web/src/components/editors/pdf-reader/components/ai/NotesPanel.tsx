@@ -1,13 +1,13 @@
 /**
  * Notes Panel
  * 
- * 集成 AiEditor 的笔记面板
- * 
- * 更新：
- * - 集成 NotebookStore 支持笔记本持久化
- * - 添加 NotebookSelector 支持笔记本切换
- * - 支持导入队列查看和管理
- * - 支持跨论文引用显示
+ * Notes panel integrated with AiEditor
+ *
+ * Updates:
+ * - Integrated NotebookStore for notebook persistence
+ * - Added NotebookSelector for notebook switching
+ * - Support for import queue viewing and management
+ * - Support for cross-paper citation display
  */
 
 "use client";
@@ -210,7 +210,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({
 
         if (!mounted || !containerRef.current) return;
 
-        // 动态导入 AI 配置
+        // Dynamically import AI configuration
         const { getAiEditorConfig } = await import("@/lib/aieditor-config");
         const aiConfig = getAiEditorConfig();
         
@@ -228,7 +228,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({
             "quote", "code", "codeBlock", "|",
             "link", "image", "table", "|",
             "hr", "clear-format", "|",
-            "ai" // 添加 AI 按钮到工具栏
+            "ai" // Add AI button to the toolbar
           ],
           image: {
             allowBase64: true,
@@ -237,7 +237,7 @@ export const NotesPanel: React.FC<NotesPanelProps> = ({
           link: {
             autolink: true,
           },
-          // 合并 AI 配置
+          // Merge AI configuration
           ...aiConfig,
         });
 

@@ -2,8 +2,8 @@
 
 /**
  * ProgressCard
- * 
- * 进度卡片交互组件 - 用于展示任务进度
+ *
+ * Progress card interactive component - Displays task progress
  */
 
 import React, { memo } from 'react';
@@ -27,7 +27,7 @@ export const ProgressCard = memo(function ProgressCard({
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-4 shadow-sm"
     >
-      {/* 标题和状态 */}
+      {/* Title and status */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-semibold text-slate-800">
           {config.title}
@@ -43,7 +43,7 @@ export const ProgressCard = memo(function ProgressCard({
         </span>
       </div>
 
-      {/* 进度条 */}
+      {/* Progress bar */}
       <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden mb-3">
         <motion.div
           initial={{ width: 0 }}
@@ -59,13 +59,13 @@ export const ProgressCard = memo(function ProgressCard({
         />
       </div>
 
-      {/* 进度百分比 */}
+      {/* Progress percentage */}
       <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
-        <span>进度</span>
+        <span>Progress</span>
         <span className="font-medium text-slate-700">{progressPercent}%</span>
       </div>
 
-      {/* 步骤列表 */}
+      {/* Steps list */}
       {config.steps && config.steps.length > 0 && (
         <div className="space-y-2">
           {config.steps.map((step, index) => (

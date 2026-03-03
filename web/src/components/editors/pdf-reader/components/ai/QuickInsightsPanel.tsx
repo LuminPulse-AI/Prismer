@@ -1,12 +1,12 @@
 /**
  * Quick Insights Panel
  * 
- * 自动生成的论文洞察面板 (IMRAD 范式)
+ * Auto-generated paper insights panel (IMRAD paradigm)
  * - Auto-generates insights when paper loads
  * - Renders content as Markdown
  * - Supports IMRAD paradigm analysis
- * 
- * 更新：使用 InsightStore 管理 insights 缓存
+ *
+ * Updated: uses InsightStore for insight caching
  */
 
 "use client";
@@ -126,7 +126,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
   const config = INSIGHT_CONFIG[insight.type];
   const { scrollToDetection } = useCitationStore();
   
-  // 提取内容中的 [[detection_id]] 引用
+  // Extract [[detection_id]] references from the content
   const citationRefs = useMemo(() => {
     const refs: { id: string; index: number }[] = [];
     const pattern = /\[\[(p\d+_\w+_\d+)\]\]/g;
@@ -140,7 +140,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
     return refs;
   }, [insight.content]);
 
-  // 处理后的内容 - 将 [[id]] 替换为占位符
+  // Processed content - replace [[id]] with placeholders
   const processedContent = useMemo(() => {
     let content = insight.content;
     citationRefs.forEach(ref => {
@@ -167,7 +167,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
         'transition-shadow hover:shadow-md bg-white'
       )}
     >
-      {/* 头部 */}
+      {/* Header */}
       <button
         onClick={() => onToggleExpand(insight.id)}
         className={cn(
@@ -181,7 +181,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
           {config.label}
         </span>
         <span className="flex-1" />
-        {/* 引用数量徽章 */}
+        {/* Citation count badge */}
         {citationRefs.length > 0 && (
           <span className="text-xs px-1.5 py-0.5 bg-white/50 rounded text-stone-600">
             {citationRefs.length} refs
@@ -194,7 +194,7 @@ const InsightCard: React.FC<InsightCardProps> = ({
         )}
       </button>
 
-      {/* 内容 - 渲染为 Markdown */}
+      {/* Content - rendered as Markdown */}
       <AnimatePresence>
         {insight.expanded && (
           <motion.div
@@ -269,9 +269,9 @@ const InsightCard: React.FC<InsightCardProps> = ({
                   }}
                 >
                   {processedContent
-                    // 先在连续的 cite 标签之间添加空格
+                    // First add spaces between consecutive cite tags
                     .replace(/<\/cite><cite/g, '</cite> <cite')
-                    // 然后转换为反引号格式
+                    // Then convert to backtick format
                     .replace(
                       /<cite data-id="([^"]+)" data-index="(\d+)"><\/cite>/g, 
                       '`cite:$1:$2`'
@@ -320,7 +320,7 @@ export const QuickInsightsPanel: React.FC<QuickInsightsPanelProps> = ({
   // Get current paper ID
   const currentPaperId = paperContext?.source?.arxivId || null;
 
-  // Initialize Agent - API Key 由服务端管理
+  // Initialize Agent - API key managed by the server
   useEffect(() => {
     const initAgent = async () => {
       try {

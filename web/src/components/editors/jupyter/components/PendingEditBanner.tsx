@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * PendingEditBanner - Agent 编辑待确认横幅
- * 
- * 显示 Agent 提议的代码修改，支持确认/拒绝
+ * PendingEditBanner - Agent Edit Pending Confirmation Banner
+ *
+ * Displays Agent-proposed code changes with confirm/reject actions
  */
 
 import React, { memo, useState, useMemo } from 'react';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface PendingEditBannerProps {
@@ -37,7 +37,7 @@ interface DiffLine {
 }
 
 // ============================================================
-// PendingEditBanner 组件
+// PendingEditBanner Component
 // ============================================================
 
 export const PendingEditBanner = memo(function PendingEditBanner({
@@ -50,19 +50,19 @@ export const PendingEditBanner = memo(function PendingEditBanner({
   const [showDiff, setShowDiff] = useState(true);
   const [showFullDiff, setShowFullDiff] = useState(false);
 
-  // 计算 diff
+  // Compute diff
   const diffLines = useMemo(() => {
     return computeDiff(originalSource, newSource);
   }, [originalSource, newSource]);
 
-  // 统计变更
+  // Count changes
   const stats = useMemo(() => {
     const added = diffLines.filter(l => l.type === 'added').length;
     const removed = diffLines.filter(l => l.type === 'removed').length;
     return { added, removed };
   }, [diffLines]);
 
-  // 显示的行数限制
+  // Limit displayed lines
   const displayLines = showFullDiff ? diffLines : diffLines.slice(0, 10);
   const hasMore = diffLines.length > 10;
 
@@ -152,7 +152,7 @@ export const PendingEditBanner = memo(function PendingEditBanner({
 });
 
 // ============================================================
-// DiffLineRow 组件
+// DiffLineRow Component
 // ============================================================
 
 interface DiffLineRowProps {
@@ -202,7 +202,7 @@ const DiffLineRow = memo(function DiffLineRow({ line }: DiffLineRowProps) {
 });
 
 // ============================================================
-// Diff 计算
+// Diff Computation
 // ============================================================
 
 function computeDiff(oldText: string, newText: string): DiffLine[] {
@@ -211,7 +211,7 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
   
   const result: DiffLine[] = [];
   
-  // 简单的逐行比较（可以用更复杂的 LCS 算法优化）
+  // Simple line-by-line comparison (could be optimized with a more complex LCS algorithm)
   let oldIdx = 0;
   let newIdx = 0;
   
@@ -220,7 +220,7 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
     const newLine = newLines[newIdx];
     
     if (oldIdx >= oldLines.length) {
-      // 只有新行
+      // Only new lines remain
       result.push({
         type: 'added',
         content: newLine,
@@ -228,7 +228,7 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
       });
       newIdx++;
     } else if (newIdx >= newLines.length) {
-      // 只有旧行
+      // Only old lines remain
       result.push({
         type: 'removed',
         content: oldLine,
@@ -236,7 +236,7 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
       });
       oldIdx++;
     } else if (oldLine === newLine) {
-      // 相同
+      // Unchanged
       result.push({
         type: 'unchanged',
         content: oldLine,
@@ -245,7 +245,7 @@ function computeDiff(oldText: string, newText: string): DiffLine[] {
       oldIdx++;
       newIdx++;
     } else {
-      // 不同 - 简单处理：先删后加
+      // Different - simple handling: remove then add
       result.push({
         type: 'removed',
         content: oldLine,

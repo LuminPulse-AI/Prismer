@@ -39,7 +39,7 @@ export const useLayoutCalculation = ({
     typeof window !== "undefined" ? window.innerWidth : 1200
   );
 
-  // 监听窗口大小变化
+  // Listen for window resize events
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
@@ -49,22 +49,22 @@ export const useLayoutCalculation = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 智能挤压策略计算
+  // Smart compression strategy calculation
   const layoutCalculation = useMemo(() => {
     const isAnyRightPanelOpen =
       isTagPanelOpen || isNotesPanelOpen || isGraphPanelOpen;
     const isAnyLeftPanelOpen = isIndexPanelOpen;
 
-    // 计算各组件的实际宽度和位置
-    const containerPadding = 32; // 页面左右padding (16px * 2)
-    const minGap = 32; // 右侧面板和PDF之间的最小间距
+    // Calculate actual widths and positions of components
+    const containerPadding = 32; // Left/right page padding (16px * 2)
+    const minGap = 32; // Minimum gap between right panel and PDF
 
-    // 计算PDF内容区域的可用空间
+    // Calculate available space for the PDF content area
     const availableContentWidth = windowWidth - containerPadding;
     const rightPanelTotalWidth = isAnyRightPanelOpen ? rightPanelWidth : 0;
     const leftPanelTotalWidth = isAnyLeftPanelOpen ? leftPanelWidth : 0;
 
-    // 根据阅读模式计算PDF内容的实际宽度
+    // Calculate actual width of PDF content based on reading mode
     let currentPdfWidth: number;
     switch (readingMode) {
       case "single":
@@ -72,30 +72,30 @@ export const useLayoutCalculation = ({
         currentPdfWidth = originalPageSize.width * scale;
         break;
       case "double":
-        // 双页模式：两个页面的宽度 + 页面间距
-        const doublePageGap = 16; // 双页之间的间距
+        // Double page mode: width of two pages + gap between pages
+        const doublePageGap = 16; // Gap between the two pages
         currentPdfWidth = originalPageSize.width * scale * 2 + doublePageGap;
         break;
       default:
         currentPdfWidth = originalPageSize.width * scale;
     }
 
-    // 判断是否需要挤压：当左侧面板 + 右侧面板 + 最小间隙 + PDF当前宽度 > 可用空间时
+    // Determine if compression is needed: when left panel + right panel + min gap + current PDF width > available space
     const spaceNeeded =
       leftPanelTotalWidth + rightPanelTotalWidth + minGap + currentPdfWidth;
     const needsCompression =
       (isAnyRightPanelOpen || isAnyLeftPanelOpen) && spaceNeeded > availableContentWidth;
 
-    // 计算实际的右边距
+    // Calculate the actual right margin
     const rightMargin = isAnyRightPanelOpen 
       ? (needsCompression ? rightPanelTotalWidth + minGap : rightPanelTotalWidth + minGap)
       : 0;
-    // 计算实际的左边距  
+    // Calculate the actual left margin
     const leftMargin = isAnyLeftPanelOpen
       ? (needsCompression ? leftPanelTotalWidth + minGap : leftPanelTotalWidth + minGap)
       : 0;
 
-    // 计算PDF容器的最大宽度
+    // Calculate the maximum width of the PDF container
     const maxPdfContainerWidth = needsCompression
       ? availableContentWidth -
         rightPanelTotalWidth -

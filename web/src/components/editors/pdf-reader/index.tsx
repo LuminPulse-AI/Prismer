@@ -39,46 +39,46 @@ import { PDFSource } from "@/types/paperContext";
 // ============================================================================
 
 /**
- * TODO: [OCR_SERVICE] 句子级选择功能
- * 
- * 依赖：OCR服务提供句子边界坐标 (sentence boxes)
- * 数据格式：每个句子包含 boxes 数组，每个 box 有 bbox 坐标 [x1, y1, x2, y2]
- * 
- * 当前状态：❌ 不可用 - OCR服务未就绪
- * 启用方式：将此值设为 true，并确保 pdfData.sents.sentences 包含有效数据
- * 
- * 功能说明：
- * - 允许用户以句子为单位选择文本
- * - 支持拖选多个句子
- * - 选择后可进行高亮、标注等操作
+ * TODO: [OCR_SERVICE] Sentence-level selection feature
+ *
+ * Dependency: OCR service provides sentence boundary coordinates (sentence boxes)
+ * Data format: Each sentence contains a boxes array, each box has bbox coordinates [x1, y1, x2, y2]
+ *
+ * Current status: Not available - OCR service not ready
+ * How to enable: Set this value to true and ensure pdfData.sents.sentences contains valid data
+ *
+ * Feature description:
+ * - Allows users to select text at the sentence level
+ * - Supports drag-selecting multiple sentences
+ * - After selection, supports highlighting, annotation, and other operations
  */
 const ENABLE_SENTENCE_LAYER = false;
 
 /**
- * [OCR_SERVICE] 图像/表格对象选择功能
- * 
- * 依赖：OCR服务提供图像、表格等对象的边界坐标
- * 数据格式：对象包含 type ('image' | 'table' | 'figure') 和 bbox 坐标
- * 
- * 当前状态：✅ 已启用 - 自动根据 OCR 数据可用性启用
- * 
- * 功能说明：
- * - 允许用户选择 PDF 中的图像、表格等对象
- * - 悬停显示对象类型和操作按钮
- * - 支持 "Explain" 按钮调用 AI 解释对象
+ * [OCR_SERVICE] Image/table object selection feature
+ *
+ * Dependency: OCR service provides boundary coordinates for images, tables, and other objects
+ * Data format: Objects contain type ('image' | 'table' | 'figure') and bbox coordinates
+ *
+ * Current status: Enabled - automatically enabled based on OCR data availability
+ *
+ * Feature description:
+ * - Allows users to select images, tables, and other objects in the PDF
+ * - Hover displays object type and action buttons
+ * - Supports "Explain" button to invoke AI explanation of the object
  */
 const ENABLE_OBJECT_SELECTION = true;
 
 /**
- * [AI_PANEL] AI-Native 右侧面板 (现在是唯一模式)
- * 
- * 功能包括：
- * - Paper Overview：论文概览卡片
- * - Quick Insights：AI 自动生成的论文洞察
- * - Ask Paper：对话式论文问答
- * - Extracts：可追溯的内容提取
- * 
- * 当前状态：✅ 已启用（传统模式已移除）
+ * [AI_PANEL] AI-Native right panel (now the only mode)
+ *
+ * Features include:
+ * - Paper Overview: Paper overview card
+ * - Quick Insights: AI-generated paper insights
+ * - Ask Paper: Conversational paper Q&A
+ * - Extracts: Traceable content extraction
+ *
+ * Current status: Enabled (legacy mode has been removed)
  */
 
 // ============================================================================
@@ -119,10 +119,10 @@ const leftPanelWidth = 320;
 const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSource }) => {
   const { setPendingItems } = useFlowStore();
   
-  // 支持动态切换 PDF 源（从论文库选择）
+  // Support dynamically switching PDF source (selected from the paper library)
   const [currentPdfSource, setCurrentPdfSource] = useState<PDFSource>(initialPdfSource);
   
-  // 当外部传入的 pdfSource 变化时，同步更新内部状态
+  // When the externally provided pdfSource changes, sync the internal state
   const initialSourceKey = initialPdfSource?.arxivId || initialPdfSource?.path || '';
   useEffect(() => {
     if (initialSourceKey) {
@@ -140,10 +140,10 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     height: number;
   }>({ width: 0, height: 0 });
 
-  // 阅读模式状态（需要在 usePageNavigation 之前声明）
+  // Reading mode state (must be declared before usePageNavigation)
   const [readingMode, setReadingMode] = useState<ReadingMode>("single");
 
-  // 统一的页面导航 Hook - 解决双页模式翻页等问题
+  // Unified page navigation hook - resolves issues like double-page mode page turning
   const {
     pageNumber,
     goToPage,
@@ -154,8 +154,8 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     getDisplayedPages,
   } = usePageNavigation(numPages, readingMode);
 
-  // AI Paper Reader Hook - 加载 Agent 和 Paper Context
-  // 这是 paperContext 的唯一来源，确保与 aiStore 同步
+  // AI Paper Reader Hook - loads Agent and Paper Context
+  // This is the sole source of paperContext, ensuring sync with aiStore
   const {
     paperContext,
     hasOCRData,
@@ -164,7 +164,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     isAgentReady,
   } = useAIPaperReader(currentPdfSource, goToPage);
 
-  // 从 paperContext 获取 PDF URL 和 sentences
+  // Get PDF URL and sentences from paperContext
   const pdfUrl = useMemo(() => {
     if (!currentPdfSource.path) {
       console.error("path is missing from pdfSource");
@@ -173,12 +173,12 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     return currentPdfSource.path;
   }, [currentPdfSource.path]);
 
-  // 获取 paperId 用于 API 调用
+  // Get paperId for API calls
   const paperId = useMemo(() => {
     return currentPdfSource.arxivId || "unknown";
   }, [currentPdfSource.arxivId]);
 
-  // 从 paperContext 获取 sentences（如果有 OCR 数据）
+  // Get sentences from paperContext (if OCR data is available)
   // NOTE: Currently PageContent doesn't have a sentences property
   // This is a placeholder for future sentence-level interaction
   const sentences = useMemo<Array<{ id: string; content: string; property?: { page?: number } }>>(() => {
@@ -186,12 +186,12 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     return [];
   }, []);
 
-  // 面板状态
-  const [isIndexPanelOpen, setIsIndexPanelOpen] = useState(true); // 默认打开左边栏显示 Insight
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true); // 默认打开右边栏
+  // Panel states
+  const [isIndexPanelOpen, setIsIndexPanelOpen] = useState(true); // Left sidebar open by default to show Insight
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true); // Right sidebar open by default
   const [rightPanelWidth, setRightPanelWidth] = useState(380);
 
-  // 多文档管理状态 (Phase 1: 单文档支持)
+  // Multi-document management state (Phase 1: single document support)
   const documents: OpenDocument[] = useMemo(() => {
     const title = paperContext?.metadata?.title || currentPdfSource.arxivId || "Untitled";
     return [{
@@ -204,30 +204,30 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
 
   const activeDocumentId = documents[0]?.id || null;
 
-  // 笔记编辑器状态
+  // Notes editor state
   const [notesContent, setNotesContent] = useState<string>("");
 
-  // 句子交互层状态
-  // 注意：受 ENABLE_SENTENCE_LAYER 功能开关控制
+  // Sentence interaction layer state
+  // Note: controlled by the ENABLE_SENTENCE_LAYER feature flag
   const [isSentenceLayerEnabled, setIsSentenceLayerEnabled] = useState(
-    ENABLE_SENTENCE_LAYER // 使用功能开关作为初始值
+    ENABLE_SENTENCE_LAYER // Use the feature flag as the initial value
   );
   const [selectedSentences, setSelectedSentences] = useState<any>(null);
 
-  // 标签系统状态
+  // Tag system state
   const [sentenceTags, setSentenceTags] = useState<SentenceTag[]>([]);
 
-  // PDF大纲状态
+  // PDF outline state
 
-  // 快捷键浮动按钮状态
+  // Shortcuts floating button state
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
-  // 容器引用
+  // Container ref
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 注意：useAIPaperReader 已在上方调用，提供 paperContext 和 AI 相关功能
+  // Note: useAIPaperReader is called above, providing paperContext and AI-related functionality
 
-  // 使用布局计算 hook
+  // Use layout calculation hook
   const layoutCalculation = useLayoutCalculation({
     scale,
     originalPageSize,
@@ -243,7 +243,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
   const { needsCompression, rightMargin, leftMargin, maxPdfContainerWidth } =
     layoutCalculation;
 
-  // 使用事件处理 hook - 传入模式感知的翻页函数
+  // Use event handlers hook - pass in mode-aware page turn functions
   const eventHandlers = useEventHandlers({
     paperId,
     pageNumber,
@@ -263,10 +263,10 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     setSelectedText,
   } = eventHandlers;
 
-  // 句子高亮 ID（目前为空，可以从 aiStore 的 extracts 中获取）
+  // Sentence highlight IDs (currently empty, can be obtained from aiStore extracts)
   const highlightedSentenceIds: number[] = [];
 
-  // 使用PDF搜索 hook
+  // Use PDF search hook
   const pdfSearch = usePDFSearch({
     pdfUrl,
     currentPageNumber: pageNumber,
@@ -281,10 +281,10 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     clearSearch,
   } = pdfSearch;
 
-  // 处理内容插入到编辑器
+  // Handle content insertion into the editor
   const handleInsertToEditor = useCallback(
     (content: string, type: "text" | "quote" = "quote") => {
-      // 确保右侧面板是打开的
+      // Ensure the right panel is open
       if (!isRightPanelOpen) {
         setIsRightPanelOpen(true);
       }
@@ -296,14 +296,14 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [isRightPanelOpen]
   );
 
-  // 加载PDF大纲数据
+  // Load PDF outline data
   useEffect(() => {
     const loadPDFOutline = async () => {
       try {
         const pdf = await pdfjs.getDocument(pdfUrl).promise;
         const outline = await pdf.getOutline();
         if (outline) {
-          // 处理每个大纲项，获取页码
+          // Process each outline item to get page numbers
           const processedOutline = await Promise.all(
             outline.map(async (item: any) => {
               try {
@@ -360,7 +360,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     }
   }, [pdfUrl]);
 
-  // 处理句子点击
+  // Handle sentence click
   const handleSentenceClick = useCallback(
     (
       sentenceIds: (string | number)[],
@@ -368,20 +368,20 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
       clickedPageNumber?: number
     ) => {
       if (sentenceIds.length === 0) {
-        // 清除选择（但保留已保存的标签高亮）
+        // Clear selection (but keep saved tag highlights)
         setSelectedSentences(null);
-        // 不清除highlightedSentenceIds，因为那些是已保存的标签
+        // Do not clear highlightedSentenceIds since those are saved tags
         return;
       }
 
-      // 获取被选中的句子内容
+      // Get the content of selected sentences
       const stringIds = sentenceIds.map(String);
       const selectedSentenceData = sentences.filter((s) =>
         stringIds.includes(s.id)
       );
       const sentenceContents = selectedSentenceData.map((s) => s.content);
 
-      // 确定正确的页面号：优先使用点击时的页面号，否则使用句子自身的页面号
+      // Determine the correct page number: prefer the page number at click time, otherwise use the sentence's own page number
       const actualPageNumber =
         clickedPageNumber ||
         selectedSentenceData[0]?.property?.page ||
@@ -395,26 +395,26 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         readingMode,
       });
 
-      // 设置选中的句子和弹窗位置
+      // Set the selected sentences and popup position
       setSelectedSentences({
         ids: sentenceIds,
         contents: sentenceContents,
         position,
-        actualPageNumber, // 添加实际页面号
+        actualPageNumber, // Add the actual page number
       });
     },
     [sentences, pageNumber, readingMode]
   );
 
-  // 处理句子高亮（创建注释）
+  // Handle sentence highlighting (create annotation)
   const handleSentenceHighlight = useCallback(
     (color: string) => {
       if (!selectedSentences) return;
 
-      // 使用实际的页面号而不是当前显示的页面号
+      // Use the actual page number instead of the currently displayed page number
       const targetPageNumber = selectedSentences.actualPageNumber || pageNumber;
 
-      // 创建一个 sentence tag 来记录高亮
+      // Create a sentence tag to record the highlight
       const newTag = {
         id: `sentence-tag-${Date.now()}`,
         sentenceIds: selectedSentences.ids,
@@ -436,13 +436,13 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [selectedSentences, pageNumber]
   );
 
-  // 处理标签点击（跳转到PDF位置）
+  // Handle tag click (navigate to PDF location)
   const handleTagClick = useCallback((tag: any) => {
-    // 跳转到标签所在页面
+    // Navigate to the page where the tag is located
     goToPage(tag.pageNumber);
   }, [goToPage]);
 
-  // 处理标签可见性切换
+  // Handle tag visibility toggle
   const handleTagVisibilityToggle = useCallback((tagId: string) => {
     setSentenceTags((prev) => {
       const updatedTags = prev.map((tag) =>
@@ -453,12 +453,12 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     });
   }, []);
 
-  // 处理标签删除
+  // Handle tag deletion
   const handleTagDelete = useCallback((tagId: string) => {
     setSentenceTags((prev) => prev.filter((tag) => tag.id !== tagId));
   }, []);
 
-  // 处理添加评论
+  // Handle adding a comment
   const handleAddComment = useCallback((tagId: string, content: string) => {
     const newComment = {
       id: `comment-${Date.now()}`,
@@ -478,7 +478,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     );
   }, []);
 
-  // 处理标签点赞
+  // Handle tag like
   const handleLikeTag = useCallback((tagId: string) => {
     setSentenceTags((prev) =>
       prev.map((tag) =>
@@ -493,7 +493,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     );
   }, []);
 
-  // 处理评论点赞
+  // Handle comment like
   const handleLikeComment = useCallback((tagId: string, commentId: string) => {
     setSentenceTags((prev) =>
       prev.map((tag) =>
@@ -517,7 +517,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     );
   }, []);
 
-  // 从API加载笔记数据
+  // Load notes data from API
   useEffect(() => {
     const loadNotes = async () => {
       try {
@@ -545,7 +545,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     []
   );
 
-  // 处理PDF内部链接点击 - 使用 goToPage（已包含规范化逻辑）
+  // Handle PDF internal link click - uses goToPage (which includes normalization logic)
   const handlePDFItemClick = useCallback(
     (item: { pageNumber?: number; dest?: unknown }) => {
       if (item && typeof item.pageNumber === "number") {
@@ -555,8 +555,8 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [goToPage]
   );
 
-  // 阅读模式切换处理
-  // 注意：usePageNavigation hook 会自动处理模式切换时的页码规范化
+  // Reading mode switch handler
+  // Note: The usePageNavigation hook automatically handles page number normalization on mode switch
   const handleReadingModeChange = useCallback(
     (mode: ReadingMode) => {
       setReadingMode(mode);
@@ -564,23 +564,23 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     []
   );
 
-  // 计算适合容器的缩放比例
+  // Calculate fit-to-container scale
   const calculateFitToWidthScale = useCallback(
     (pageWidth: number): number => {
       if (!pageWidth || !containerRef.current) return 1;
 
-      // 获取容器宽度
+      // Get container width
       const containerWidth = containerRef.current.clientWidth;
-      
-      // 计算左右面板占用的宽度
+
+      // Calculate the width occupied by left and right panels
       const leftPanelSpace = isIndexPanelOpen ? leftPanelWidth : 0;
       const rightPanelSpace = isRightPanelOpen ? rightPanelWidth : 0;
       
-      // 计算可用宽度
-      const padding = 48; // 左右 padding
+      // Calculate available width
+      const padding = 48; // Left and right padding
       const availableWidth = containerWidth - leftPanelSpace - rightPanelSpace - padding;
 
-      // 根据阅读模式调整
+      // Adjust based on reading mode
       let targetWidth = availableWidth;
       if (readingMode === "double") {
         targetWidth = (availableWidth - 16) / 2;
@@ -597,7 +597,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [isIndexPanelOpen, isRightPanelOpen, rightPanelWidth, readingMode]
   );
 
-  // 处理页面尺寸变化
+  // Handle page size change
   const handlePageLoadSuccess = useCallback(
     (page: {
       getViewport: (options: { scale: number }) => {
@@ -606,12 +606,12 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
       };
     }) => {
       try {
-        // 获取原始页面尺寸（scale = 1）
+        // Get original page dimensions (scale = 1)
         const originalViewport = page.getViewport({ scale: 1 });
         const pageWidth = originalViewport.width;
         const pageHeight = originalViewport.height;
 
-        // 保存原始尺寸
+        // Save original dimensions
         setOriginalPageSize({
           width: pageWidth,
           height: pageHeight,
@@ -628,7 +628,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [scale, calculateFitToWidthScale]
   );
 
-  // 处理文档加载错误
+  // Handle document load error
   const handleLoadError = useCallback(
     (error: Error) => {
       console.error("PDF loading error:", error);
@@ -639,7 +639,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [pdfUrl]
   );
 
-  // 处理文档加载成功
+  // Handle document load success
   const handleLoadSuccess = useCallback(
     ({ numPages }: { numPages: number }) => {
       setNumPages(numPages);
@@ -647,7 +647,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
       setError("");
       console.log("PDF loaded successfully, pages:", numPages);
 
-      // 延迟一小段时间确保DOM完全渲染后再计算最佳缩放
+      // Wait briefly to ensure the DOM is fully rendered before calculating the optimal scale
       setTimeout(() => {
         if (originalPageSize.width > 0 && scale === 1.0) {
           const autoScale = calculateFitToWidthScale(originalPageSize.width);
@@ -659,7 +659,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     [originalPageSize.width, scale, calculateFitToWidthScale]
   );
 
-  // 检查PDF URL是否有效
+  // Check if PDF URL is valid
   useEffect(() => {
     if (!pdfUrl) {
       setError("Invalid PDF URL: missing file path or API base URL");
@@ -670,19 +670,19 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     }
   }, [pdfUrl]);
 
-  // 添加全局点击事件监听器，确保点击非PDF区域时清除选择状态
+  // Add global click event listener to clear selection state when clicking outside the PDF area
   useEffect(() => {
     const handleGlobalClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      // 检查点击是否在PDF内容区域、工具栏或弹窗内
+      // Check if the click is inside the PDF content area, toolbar, or popup
       const isPDFContent = target.closest("[data-page-number]");
       const isToolbar = target.closest(".pdf-toolbar");
       const isPopup =
         target.closest(".selection-popup") || target.closest('[role="dialog"]');
       const isRightPanel = target.closest(".right-panel");
 
-      // 如果点击在PDF区域外且不在工具栏或弹窗内，清除选择状态
+      // If click is outside the PDF area and not in the toolbar or popup, clear selection state
       if (!isPDFContent && !isToolbar && !isPopup && !isRightPanel) {
         setSelectedText(null);
         setSelectedSentences(null);
@@ -691,7 +691,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     };
 
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
-      // 检查是否在输入框中，如果是则不处理全局快捷键
+      // Check if inside an input field; if so, do not process global shortcuts
       const target = event.target as HTMLElement;
       const isInputElement =
         target.tagName === "INPUT" ||
@@ -700,7 +700,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
 
       if (isInputElement) return;
 
-      // "?" 键切换快捷键面板
+      // "?" key toggles the shortcuts panel
       if (event.key === "?" || (event.shiftKey && event.key === "/")) {
         event.preventDefault();
         setIsShortcutsOpen((prev) => !prev);
@@ -718,13 +718,13 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
 
   const handleAddToCanvas = useCallback(async () => {
     try {
-      // 检查笔记内容是否为空或只包含空白字符（包括换行符）
+      // Check if notes content is empty or contains only whitespace (including newlines)
       if (!notesContent || !notesContent.toString().replace(/\s/g, "").trim()) {
         console.warn("Notes content is empty, cannot add to canvas");
         return;
       }
 
-      // 创建 markdown 文件内容
+      // Create markdown file content
       const markdownContent = notesContent;
       const fileName = `notes-${Date.now()}.md`;
 
@@ -754,7 +754,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         },
       };
 
-      // 创建 block
+      // Create block
       const createBlockResponse = await api.post<{
         id: number;
       }>(Apis["create-block"], item);
@@ -769,11 +769,11 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
       onClose();
     } catch (error) {
       console.error("Failed to add to canvas:", error);
-      // 可以在这里添加错误提示
+      // Error notification can be added here
     }
   }, [notesContent, setPendingItems, onClose]);
 
-  // 当面板状态或阅读模式改变时重新计算缩放
+  // Recalculate scale when panel state or reading mode changes
   useEffect(() => {
     if (originalPageSize.width > 0) {
       const timeoutId = setTimeout(() => {
@@ -793,7 +793,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     originalPageSize.width,
   ]);
 
-  // PDF 视图状态对象（用于 PDFToolbarInline）
+  // PDF view state object (for PDFToolbarInline)
   const pdfViewState: PDFViewState = useMemo(() => ({
     pageNumber,
     numPages,
@@ -801,39 +801,39 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     readingMode,
   }), [pageNumber, numPages, scale, readingMode]);
 
-  // 处理视图状态变化
+  // Handle view state change
   const handleViewStateChange = useCallback((state: Partial<PDFViewState>) => {
     if (state.scale !== undefined) setScale(state.scale);
     if (state.readingMode !== undefined) handleReadingModeChange(state.readingMode);
   }, [handleReadingModeChange]);
 
-  // 论文库对话框状态
+  // Paper library dialog state
   const [isPaperLibraryOpen, setIsPaperLibraryOpen] = useState(false);
 
-  // 多文档回调
+  // Multi-document callbacks
   const handleSelectDocument = useCallback((_id: string) => {
-    // Phase 2: 实现多文档切换
+    // Phase 2: Implement multi-document switching
     console.log("Document switch not yet implemented");
   }, []);
 
   const handleCloseDocument = useCallback((_id: string) => {
-    // Phase 2: 实现多文档关闭
+    // Phase 2: Implement multi-document closing
     onClose();
   }, [onClose]);
 
   const handleAddDocument = useCallback(() => {
-    // 打开论文库对话框
+    // Open the paper library dialog
     setIsPaperLibraryOpen(true);
   }, []);
 
   const handleSelectPaperFromLibrary = useCallback((paper: PaperMeta) => {
     console.log("Selected paper from library:", paper.arxivId);
     
-    // 使用 API 路由获取 PDF（避免直接访问静态文件的问题）
-    // 格式：/api/ocr/{arxivId}/pdf
+    // Use API route to fetch PDF (avoid issues with direct static file access)
+    // Format: /api/ocr/{arxivId}/pdf
     const pdfPath = paper.pdfPath || `/api/ocr/${paper.arxivId}/pdf`;
     
-    // 创建新的 PDF 源
+    // Create a new PDF source
     const newSource: PDFSource = {
       type: "url",
       path: pdfPath,
@@ -842,16 +842,16 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
     
     console.log("New PDF source:", newSource);
     
-    // 重置状态
+    // Reset state
     setLoading(true);
     setError("");
     setNumPages(0);
     setScale(1.0);
     
-    // 切换到新的 PDF 源
+    // Switch to the new PDF source
     setCurrentPdfSource(newSource);
-    
-    // 关闭论文库对话框
+
+    // Close the paper library dialog
     setIsPaperLibraryOpen(false);
   }, []);
 
@@ -860,7 +860,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
       ref={containerRef}
       className="pdf-reader-container relative h-full w-full bg-stone-200/50 flex flex-col overflow-hidden p-2 gap-2"
     >
-      {/* 顶栏 - 文档标签页 + 面板切换 */}
+      {/* Top bar - document tabs + panel toggles */}
       <PDFReaderTopBar
         documents={documents}
         activeDocumentId={activeDocumentId}
@@ -874,9 +874,9 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
       />
 
-      {/* 主内容区域 - 三栏布局 */}
+      {/* Main content area - three-column layout */}
       <div className="flex-1 flex overflow-hidden relative gap-2">
-        {/* 左侧面板 - Index Panel (固定宽度) */}
+        {/* Left panel - Index Panel (fixed width) */}
         <IndexPanel
           file={pdfUrl}
           currentPage={pageNumber}
@@ -886,7 +886,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
           onClose={() => setIsIndexPanelOpen(false)}
           paperContext={paperContext}
           onOpenReferenceInReader={(arxivId) => {
-            // 从 API 获取论文 PDF 路径并加载
+            // Get paper PDF path from API and load it
             handleSelectPaperFromLibrary({
               id: arxivId,
               title: "",
@@ -898,9 +898,9 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
           }}
         />
 
-        {/* 中间 PDF 容器 (包含内嵌工具栏 + 渲染器) */}
+        {/* Center PDF container (inline toolbar + renderer) */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white rounded-xl shadow-sm border border-stone-200/80">
-          {/* 内嵌工具栏 - 阅读模式 / 搜索 / 页码 / 缩放 */}
+          {/* Inline toolbar - reading mode / search / page number / zoom */}
           <PDFToolbarInline
             viewState={pdfViewState}
             onViewStateChange={handleViewStateChange}
@@ -916,7 +916,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
             className="rounded-t-xl"
           />
           
-          {/* PDF 渲染区域 */}
+          {/* PDF rendering area */}
           <div className="flex-1 overflow-auto">
             {pdfUrl ? (
               <PDFRenderer
@@ -940,17 +940,17 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
                 currentResultIndex={currentResultIndex}
                 onPageChange={goToPage}
                 onItemClick={handlePDFItemClick}
-                // 句子交互层相关props
-                // TODO: [OCR_SERVICE] 当 ENABLE_SENTENCE_LAYER = false 时，SentenceLayer 不会渲染
+                // Sentence interaction layer props
+                // TODO: [OCR_SERVICE] When ENABLE_SENTENCE_LAYER = false, SentenceLayer will not render
                 isSentenceLayerEnabled={ENABLE_SENTENCE_LAYER && isSentenceLayerEnabled}
                 sentences={ENABLE_SENTENCE_LAYER ? sentences : []}
                 selectedSentenceIds={ENABLE_SENTENCE_LAYER ? highlightedSentenceIds : []}
                 onSentenceClick={ENABLE_SENTENCE_LAYER ? handleSentenceClick : undefined}
-                // 对象选择层相关props (图像、表格等)
-                // 当有 OCR 数据且 detections 不为空时启用
+                // Object selection layer props (images, tables, etc.)
+                // Enabled when OCR data is available and detections is not empty
                 isObjectLayerEnabled={ENABLE_OBJECT_SELECTION && hasOCRData}
                 pageDetections={paperContext?.detections || []}
-                // OCR 图像尺寸 (从第一页 meta 获取，用于坐标转换)
+                // OCR image dimensions (from first page meta, used for coordinate conversion)
                 ocrImageSize={paperContext?.pages?.[0]?.meta}
                 // Paper ID for image path construction
                 paperId={paperId}
@@ -968,7 +968,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
           </div>
         </div>
 
-        {/* 右侧 AI 面板 */}
+        {/* Right AI panel */}
         <AIRightPanel
           isOpen={isRightPanelOpen}
           onClose={() => setIsRightPanelOpen(false)}
@@ -977,7 +977,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         />
       </div>
 
-      {/* 选择文本弹窗 */}
+      {/* Text selection popup */}
       {selectedText && (
         <SelectionPopup
           position={selectedText.position}
@@ -987,7 +987,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         />
       )}
 
-      {/* 句子选择弹窗 */}
+      {/* Sentence selection popup */}
       {selectedSentences && (
         <SelectionPopup
           position={selectedSentences.position}
@@ -997,14 +997,14 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         />
       )}
 
-      {/* 快捷键浮动按钮 */}
+      {/* Shortcuts floating button */}
       <ShortcutsFloatingButton
         isIndexPanelOpen={isIndexPanelOpen}
         isOpen={isShortcutsOpen}
         onToggle={setIsShortcutsOpen}
       />
 
-      {/* 论文库对话框 */}
+      {/* Paper library dialog */}
       <PaperLibraryDialog
         isOpen={isPaperLibraryOpen}
         onClose={() => setIsPaperLibraryOpen(false)}
@@ -1017,7 +1017,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
 
 export default PDFReader;
 
-// 多文档版本导出
+// Multi-document version exports
 export { PDFReaderWrapper } from "./PDFReaderWrapper";
 export { PDFReaderContent } from "./PDFReaderContent";
 export { useMultiDocumentStore } from "./store/multiDocumentStore";

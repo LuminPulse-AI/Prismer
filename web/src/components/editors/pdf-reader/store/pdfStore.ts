@@ -2,18 +2,18 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 interface PDFState {
-  // 文档状态
+  // Document state
   numPages: number;
   currentPage: number;
   loading: boolean;
   error: string | null;
   
-  // 视图状态
+  // View state
   scale: number;
   rotation: number;
   pageSize: { width: number; height: number };
   
-  // 交互状态
+  // Interaction state
   selectedText: string;
   annotations: Array<{
     id: string;
@@ -24,7 +24,7 @@ interface PDFState {
     timestamp: number;
   }>;
   
-  // 搜索状态
+  // Search state
   searchQuery: string;
   searchResults: Array<{
     page: number;
@@ -35,7 +35,7 @@ interface PDFState {
 }
 
 interface PDFActions {
-  // 文档操作
+  // Document actions
   setNumPages: (pages: number) => void;
   setCurrentPage: (page: number) => void;
   goToNextPage: () => void;
@@ -43,7 +43,7 @@ interface PDFActions {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   
-  // 视图操作
+  // View actions
   setScale: (scale: number) => void;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -52,21 +52,21 @@ interface PDFActions {
   rotate: () => void;
   setPageSize: (size: { width: number; height: number }) => void;
   
-  // 交互操作
+  // Interaction actions
   setSelectedText: (text: string) => void;
   clearSelectedText: () => void;
   addAnnotation: (annotation: Omit<PDFState['annotations'][0], 'id' | 'timestamp'>) => void;
   removeAnnotation: (id: string) => void;
   updateAnnotation: (id: string, updates: Partial<PDFState['annotations'][0]>) => void;
   
-  // 搜索操作
+  // Search actions
   setSearchQuery: (query: string) => void;
   setSearchResults: (results: PDFState['searchResults']) => void;
   goToNextSearchResult: () => void;
   goToPrevSearchResult: () => void;
   clearSearch: () => void;
   
-  // 重置状态
+  // Reset state
   reset: () => void;
 }
 
@@ -90,7 +90,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
     (set, get) => ({
       ...initialState,
       
-      // 文档操作
+      // Document actions
       setNumPages: (pages) => set({ numPages: pages }),
       setCurrentPage: (page) => set({ currentPage: Math.max(1, Math.min(page, get().numPages)) }),
       goToNextPage: () => {
@@ -108,7 +108,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
       setLoading: (loading) => set({ loading }),
       setError: (error) => set({ error }),
       
-      // 视图操作
+      // View actions
       setScale: (scale) => set({ scale: Math.max(0.1, Math.min(5.0, scale)) }),
       zoomIn: () => {
         const { scale } = get();
@@ -126,7 +126,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
       },
       setPageSize: (size) => set({ pageSize: size }),
       
-      // 交互操作
+      // Interaction actions
       setSelectedText: (text) => set({ selectedText: text }),
       clearSelectedText: () => set({ selectedText: '' }),
       addAnnotation: (annotation) => set((state) => ({
@@ -148,7 +148,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
         )
       })),
       
-      // 搜索操作
+      // Search actions
       setSearchQuery: (query) => set({ searchQuery: query }),
       setSearchResults: (results) => set({ 
         searchResults: results,
@@ -159,7 +159,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
         if (searchResults.length > 0) {
           const nextIndex = (currentSearchIndex + 1) % searchResults.length;
           set({ currentSearchIndex: nextIndex });
-          // 跳转到对应页面
+          // Jump to the corresponding page
           const result = searchResults[nextIndex];
           if (result) {
             set({ currentPage: result.page });
@@ -171,7 +171,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
         if (searchResults.length > 0) {
           const prevIndex = currentSearchIndex <= 0 ? searchResults.length - 1 : currentSearchIndex - 1;
           set({ currentSearchIndex: prevIndex });
-          // 跳转到对应页面
+          // Jump to the corresponding page
           const result = searchResults[prevIndex];
           if (result) {
             set({ currentPage: result.page });
@@ -184,7 +184,7 @@ export const usePDFStore = create<PDFState & PDFActions>()(
         currentSearchIndex: -1 
       }),
       
-      // 重置状态
+      // Reset state
       reset: () => set(initialState),
     }),
     {

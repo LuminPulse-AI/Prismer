@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * SkillManagerDialog - 统一的 Skill 管理对话框
+ * SkillManagerDialog - Unified Skill Management Dialog
  *
- * 视觉规范:
- * - 与 ChatPanel 保持统一的白色背景 + 圆角卡片风格
- * - 移动端适配：全屏模式、底部抽屉动效
- * - 桌面端：居中对话框
+ * Visual spec:
+ * - Consistent with ChatPanel's white background + rounded card style
+ * - Mobile adaptation: Full-screen mode, bottom drawer animation
+ * - Desktop: Centered dialog
  */
 
 import { useEffect, useCallback, useState } from 'react';
@@ -45,7 +45,7 @@ const categoryLabels: Record<SkillCategory, string> = {
   general: 'General',
 };
 
-// 检测是否为移动端
+// Detect if on mobile
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -86,7 +86,7 @@ export function SkillManagerDialog({
   // Resolve agent context: explicit agentId (e.g. from Manage Workspaces) or we use workspaceId later for install
   const contextAgentId = agentIdProp ?? undefined;
 
-  // 本地搜索状态
+  // Local search state
   const [localSearch, setLocalSearch] = useState('');
 
   const isOpen = embedded ? true : open;
@@ -161,7 +161,7 @@ export function SkillManagerDialog({
 
   if (!isOpen) return null;
 
-  // 移动端详情视图
+  // Mobile detail view
   if (!embedded && isMobile && selectedSkill) {
     return (
       <motion.div
@@ -201,7 +201,7 @@ export function SkillManagerDialog({
     );
   }
 
-  // 移动端主列表视图
+  // Mobile main list view
   if (!embedded && isMobile) {
     return (
       <motion.div
@@ -497,7 +497,7 @@ export function SkillManagerDialog({
     );
   }
 
-  // 桌面端
+  // Desktop
   return (
     <AnimatePresence>
       {open && (

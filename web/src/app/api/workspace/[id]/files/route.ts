@@ -1,8 +1,8 @@
 /**
- * Workspace Files API - 文件列表和创建
+ * Workspace Files API - File listing and creation
  *
- * GET  /api/workspace/[id]/files - 列出所有工作空间文件
- * POST /api/workspace/[id]/files - 创建新文件
+ * GET  /api/workspace/[id]/files - List all workspace files
+ * POST /api/workspace/[id]/files - Create a new file
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -14,7 +14,7 @@ interface Params {
 }
 
 /**
- * 计算内容的 SHA256 哈希
+ * Compute SHA256 hash of content
  */
 function hashContent(content: string): string {
   return createHash('sha256').update(content).digest('hex');
@@ -23,13 +23,13 @@ function hashContent(content: string): string {
 /**
  * GET /api/workspace/[id]/files
  *
- * 列出工作空间的所有文件
+ * List all files in the workspace
  */
 export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id: workspaceId } = await params;
 
-    // 验证 workspace 存在
+    // Verify workspace exists
     const workspace = await prisma.workspaceSession.findUnique({
       where: { id: workspaceId },
       select: { id: true },
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 获取所有文件
+    // Get all files
     const files = await prisma.workspaceFile.findMany({
       where: { workspaceId },
       select: {
@@ -81,12 +81,12 @@ export async function GET(request: NextRequest, { params }: Params) {
 /**
  * POST /api/workspace/[id]/files
  *
- * 创建新文件
+ * Create a new file
  *
  * Request body:
  * {
- *   path: string,    // 文件路径 (如 "IDENTITY.md", "skills/latex/SKILL.md")
- *   content: string  // 文件内容
+ *   path: string,    // File path (e.g. "IDENTITY.md", "skills/latex/SKILL.md")
+ *   content: string  // File content
  * }
  */
 export async function POST(request: NextRequest, { params }: Params) {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const body = await request.json();
     const { path, content } = body;
 
-    // 参数验证
+    // Parameter validation
     if (!path || typeof path !== 'string') {
       return NextResponse.json(
         { success: false, error: 'path is required' },
@@ -110,10 +110,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 规范化路径
+    // Normalize path
     const normalizedPath = path.replace(/^\/+/, '').replace(/\/+/g, '/');
 
-    // 验证路径格式
+    // Validate path format
     if (normalizedPath.includes('..') || normalizedPath.startsWith('/')) {
       return NextResponse.json(
         { success: false, error: 'Invalid path format' },
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 验证 workspace 存在
+    // Verify workspace exists
     const workspace = await prisma.workspaceSession.findUnique({
       where: { id: workspaceId },
       select: { id: true },
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 检查文件是否已存在
+    // Check if file already exists
     const existing = await prisma.workspaceFile.findUnique({
       where: {
         workspaceId_path: { workspaceId, path: normalizedPath },
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 创建文件
+    // Create file
     const contentHash = hashContent(content);
     const file = await prisma.workspaceFile.create({
       data: {

@@ -2,9 +2,9 @@
 
 /**
  * ChatToggle
- * 
- * SiriOrb + 任务状态气泡
- * 位于 WindowViewer 左下角，点击展开 Chat Panel
+ *
+ * SiriOrb + Task status bubble
+ * Located at the bottom-left of WindowViewer, click to expand Chat Panel
  */
 
 import React, { memo } from 'react';
@@ -50,7 +50,7 @@ export const ChatToggle = memo(function ChatToggle({
             />
           </button>
 
-          {/* 任务状态气泡 */}
+          {/* Task status bubble */}
           {currentTask && (
             <TaskBubble
               task={currentTask}

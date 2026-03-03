@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * CellContextMenu - Cell 右键菜单和 AI 操作按钮
- * 
- * 功能：
- * - 右键菜单（复制/粘贴/删除/移动）
- * - AI 操作（Explain/Fix/Optimize）
+ * CellContextMenu - Cell Context Menu and AI Action Buttons
+ *
+ * Features:
+ * - Context menu (copy/paste/delete/move)
+ * - AI actions (Explain/Fix/Optimize)
  */
 
 import React, { memo, useState, useCallback } from 'react';
@@ -29,7 +29,7 @@ import {
 import type { CodeCell } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export type CellAIAction = 'explain' | 'fix' | 'optimize' | 'document' | 'ask';
@@ -55,7 +55,7 @@ interface CellAIToolbarProps {
 }
 
 // ============================================================
-// CellAIToolbar 组件
+// CellAIToolbar Component
 // ============================================================
 
 export const CellAIToolbar = memo(function CellAIToolbar({
@@ -164,7 +164,7 @@ export const CellAIToolbar = memo(function CellAIToolbar({
 });
 
 // ============================================================
-// AIActionButton 组件
+// AIActionButton Component
 // ============================================================
 
 interface AIActionButtonProps {
@@ -201,7 +201,7 @@ const AIActionButton = memo(function AIActionButton({
 });
 
 // ============================================================
-// CellContextMenu 组件
+// CellContextMenu Component
 // ============================================================
 
 export const CellContextMenu = memo(function CellContextMenu({
@@ -350,7 +350,7 @@ export const CellContextMenu = memo(function CellContextMenu({
 });
 
 // ============================================================
-// MenuSection 组件
+// MenuSection Component
 // ============================================================
 
 interface MenuSectionProps {
@@ -371,7 +371,7 @@ const MenuSection = memo(function MenuSection({
 });
 
 // ============================================================
-// MenuItem 组件
+// MenuItem Component
 // ============================================================
 
 interface MenuItemProps {

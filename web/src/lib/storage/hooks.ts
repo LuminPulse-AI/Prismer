@@ -3,7 +3,7 @@
 /**
  * Storage Hooks
  * 
- * 提供便捷的存储数据访问 hooks
+ * Provides convenient storage data access hooks
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,7 +15,7 @@ import { useStorage } from './provider';
 // ============================================================
 
 /**
- * 获取论文列表
+ * Get paper list
  */
 export function usePaperList() {
   const storage = useStorage();
@@ -44,7 +44,7 @@ export function usePaperList() {
 }
 
 /**
- * 获取单篇论文数据
+ * Get single paper data
  */
 export function usePaper(paperId: string | null) {
   const storage = useStorage();
@@ -94,7 +94,7 @@ export function usePaper(paperId: string | null) {
 // ============================================================
 
 /**
- * 获取聊天会话列表
+ * Get chat session list
  */
 export function useChatSessionList() {
   const storage = useStorage();
@@ -148,7 +148,7 @@ export function useChatSessionList() {
 }
 
 /**
- * 获取并管理单个聊天会话
+ * Get and manage a single chat session
  */
 export function useChatSession(sessionId: string | null) {
   const storage = useStorage();
@@ -205,7 +205,7 @@ export function useChatSession(sessionId: string | null) {
 // ============================================================
 
 /**
- * 获取笔记本列表
+ * Get notebook list
  */
 export function useNotebookList() {
   const storage = useStorage();
@@ -256,7 +256,7 @@ export function useNotebookList() {
 }
 
 /**
- * 获取并管理单个笔记本
+ * Get and manage a single notebook
  */
 export function useNotebook(notebookId: string | null) {
   const storage = useStorage();

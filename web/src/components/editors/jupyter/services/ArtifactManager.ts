@@ -1,17 +1,17 @@
 /**
- * ArtifactManager - 产物管理服务
- * 
- * 负责：
- * - 自动检测输出中的产物（图片、DataFrame、图表）
- * - 产物元数据管理
- * - 手动持久化（上传到存储）
- * - 导出功能（ZIP 打包）
+ * ArtifactManager - Artifact Management Service
+ *
+ * Responsibilities:
+ * - Automatically detect artifacts in outputs (images, DataFrames, charts)
+ * - Artifact metadata management
+ * - Manual persistence (upload to storage)
+ * - Export functionality (ZIP packaging)
  */
 
 import type { Output, Artifact, ArtifactType, MimeBundle } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface DetectedArtifact {
@@ -42,7 +42,7 @@ export interface ArtifactManagerConfig {
   autoDetect: boolean;
   generateThumbnails: boolean;
   thumbnailMaxSize: number;
-  maxArtifactSize: number;  // 字节
+  maxArtifactSize: number;  // bytes
   supportedTypes: ArtifactType[];
 }
 
@@ -59,7 +59,7 @@ export interface ExportOptions {
 }
 
 // ============================================================
-// MIME 类型映射
+// MIME Type Mapping
 // ============================================================
 
 const MIME_TO_ARTIFACT_TYPE: Record<string, ArtifactType> = {
@@ -85,7 +85,7 @@ function getArtifactExtension(type: ArtifactType): string {
 }
 
 // ============================================================
-// ArtifactManager 类
+// ArtifactManager Class
 // ============================================================
 
 export class ArtifactManager {
@@ -104,7 +104,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 从输出中检测产物
+   * Detect artifacts from outputs
    */
   detectArtifacts(cellId: string, outputs: Output[]): DetectedArtifact[] {
     if (!this.config.autoDetect) return [];
@@ -119,7 +119,7 @@ export class ArtifactManager {
       }
     });
 
-    // 存储检测到的产物
+    // Store detected artifacts
     detected.forEach(artifact => {
       this.artifacts.set(artifact.id, artifact);
     });
@@ -128,7 +128,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 从 MIME bundle 提取产物
+   * Extract artifacts from MIME bundle
    */
   private extractArtifactsFromMimeBundle(
     cellId: string,
@@ -144,10 +144,10 @@ export class ArtifactManager {
         continue;
       }
 
-      // 特殊处理：检查 HTML 是否是 DataFrame
+      // Special handling: check if HTML is a DataFrame
       if (mimeType === 'text/html' && typeof content === 'string') {
         if (!this.isDataFrameHtml(content)) {
-          continue;  // 跳过非 DataFrame HTML
+          continue;  // Skip non-DataFrame HTML
         }
       }
 
@@ -169,7 +169,7 @@ export class ArtifactManager {
         createdAt: new Date().toISOString(),
       };
 
-      // 生成缩略图
+      // Generate thumbnail
       if (this.config.generateThumbnails && artifactType === 'image') {
         artifact.thumbnail = this.generateThumbnail(mimeType, content as string);
       }
@@ -181,7 +181,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 检查 HTML 是否是 DataFrame
+   * Check if HTML is a DataFrame
    */
   private isDataFrameHtml(html: string): boolean {
     return html.includes('dataframe') || 
@@ -190,7 +190,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 提取元数据
+   * Extract metadata
    */
   private extractMetadata(
     type: ArtifactType,
@@ -200,18 +200,18 @@ export class ArtifactManager {
     const metadata: ArtifactMetadata = {};
 
     if (type === 'dataframe' && typeof content === 'string') {
-      // 从 HTML 表格提取行列信息
+      // Extract row and column info from HTML table
       const rowMatch = content.match(/<tr>/g);
       const colMatch = content.match(/<th[^>]*>/g);
       
       if (rowMatch) {
-        metadata.rows = rowMatch.length - 1;  // 减去表头
+        metadata.rows = rowMatch.length - 1;  // Subtract header row
       }
       if (colMatch) {
         metadata.columns = colMatch.length;
       }
 
-      // 提取列名
+      // Extract column names
       const headerMatch = content.match(/<th[^>]*>([^<]+)<\/th>/g);
       if (headerMatch) {
         metadata.columnNames = headerMatch
@@ -230,16 +230,16 @@ export class ArtifactManager {
   }
 
   /**
-   * 生成缩略图（base64）
+   * Generate thumbnail (base64)
    */
   private generateThumbnail(mimeType: string, base64Data: string): string {
-    // 简化实现：直接返回原数据的前缀作为标识
-    // 实际应用中应该使用 canvas 压缩
+    // Simplified implementation: return prefix of original data as identifier
+    // Production should use canvas compression
     return base64Data.slice(0, 100);
   }
 
   /**
-   * 计算数据大小
+   * Calculate data size
    */
   private calculateSize(content: unknown): number {
     if (typeof content === 'string') {
@@ -249,14 +249,14 @@ export class ArtifactManager {
   }
 
   /**
-   * 获取所有产物
+   * Get all artifacts
    */
   getAllArtifacts(): DetectedArtifact[] {
     return Array.from(this.artifacts.values());
   }
 
   /**
-   * 获取指定 Cell 的产物
+   * Get artifacts for a specific cell
    */
   getArtifactsByCell(cellId: string): DetectedArtifact[] {
     return Array.from(this.artifacts.values())
@@ -264,7 +264,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 获取指定类型的产物
+   * Get artifacts by type
    */
   getArtifactsByType(type: ArtifactType): DetectedArtifact[] {
     return Array.from(this.artifacts.values())
@@ -272,21 +272,21 @@ export class ArtifactManager {
   }
 
   /**
-   * 删除产物
+   * Remove artifact
    */
   removeArtifact(id: string): boolean {
     return this.artifacts.delete(id);
   }
 
   /**
-   * 清空所有产物
+   * Clear all artifacts
    */
   clearAll(): void {
     this.artifacts.clear();
   }
 
   /**
-   * 持久化产物（上传）
+   * Persist artifact (upload)
    */
   async persistArtifact(
     id: string,
@@ -300,11 +300,11 @@ export class ArtifactManager {
     try {
       const formData = new FormData();
       
-      // 创建 Blob
+      // Create Blob
       let blob: Blob;
       if (typeof artifact.data === 'string') {
         if (artifact.mimeType.startsWith('image/')) {
-          // Base64 图片
+          // Base64 image
           const binary = atob(artifact.data);
           const bytes = new Uint8Array(binary.length);
           for (let i = 0; i < binary.length; i++) {
@@ -351,17 +351,22 @@ export class ArtifactManager {
   }
 
   /**
-   * 导出产物为 ZIP
-   * 需要安装 jszip: npm install jszip
+   * Export artifacts as ZIP
+   * Requires jszip: npm install jszip
    */
   async exportAsZip(
     artifactIds?: string[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options?: Partial<ExportOptions>
   ): Promise<Blob> {
-    // 动态导入 jszip（可选依赖）
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let JSZipClass: new () => { file: (name: string, data: unknown, options?: Record<string, unknown>) => void; generateAsync: (options: Record<string, unknown>) => Promise<Blob> };
+    type ZipLikeInstance = {
+      file: (name: string, data: unknown, options?: Record<string, unknown>) => void;
+      generateAsync: (options: Record<string, unknown>) => Promise<unknown>;
+    };
+    type ZipLikeConstructor = new () => ZipLikeInstance;
+
+    // Dynamically import jszip (optional dependency)
+    let JSZipClass: ZipLikeConstructor;
     try {
       // @ts-ignore - jszip is an optional dependency
       const module = await import(/* webpackIgnore: true */ 'jszip');
@@ -375,14 +380,14 @@ export class ArtifactManager {
       ? artifactIds.map(id => this.artifacts.get(id)).filter(Boolean) as DetectedArtifact[]
       : this.getAllArtifacts();
 
-    // 添加产物到 ZIP
+    // Add artifacts to ZIP
     artifacts.forEach((artifact, index) => {
       const extension = getArtifactExtension(artifact.type);
       const filename = `${artifact.type}_${index + 1}.${extension}`;
 
       if (typeof artifact.data === 'string') {
         if (artifact.mimeType.startsWith('image/')) {
-          // Base64 图片 -> 二进制
+          // Base64 image -> binary
           zip.file(filename, artifact.data, { base64: true });
         } else {
           zip.file(filename, artifact.data);
@@ -392,7 +397,7 @@ export class ArtifactManager {
       }
     });
 
-    // 添加元数据清单
+    // Add metadata manifest
     const manifest = artifacts.map(a => ({
       id: a.id,
       cellId: a.cellId,
@@ -404,11 +409,15 @@ export class ArtifactManager {
     }));
     zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 
-    return zip.generateAsync({ type: 'blob' });
+    const generated = await zip.generateAsync({ type: 'blob' });
+    if (!(generated instanceof Blob)) {
+      throw new Error('jszip returned an unexpected export type');
+    }
+    return generated;
   }
 
   /**
-   * 下载单个产物
+   * Download a single artifact
    */
   downloadArtifact(id: string, filename?: string): void {
     const artifact = this.artifacts.get(id);
@@ -444,7 +453,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 获取产物摘要（用于 Agent 上下文）
+   * Get artifact summaries (for Agent context)
    */
   getArtifactSummaries(): Array<{
     id: string;
@@ -461,7 +470,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 格式化产物摘要
+   * Format artifact summary
    */
   private formatArtifactSummary(artifact: DetectedArtifact): string {
     switch (artifact.type) {
@@ -478,7 +487,7 @@ export class ArtifactManager {
   }
 
   /**
-   * 格式化文件大小
+   * Format file size
    */
   private formatSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -488,7 +497,7 @@ export class ArtifactManager {
 }
 
 /**
- * 创建 ArtifactManager 实例
+ * Create an ArtifactManager instance
  */
 export function createArtifactManager(
   config?: Partial<ArtifactManagerConfig>

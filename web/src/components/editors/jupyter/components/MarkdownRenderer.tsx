@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * MarkdownRenderer - 增强的 Markdown 渲染器
- * 
- * 使用 react-markdown + remark-gfm + rehype-highlight
- * 支持：
- * - GFM（表格、删除线、任务列表）
- * - 代码高亮
- * - 自定义代码块
+ * MarkdownRenderer - Enhanced Markdown Renderer
+ *
+ * Uses react-markdown + remark-gfm + rehype-highlight
+ * Supports:
+ * - GFM (tables, strikethrough, task lists)
+ * - Code highlighting
+ * - Custom code blocks
  */
 
 import React, { memo, useState, useCallback } from 'react';
@@ -16,7 +16,7 @@ import remarkGfm from 'remark-gfm';
 import { Copy, Check, Play } from 'lucide-react';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface MarkdownRendererProps {
@@ -35,7 +35,7 @@ interface CodeBlockProps {
 }
 
 // ============================================================
-// MarkdownRenderer 组件
+// MarkdownRenderer Component
 // ============================================================
 
 export const MarkdownRenderer = memo(function MarkdownRenderer({
@@ -54,7 +54,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // 自定义代码渲染
+          // Custom code rendering
           code({ node, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
@@ -207,7 +207,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 });
 
 // ============================================================
-// CodeBlock 组件
+// CodeBlock Component
 // ============================================================
 
 const CodeBlock = memo(function CodeBlock({
@@ -267,7 +267,7 @@ const CodeBlock = memo(function CodeBlock({
 });
 
 // ============================================================
-// 简单的语法高亮
+// Simple Syntax Highlighting
 // ============================================================
 
 function useMemo<T>(factory: () => T, deps: React.DependencyList): T {
@@ -278,7 +278,7 @@ function highlightCode(code: string, language: string, isLight = false): string 
   const classes = isLight
     ? { string: 'text-green-800', comment: 'text-slate-500', number: 'text-purple-700', keyword: 'text-indigo-700' }
     : { string: 'text-green-400', comment: 'text-slate-500', number: 'text-purple-400', keyword: 'text-pink-400' };
-  // 简单的关键字高亮
+  // Simple keyword highlighting
   const keywords = {
     python: ['def', 'class', 'import', 'from', 'return', 'if', 'else', 'elif', 'for', 'while', 'try', 'except', 'with', 'as', 'in', 'not', 'and', 'or', 'True', 'False', 'None', 'lambda', 'yield', 'raise', 'pass', 'break', 'continue', 'async', 'await'],
     javascript: ['function', 'const', 'let', 'var', 'return', 'if', 'else', 'for', 'while', 'try', 'catch', 'class', 'import', 'export', 'from', 'async', 'await', 'true', 'false', 'null', 'undefined', 'new', 'this'],
@@ -292,17 +292,17 @@ function highlightCode(code: string, language: string, isLight = false): string 
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // 字符串高亮
+  // String highlighting
   result = result.replace(/(["'`])(?:(?!\1)[^\\]|\\.)*\1/g, `<span class="${classes.string}">$&</span>`);
   
-  // 注释高亮
+  // Comment highlighting
   result = result.replace(/(#.*)$/gm, `<span class="${classes.comment}">$1</span>`);
   result = result.replace(/(\/\/.*)$/gm, `<span class="${classes.comment}">$1</span>`);
   
-  // 数字高亮
+  // Number highlighting
   result = result.replace(/\b(\d+\.?\d*)\b/g, `<span class="${classes.number}">$1</span>`);
   
-  // 关键字高亮
+  // Keyword highlighting
   langKeywords.forEach(keyword => {
     const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
     result = result.replace(regex, `<span class="${classes.keyword}">$1</span>`);

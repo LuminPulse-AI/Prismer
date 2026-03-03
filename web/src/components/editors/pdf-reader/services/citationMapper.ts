@@ -1,7 +1,7 @@
 /**
- * 标签映射器
- * 
- * 将 AI 生成的标签转换为完整的 Citation 对象
+ * Citation Tag Mapper
+ *
+ * Converts AI-generated tags into full Citation objects
  */
 
 import {
@@ -16,16 +16,16 @@ import {
 import { citationTagParser } from './citationTagParser';
 
 // ============================================================
-// CitationMapper 类
+// CitationMapper Class
 // ============================================================
 
 export class CitationMapper {
   /**
-   * 将解析结果转换为 Citation 数组
-   * 
-   * @param parseResults - 标签解析结果
-   * @param context - 消息上下文
-   * @returns Citation 数组
+   * Convert parse results to Citation array
+   *
+   * @param parseResults - Tag parse results
+   * @param context - Message context
+   * @returns Citation array
    */
   mapToCitations(
     parseResults: TagParseResult[],
@@ -36,11 +36,11 @@ export class CitationMapper {
       let paperAlias: string | undefined;
       
       if (result.type === 'cross-paper' && result.paperAlias) {
-        // 跨论文模式: 从别名映射获取 paperId
+        // Cross-paper mode: resolve paperId from alias map
         paperAlias = result.paperAlias;
         paperId = context.paperAliasMap?.[result.paperAlias] || result.paperAlias;
       } else {
-        // 单论文模式: 使用默认 paperId
+        // Single paper mode: use default paperId
         paperId = context.defaultPaperId || 'unknown';
       }
       
@@ -52,11 +52,11 @@ export class CitationMapper {
   }
   
   /**
-   * 从内容直接解析并映射为 Citations
-   * 
-   * @param content - 内容字符串
-   * @param context - 消息上下文
-   * @returns Citation 数组
+   * Parse content and map directly to Citations
+   *
+   * @param content - Content string
+   * @param context - Message context
+   * @returns Citation array
    */
   parseAndMap(content: string, context: MessageContext): Citation[] {
     const parseResults = citationTagParser.parse(content);
@@ -64,11 +64,11 @@ export class CitationMapper {
   }
   
   /**
-   * 丰富 Citation 信息
-   * 
-   * @param citation - 基础 Citation
-   * @param enrichment - 附加信息
-   * @returns 丰富后的 Citation
+   * Enrich Citation with additional information
+   *
+   * @param citation - Base Citation
+   * @param enrichment - Additional information
+   * @returns Enriched Citation
    */
   enrichCitation(
     citation: Citation,
@@ -84,11 +84,11 @@ export class CitationMapper {
   }
   
   /**
-   * 批量丰富 Citations
-   * 
-   * @param citations - Citation 数组
-   * @param paperTitles - paperId -> title 映射
-   * @param excerpts - detectionId -> excerpt 映射 (按 paperId 分组)
+   * Batch enrich Citations
+   *
+   * @param citations - Citation array
+   * @param paperTitles - paperId -> title mapping
+   * @param excerpts - detectionId -> excerpt mapping (grouped by paperId)
    */
   enrichCitations(
     citations: Citation[],
@@ -103,9 +103,9 @@ export class CitationMapper {
   }
   
   /**
-   * 重新分配显示索引
-   * 
-   * 当需要按特定顺序显示时使用
+   * Reassign display indices
+   *
+   * Used when displaying citations in a specific order
    */
   reindexCitations(citations: Citation[]): Citation[] {
     return citations.map((citation, index) => ({
@@ -115,7 +115,7 @@ export class CitationMapper {
   }
   
   /**
-   * 去重 Citations (基于 URI)
+   * Deduplicate Citations (based on URI)
    */
   deduplicateCitations(citations: Citation[]): Citation[] {
     const seen = new Set<string>();
@@ -127,7 +127,7 @@ export class CitationMapper {
   }
   
   /**
-   * 按论文分组 Citations
+   * Group Citations by paper
    */
   groupByPaper(citations: Citation[]): Record<string, Citation[]> {
     return citations.reduce((groups, citation) => {
@@ -139,36 +139,36 @@ export class CitationMapper {
   }
   
   /**
-   * 按页码排序 Citations
+   * Sort Citations by page number
    */
   sortByPage(citations: Citation[]): Citation[] {
     return [...citations].sort((a, b) => {
-      // 首先按论文排序
+      // Sort by paper first
       if (a.paperId !== b.paperId) {
         return a.paperId.localeCompare(b.paperId);
       }
-      // 然后按页码排序
+      // Then sort by page number
       return a.pageNumber - b.pageNumber;
     });
   }
 }
 
 // ============================================================
-// 论文别名分配器
+// Paper Alias Assigner
 // ============================================================
 
 export class PaperAliasAssigner {
   private readonly aliases = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   
   /**
-   * 为论文分配稳定别名
-   * 
-   * 关键：同一会话中，同一论文的别名必须稳定不变
-   * 否则历史消息中的 [[A:xxx]] 会失效
-   * 
-   * @param paperIds - 论文 ID 列表
-   * @param existingMap - 现有的别名映射
-   * @returns 更新后的别名映射
+   * Assign stable aliases to papers
+   *
+   * Key: within the same session, a paper's alias must remain stable.
+   * Otherwise, [[A:xxx]] references in historical messages would become invalid.
+   *
+   * @param paperIds - List of paper IDs
+   * @param existingMap - Existing alias mapping
+   * @returns Updated alias mapping
    */
   assignAliases(
     paperIds: string[],
@@ -178,17 +178,17 @@ export class PaperAliasAssigner {
     const usedAliases = new Set(Object.keys(map));
     
     for (const paperId of paperIds) {
-      // 检查是否已有别名
+      // Check if alias already exists
       const existingAlias = this.getAliasForPaper(paperId, map);
       if (existingAlias) continue;
       
-      // 分配新别名
+      // Assign new alias
       const nextAlias = this.aliases.find(a => !usedAliases.has(a));
       if (nextAlias) {
         map[nextAlias] = paperId;
         usedAliases.add(nextAlias);
       } else {
-        // 超过 26 篇论文，使用 AA, AB, ...
+        // Exceeded 26 papers, use extended aliases (AA, AB, ...)
         console.warn('Exceeded 26 papers, using extended aliases');
         const extendedAlias = `P${Object.keys(map).length + 1}`;
         map[extendedAlias] = paperId;
@@ -199,7 +199,7 @@ export class PaperAliasAssigner {
   }
   
   /**
-   * 反向查找：paperId → alias
+   * Reverse lookup: paperId -> alias
    */
   getAliasForPaper(paperId: string, map: PaperAliasMap): string | null {
     const entry = Object.entries(map).find(([_, id]) => id === paperId);
@@ -207,15 +207,15 @@ export class PaperAliasAssigner {
   }
   
   /**
-   * 正向查找：alias → paperId
+   * Forward lookup: alias -> paperId
    */
   getPaperForAlias(alias: string, map: PaperAliasMap): string | null {
     return map[alias] || null;
   }
   
   /**
-   * 移除论文别名
-   * 注意：通常不应移除别名，以保持历史消息的有效性
+   * Remove paper alias
+   * Note: aliases should generally not be removed to keep historical messages valid
    */
   removeAlias(paperId: string, map: PaperAliasMap): PaperAliasMap {
     const alias = this.getAliasForPaper(paperId, map);
@@ -227,14 +227,14 @@ export class PaperAliasAssigner {
   }
   
   /**
-   * 检查是否为多论文模式
+   * Check if in multi-paper mode
    */
   isMultiPaperMode(map: PaperAliasMap): boolean {
     return Object.keys(map).length > 1;
   }
   
   /**
-   * 获取所有论文 ID
+   * Get all paper IDs
    */
   getAllPaperIds(map: PaperAliasMap): string[] {
     return Object.values(map);
@@ -242,7 +242,7 @@ export class PaperAliasAssigner {
 }
 
 // ============================================================
-// 单例导出
+// Singleton Exports
 // ============================================================
 
 export const citationMapper = new CitationMapper();

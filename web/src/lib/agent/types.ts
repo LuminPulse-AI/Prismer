@@ -2,13 +2,13 @@
  * Agent Service Types
  *
  * @description
- * Phase 3A: Agent 服务抽象层类型定义
- * 定义 AgentService 接口和 AgentEvent 类型，用于统一不同 Agent 后端实现
+ * Phase 3A: Agent service abstraction layer type definitions
+ * Defines the AgentService interface and AgentEvent types for unifying different Agent backend implementations
  *
- * 设计原则:
- * - 与 OpenClaw 协议兼容
- * - 与现有 Sync 协议对接
- * - 支持流式事件处理
+ * Design principles:
+ * - Compatible with the OpenClaw protocol
+ * - Integrates with the existing Sync protocol
+ * - Supports streaming event processing
  */
 
 import type { SessionState, AgentState, UIDirective, StateDelta } from '@/lib/sync/types';
@@ -18,109 +18,109 @@ import type { SessionState, AgentState, UIDirective, StateDelta } from '@/lib/sy
 // ============================================================
 
 /**
- * Agent 事件类型枚举
+ * Agent event type enum
  */
 export type AgentEventType =
-  // 生命周期事件
+  // Lifecycle events
   | 'session_start'
   | 'session_end'
   | 'session_error'
-  // Agent 状态变更
+  // Agent state changes
   | 'agent_thinking'
   | 'agent_responding'
   | 'agent_waiting'
   | 'agent_idle'
   | 'agent_error'
-  // 消息事件
+  // Message events
   | 'message_start'
   | 'message_delta'
   | 'message_end'
-  // 工具调用事件
+  // Tool call events
   | 'tool_start'
   | 'tool_progress'
   | 'tool_end'
   | 'tool_error'
-  // 任务事件
+  // Task events
   | 'task_created'
   | 'task_updated'
   | 'task_completed'
   | 'task_failed'
-  // UI 指令事件
+  // UI directive events
   | 'ui_directive'
-  // 组件状态事件
+  // Component state events
   | 'component_state_update'
-  // 交互请求事件
+  // Interaction request events
   | 'interaction_request'
   | 'interaction_response';
 
 /**
- * 消息增量内容
+ * Message delta content
  */
 export interface MessageDelta {
-  /** 消息 ID */
+  /** Message ID */
   messageId: string;
-  /** 增量内容类型 */
+  /** Delta content type */
   type: 'text' | 'code' | 'markdown' | 'thinking';
-  /** 增量文本 */
+  /** Delta text */
   content: string;
-  /** 是否为最后一块 */
+  /** Whether this is the final chunk */
   isFinal?: boolean;
 }
 
 /**
- * 工具调用信息
+ * Tool call information
  */
 export interface ToolCall {
-  /** 工具调用 ID */
+  /** Tool call ID */
   id: string;
-  /** 工具名称 */
+  /** Tool name */
   name: string;
-  /** 工具参数 */
+  /** Tool arguments */
   arguments: Record<string, unknown>;
-  /** 调用状态 */
+  /** Call status */
   status: 'pending' | 'running' | 'completed' | 'failed';
-  /** 进度 (0-100) */
+  /** Progress (0-100) */
   progress?: number;
-  /** 结果 */
+  /** Result */
   result?: unknown;
-  /** 错误信息 */
+  /** Error message */
   error?: string;
 }
 
 /**
- * 交互请求
+ * Interaction request
  */
 export interface InteractionRequest {
-  /** 请求 ID */
+  /** Request ID */
   id: string;
-  /** 目标组件 */
+  /** Target component */
   componentId: string;
-  /** 可执行的动作 */
+  /** Available actions */
   possibleActions: string[];
-  /** 提示信息 */
+  /** Prompt message */
   prompt?: string;
-  /** 超时时间 (ms) */
+  /** Timeout (ms) */
   timeout?: number;
 }
 
 /**
- * Agent 事件基础结构
+ * Agent event base structure
  */
 export interface AgentEventBase {
-  /** 事件 ID */
+  /** Event ID */
   id: string;
-  /** 事件类型 */
+  /** Event type */
   type: AgentEventType;
-  /** 会话 ID */
+  /** Session ID */
   sessionId: string;
-  /** 时间戳 (epoch ms) */
+  /** Timestamp (epoch ms) */
   timestamp: number;
-  /** 元数据 */
+  /** Metadata */
   metadata?: Record<string, unknown>;
 }
 
 /**
- * Agent 事件联合类型
+ * Agent event union type
  */
 export type AgentEvent =
   | (AgentEventBase & { type: 'session_start'; payload: { sessionId: string; agentId: string } })
@@ -152,92 +152,92 @@ export type AgentEvent =
 // ============================================================
 
 /**
- * 会话配置
+ * Session configuration
  */
 export interface SessionConfig {
-  /** 会话 ID (可选，不提供则自动生成) */
+  /** Session ID (optional, auto-generated if not provided) */
   sessionId?: string;
   /** Agent Instance ID */
   agentId: string;
-  /** 用户 ID */
+  /** User ID */
   userId: string;
   /** Workspace ID */
   workspaceId: string;
-  /** 初始上下文 */
+  /** Initial context */
   context?: {
-    /** 相关论文 */
+    /** Related papers */
     papers?: string[];
-    /** 相关笔记 */
+    /** Related notes */
     notes?: string[];
-    /** 初始消息 */
+    /** Initial message */
     initialMessage?: string;
   };
 }
 
 /**
- * 任务执行配置
+ * Task execution configuration
  */
 export interface TaskConfig {
-  /** 任务标题 */
+  /** Task title */
   title: string;
-  /** 任务描述 */
+  /** Task description */
   description?: string;
-  /** 任务类型 */
+  /** Task type */
   type?: 'research' | 'writing' | 'analysis' | 'review' | 'general';
-  /** 依赖的任务 ID */
+  /** Dependent task IDs */
   dependencies?: string[];
-  /** 优先级 */
+  /** Priority */
   priority?: number;
-  /** 超时时间 (ms) */
+  /** Timeout (ms) */
   timeout?: number;
 }
 
 /**
- * 用户交互数据
+ * User interaction data
  */
 export interface UserInteraction {
-  /** 组件 ID */
+  /** Component ID */
   componentId: string;
-  /** 动作 ID */
+  /** Action ID */
   actionId: string;
-  /** 附加数据 */
+  /** Additional data */
   data?: unknown;
 }
 
 /**
- * Agent 服务接口
+ * Agent service interface
  *
  * @description
- * 定义 Agent 后端必须实现的方法。
- * 支持 DemoAgentService (本地演示) 和 OpenClawAgentService (生产环境)。
+ * Defines the methods that Agent backends must implement.
+ * Supports DemoAgentService (local demo) and OpenClawAgentService (production).
  */
 export interface AgentService {
   /**
-   * 服务类型标识
+   * Service type identifier
    */
   readonly type: 'demo' | 'openclaw';
 
   /**
-   * 启动会话
+   * Start session
    *
-   * @param config - 会话配置
-   * @returns 会话状态
+   * @param config - Session configuration
+   * @returns Session state
    */
   startSession(config: SessionConfig): Promise<SessionState>;
 
   /**
-   * 结束会话
+   * End session
    *
-   * @param sessionId - 会话 ID
+   * @param sessionId - Session ID
    */
   endSession(sessionId: string): Promise<void>;
 
   /**
-   * 发送用户消息
+   * Send user message
    *
-   * @param sessionId - 会话 ID
-   * @param content - 消息内容
-   * @param metadata - 元数据
+   * @param sessionId - Session ID
+   * @param content - Message content
+   * @param metadata - Metadata
    */
   sendMessage(
     sessionId: string,
@@ -246,61 +246,61 @@ export interface AgentService {
   ): Promise<void>;
 
   /**
-   * 执行任务
+   * Execute task
    *
-   * @param sessionId - 会话 ID
-   * @param config - 任务配置
-   * @returns 任务 ID
+   * @param sessionId - Session ID
+   * @param config - Task configuration
+   * @returns Task ID
    */
   executeTask(sessionId: string, config: TaskConfig): Promise<string>;
 
   /**
-   * 处理用户交互
+   * Handle user interaction
    *
-   * @param sessionId - 会话 ID
-   * @param interaction - 交互数据
+   * @param sessionId - Session ID
+   * @param interaction - Interaction data
    */
   handleInteraction(sessionId: string, interaction: UserInteraction): Promise<void>;
 
   /**
-   * 暂停会话
+   * Pause session
    *
-   * @param sessionId - 会话 ID
+   * @param sessionId - Session ID
    */
   pauseSession(sessionId: string): Promise<void>;
 
   /**
-   * 恢复会话
+   * Resume session
    *
-   * @param sessionId - 会话 ID
+   * @param sessionId - Session ID
    */
   resumeSession(sessionId: string): Promise<void>;
 
   /**
-   * 获取会话状态
+   * Get session state
    *
-   * @param sessionId - 会话 ID
-   * @returns 会话状态
+   * @param sessionId - Session ID
+   * @returns Session state
    */
   getSessionState(sessionId: string): Promise<SessionState | null>;
 
   /**
-   * 订阅事件流
+   * Subscribe to event stream
    *
-   * @param sessionId - 会话 ID
-   * @param handler - 事件处理函数
-   * @returns 取消订阅函数
+   * @param sessionId - Session ID
+   * @param handler - Event handler function
+   * @returns Unsubscribe function
    */
   subscribe(sessionId: string, handler: AgentEventHandler): () => void;
 
   /**
-   * 健康检查
+   * Health check
    */
   healthCheck(): Promise<boolean>;
 }
 
 /**
- * Agent 事件处理器
+ * Agent event handler
  */
 export type AgentEventHandler = (event: AgentEvent) => void | Promise<void>;
 
@@ -309,19 +309,19 @@ export type AgentEventHandler = (event: AgentEvent) => void | Promise<void>;
 // ============================================================
 
 /**
- * AgentEvent → Sync 协议消息映射配置
+ * AgentEvent to Sync protocol message mapping configuration
  */
 export interface EventToSyncMapping {
-  /** Agent 事件类型 */
+  /** Agent event type */
   eventType: AgentEventType;
-  /** 对应的 Sync 消息类型 */
+  /** Corresponding Sync message type */
   syncType: 'STATE_DELTA' | 'UI_DIRECTIVE' | 'AGENT_STATUS';
-  /** 转换函数 */
+  /** Transform function */
   transform: (event: AgentEvent) => StateDelta | UIDirective | AgentState;
 }
 
 /**
- * 创建 Agent 事件
+ * Create Agent event
  */
 export function createAgentEvent<T extends AgentEventType>(
   type: T,
@@ -342,39 +342,39 @@ export function createAgentEvent<T extends AgentEventType>(
 // ============================================================
 
 /**
- * Agent 服务工厂配置
+ * Agent service factory configuration
  */
 export interface AgentServiceFactoryConfig {
-  /** 默认服务类型 */
+  /** Default service type */
   defaultType: 'demo' | 'openclaw';
-  /** Demo 服务配置 */
+  /** Demo service configuration */
   demo?: {
-    /** 模拟延迟 (ms) */
+    /** Simulated delay (ms) */
     simulatedDelay?: number;
-    /** 是否启用演示流程 */
+    /** Whether to enable demo flow */
     enableDemoFlow?: boolean;
   };
-  /** OpenClaw 服务配置 */
+  /** OpenClaw service configuration */
   openclaw?: {
     /** Gateway URL */
     gatewayUrl: string;
-    /** 认证 Token */
+    /** Auth token */
     authToken?: string;
-    /** 超时时间 (ms) */
+    /** Timeout (ms) */
     timeout?: number;
-    /** 重试次数 */
+    /** Retry count */
     retryCount?: number;
   };
 }
 
 /**
- * 服务创建选项
+ * Service creation options
  */
 export interface CreateServiceOptions {
-  /** 服务类型 (覆盖默认) */
+  /** Service type (overrides default) */
   type?: 'demo' | 'openclaw';
   /** Agent Instance ID */
   agentId: string;
-  /** Gateway URL (OpenClaw 专用) */
+  /** Gateway URL (OpenClaw only) */
   gatewayUrl?: string;
 }

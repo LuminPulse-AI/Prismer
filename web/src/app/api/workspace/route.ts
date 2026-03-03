@@ -1,8 +1,8 @@
 /**
- * Workspace API - 工作空间 CRUD
+ * Workspace API - Workspace CRUD
  *
- * GET    /api/workspace          - 获取工作空间列表
- * POST   /api/workspace          - 创建新工作空间
+ * GET    /api/workspace          - Get workspace list
+ * POST   /api/workspace          - Create a new workspace
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -30,7 +30,7 @@ async function getCurrentUserId(): Promise<string> {
 
 /**
  * GET /api/workspace
- * 获取当前用户的工作空间列表
+ * Get the current user's workspace list
  */
 export async function GET(request: NextRequest) {
   try {
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/workspace
- * 创建新工作空间
+ * Create a new workspace
  */
 export async function POST(request: NextRequest) {
   try {

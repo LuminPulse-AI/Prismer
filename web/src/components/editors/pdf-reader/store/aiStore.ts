@@ -1,8 +1,8 @@
 /**
  * AI Store
  * 
- * 管理 AI 相关的状态：洞察、对话、提取等
- * 支持多文档：每个文档有独立的缓存
+ * Manages AI-related state: insights, conversations, extractions, etc.
+ * Supports multi-document: each document has an independent cache
  */
 
 import { create } from 'zustand';
@@ -22,7 +22,7 @@ import {
 // ============================================================
 
 /**
- * 活动高亮 - 用于在 PDF 中显示引用位置
+ * Active highlight - used to display citation locations in the PDF
  */
 export interface ActiveHighlight {
   id: string;
@@ -33,7 +33,7 @@ export interface ActiveHighlight {
 }
 
 /**
- * 单个论文的 AI 数据缓存
+ * AI data cache for a single paper
  */
 interface PaperAIData {
   insights: PaperInsight[];
@@ -42,58 +42,58 @@ interface PaperAIData {
 }
 
 /**
- * AI Store 状态
+ * AI Store state
  */
 interface AIState {
-  // 当前活动论文 ID
+  // Current active paper ID
   activePaperId: string | null;
-  
-  // 多文档缓存: paperId -> PaperAIData
+
+  // Multi-document cache: paperId -> PaperAIData
   paperDataCache: Map<string, PaperAIData>;
-  
-  // Paper Context (当前文档)
+
+  // Paper Context (current document)
   paperContext: PaperContext | null;
-  
-  // 洞察 (当前文档)
+
+  // Insights (current document)
   insights: PaperInsight[];
   insightsLoading: boolean;
   insightsError: string | null;
-  
-  // 对话 (当前文档)
+
+  // Conversation (current document)
   chatMessages: ChatMessage[];
   chatLoading: boolean;
   chatError: string | null;
   streamingMessage: string;
-  
-  // 提取/注释 (当前文档)
+
+  // Extractions/annotations (current document)
   extracts: Extract[];
-  
-  // 活动高亮
+
+  // Active highlights
   activeHighlights: ActiveHighlight[];
-  
-  // Chat 引用上下文 - 从选中文本传递到 Chat
+
+  // Chat reference context - passed from selected text to Chat
   chatReference: {
     text: string;
     pageNumber?: number;
   } | null;
   
-  // 待发送问题 - 从其他组件触发自动发送
+  // Pending question - triggered from other components for auto-send
   pendingQuestion: string | null;
-  
-  // 右侧面板状态
+
+  // Right panel state
   rightPanelActiveTab: 'insights' | 'chat' | 'notes';
   rightPanelExpanded: boolean;
-  
-  // Agent 状态
+
+  // Agent state
   agentInitialized: boolean;
   agentError: string | null;
 }
 
 /**
- * AI Store 操作
+ * AI Store actions
  */
 interface AIActions {
-  // 多文档管理
+  // Multi-document management
   setActivePaper: (paperId: string) => void;
   switchToPaper: (paperId: string, context?: PaperContext) => void;
   savePaperDataToCache: (paperId: string) => void;
@@ -102,7 +102,7 @@ interface AIActions {
   // Paper Context
   setPaperContext: (context: PaperContext | null, paperId?: string) => void;
   
-  // 洞察操作
+  // Insight actions
   setInsights: (insights: PaperInsight[]) => void;
   addInsight: (insight: PaperInsight) => void;
   updateInsight: (id: string, updates: Partial<PaperInsight>) => void;
@@ -111,7 +111,7 @@ interface AIActions {
   setInsightsError: (error: string | null) => void;
   toggleInsightExpanded: (id: string) => void;
   
-  // 对话操作
+  // Conversation actions
   addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   updateLastMessage: (updates: Partial<ChatMessage>) => void;
   appendToStreamingMessage: (text: string) => void;
@@ -121,36 +121,36 @@ interface AIActions {
   setChatLoading: (loading: boolean) => void;
   setChatError: (error: string | null) => void;
   
-  // 提取操作
+  // Extraction actions
   addExtract: (extract: Omit<Extract, 'id' | 'createdAt'>) => void;
   updateExtract: (id: string, updates: Partial<Extract>) => void;
   removeExtract: (id: string) => void;
   addTagToExtract: (id: string, tag: string) => void;
   removeTagFromExtract: (id: string, tag: string) => void;
   
-  // 高亮操作
+  // Highlight actions
   addHighlight: (highlight: Omit<ActiveHighlight, 'id'>) => void;
   removeHighlight: (id: string) => void;
   clearHighlights: () => void;
   highlightFromCitation: (citation: SourceCitation) => void;
   
-  // Chat 引用操作
+  // Chat reference actions
   setChatReference: (reference: AIState['chatReference']) => void;
   clearChatReference: () => void;
-  
-  // 待发送问题操作
+
+  // Pending question actions
   setPendingQuestion: (question: string | null) => void;
   clearPendingQuestion: () => void;
-  
-  // 面板操作
+
+  // Panel actions
   setRightPanelTab: (tab: AIState['rightPanelActiveTab']) => void;
   toggleRightPanelExpanded: () => void;
-  
-  // Agent 操作
+
+  // Agent actions
   setAgentInitialized: (initialized: boolean) => void;
   setAgentError: (error: string | null) => void;
-  
-  // 重置
+
+  // Reset
   reset: () => void;
 }
 
@@ -190,19 +190,19 @@ export const useAIStore = create<AIState & AIActions>()(
         ...initialState,
 
         // ============================================================
-        // 多文档管理
+        // Multi-document management
         // ============================================================
-        
-        // 设置活动论文 (不切换数据)
+
+        // Set active paper (does not switch data)
         setActivePaper: (paperId: string) => {
           set({ activePaperId: paperId });
         },
         
-        // 切换到指定论文 (自动保存当前 + 加载目标)
+        // Switch to specified paper (auto-save current + load target)
         switchToPaper: (paperId: string, context?: PaperContext) => {
           const state = get();
           
-          // 如果已经是当前论文，只更新 context
+          // If already the current paper, only update context
           if (state.activePaperId === paperId) {
             if (context) {
               set({ paperContext: context });
@@ -210,15 +210,15 @@ export const useAIStore = create<AIState & AIActions>()(
             return;
           }
           
-          // 保存当前论文数据到缓存
+          // Save current paper data to cache
           if (state.activePaperId) {
             get().savePaperDataToCache(state.activePaperId);
           }
           
-          // 设置新的活动论文
+          // Set new active paper
           set({ activePaperId: paperId });
           
-          // 尝试从缓存加载
+          // Try to load from cache
           const cached = state.paperDataCache.get(paperId);
           if (cached) {
             console.log(`[AIStore] Loading cached data for paper: ${paperId}`);
@@ -230,7 +230,7 @@ export const useAIStore = create<AIState & AIActions>()(
               insightsError: null,
             });
           } else {
-            // 清空当前数据，等待新数据
+            // Clear current data, waiting for new data
             console.log(`[AIStore] No cache for paper: ${paperId}, clearing state`);
             set({
               insights: [],
@@ -243,7 +243,7 @@ export const useAIStore = create<AIState & AIActions>()(
           }
         },
         
-        // 保存当前论文数据到缓存
+        // Save current paper data to cache
         savePaperDataToCache: (paperId: string) => {
           const state = get();
           const newCache = new Map(state.paperDataCache);
@@ -256,7 +256,7 @@ export const useAIStore = create<AIState & AIActions>()(
           console.log(`[AIStore] Saved data to cache for paper: ${paperId}`);
         },
         
-        // 从缓存加载论文数据
+        // Load paper data from cache
         loadPaperDataFromCache: (paperId: string) => {
           const cached = get().paperDataCache.get(paperId);
           if (cached) {
@@ -277,7 +277,7 @@ export const useAIStore = create<AIState & AIActions>()(
           const state = get();
           const effectivePaperId = paperId || context?.source?.arxivId || state.activePaperId;
           
-          // 如果是新论文，触发切换
+          // If this is a new paper, trigger a switch
           if (effectivePaperId && effectivePaperId !== state.activePaperId) {
             get().switchToPaper(effectivePaperId, context || undefined);
           } else {
@@ -285,7 +285,7 @@ export const useAIStore = create<AIState & AIActions>()(
           }
         },
 
-        // 洞察操作
+        // Insight actions
         setInsights: (insights) => set({ insights }),
         
         addInsight: (insight) => set((state) => ({
@@ -312,7 +312,7 @@ export const useAIStore = create<AIState & AIActions>()(
           ),
         })),
 
-        // 对话操作
+        // Conversation actions
         addChatMessage: (message) => set((state) => ({
           chatMessages: [
             ...state.chatMessages,
@@ -342,7 +342,7 @@ export const useAIStore = create<AIState & AIActions>()(
         finishStreamingMessage: () => {
           const { streamingMessage, chatMessages } = get();
           if (streamingMessage) {
-            // 更新最后一条消息的内容
+            // Update the content of the last message
             const messages = [...chatMessages];
             if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
               messages[messages.length - 1] = {
@@ -360,7 +360,7 @@ export const useAIStore = create<AIState & AIActions>()(
           if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
             const lastMessage = messages[messages.length - 1];
             const citations = lastMessage.citations || [];
-            // 避免重复添加相同页码的引用
+            // Avoid adding duplicate citations with the same page number
             if (!citations.some(c => c.pageNumber === citation.pageNumber)) {
               messages[messages.length - 1] = {
                 ...lastMessage,
@@ -377,7 +377,7 @@ export const useAIStore = create<AIState & AIActions>()(
         
         setChatError: (error) => set({ chatError: error }),
 
-        // 提取操作
+        // Extraction actions
         addExtract: (extract) => set((state) => ({
           extracts: [
             ...state.extracts,
@@ -413,7 +413,7 @@ export const useAIStore = create<AIState & AIActions>()(
           ),
         })),
 
-        // 高亮操作
+        // Highlight actions
         addHighlight: (highlight) => set((state) => ({
           activeHighlights: [
             ...state.activeHighlights,
@@ -435,42 +435,42 @@ export const useAIStore = create<AIState & AIActions>()(
             get().addHighlight({
               pageNumber: citation.pageNumber,
               bbox: citation.bbox,
-              color: '#FFD700', // 金色
+              color: '#FFD700', // Gold
               source: 'citation',
             });
           }
         },
 
-        // Chat 引用操作
+        // Chat reference actions
         setChatReference: (reference) => set({ chatReference: reference }),
         clearChatReference: () => set({ chatReference: null }),
-        
-        // 待发送问题操作
+
+        // Pending question actions
         setPendingQuestion: (question) => set({ pendingQuestion: question }),
         clearPendingQuestion: () => set({ pendingQuestion: null }),
-        
-        // 面板操作
+
+        // Panel actions
         setRightPanelTab: (tab) => set({ rightPanelActiveTab: tab }),
         
         toggleRightPanelExpanded: () => set((state) => ({
           rightPanelExpanded: !state.rightPanelExpanded,
         })),
 
-        // Agent 操作
+        // Agent actions
         setAgentInitialized: (initialized) => set({ agentInitialized: initialized }),
         
         setAgentError: (error) => set({ agentError: error }),
 
-        // 重置
+        // Reset
         reset: () => set(initialState),
       }),
       {
         name: 'ai-store',
         partialize: (state) => ({
-          // 持久化重要状态
+          // Persist important state
           extracts: state.extracts,
-          chatMessages: state.chatMessages,  // 持久化聊天记录
-          insights: state.insights,           // 持久化洞察结果
+          chatMessages: state.chatMessages,  // Persist chat history
+          insights: state.insights,           // Persist insight results
           rightPanelActiveTab: state.rightPanelActiveTab,
           rightPanelExpanded: state.rightPanelExpanded,
         }),
@@ -485,25 +485,25 @@ export const useAIStore = create<AIState & AIActions>()(
 // ============================================================
 
 /**
- * 获取特定类型的洞察
+ * Get insights by specific type
  */
 export const selectInsightsByType = (type: InsightType) => (state: AIState) =>
   state.insights.filter((i) => i.type === type);
 
 /**
- * 获取特定页面的高亮
+ * Get highlights for a specific page
  */
 export const selectHighlightsByPage = (pageNumber: number) => (state: AIState) =>
   state.activeHighlights.filter((h) => h.pageNumber === pageNumber);
 
 /**
- * 获取特定类型的提取
+ * Get extractions by specific type
  */
 export const selectExtractsByType = (type: Extract['type']) => (state: AIState) =>
   state.extracts.filter((e) => e.type === type);
 
 /**
- * 获取带有特定标签的提取
+ * Get extractions with a specific tag
  */
 export const selectExtractsByTag = (tag: string) => (state: AIState) =>
   state.extracts.filter((e) => e.tags.includes(tag));

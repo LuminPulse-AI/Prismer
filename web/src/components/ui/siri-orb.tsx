@@ -37,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
   )
 }
 
-// --- SiriOrb Component (使用 transform 动画，更好的浏览器兼容性) ---
+// --- SiriOrb Component (uses transform animation for better browser compatibility) ---
 interface SiriOrbProps {
   size?: string
   className?: string
@@ -67,7 +67,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
   const sizeValue = parseInt(size.replace("px", ""), 10)
   const blurAmount = Math.max(sizeValue * 0.1, 10)
 
-  // 生成唯一的动画名称避免冲突
+  // Generate unique animation names to avoid conflicts
   const reverseSpinStyle = {
     animation: `siriOrbReverseSpin ${animationDuration * 0.7}s linear infinite reverse`,
   }
@@ -80,7 +80,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         height: size,
       }}
     >
-      {/* 全局样式 - 使用 dangerouslySetInnerHTML 避免 styled-jsx 的 hydration 问题 */}
+      {/* Global styles - Use dangerouslySetInnerHTML to avoid styled-jsx hydration issues */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes siriOrbReverseSpin {
           from { transform: rotate(0deg); }
@@ -88,7 +88,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         }
       `}} />
       
-      {/* 背景层 */}
+      {/* Background layer */}
       <div 
         className="absolute inset-0 rounded-full"
         style={{
@@ -96,7 +96,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         }}
       />
       
-      {/* 动画层1 - 顺时针旋转 (使用 Tailwind 的 animate-spin) */}
+      {/* Animation layer 1 - Clockwise rotation (using Tailwind's animate-spin) */}
       <div
         className="absolute inset-0 rounded-full animate-spin"
         style={{
@@ -111,7 +111,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         }}
       />
       
-      {/* 动画层2 - 逆时针旋转 */}
+      {/* Animation layer 2 - Counter-clockwise rotation */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
@@ -125,7 +125,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         }}
       />
       
-      {/* 动画层3 - 脉冲效果 */}
+      {/* Animation layer 3 - Pulse effect */}
       <div
         className="absolute inset-0 rounded-full animate-pulse"
         style={{
@@ -139,7 +139,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
         }}
       />
       
-      {/* 高光层 */}
+      {/* Highlight layer */}
       <div 
         className="absolute inset-0 rounded-full"
         style={{

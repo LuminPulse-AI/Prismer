@@ -1,7 +1,7 @@
 /**
  * Workspace Library
  * 
- * 工作空间核心库导出
+ * Workspace core library exports
  */
 
 export * from './uiDirectiveExecutor';

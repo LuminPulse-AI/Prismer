@@ -9,13 +9,13 @@
 // ============================================================
 
 export type ContainerState =
-  | 'pending'      // 等待创建
-  | 'creating'     // 创建中
-  | 'running'      // 运行中
-  | 'paused'       // 已暂停
-  | 'stopping'     // 停止中
-  | 'stopped'      // 已停止
-  | 'error';       // 错误
+  | 'pending'      // Waiting to be created
+  | 'creating'     // Creating
+  | 'running'      // Running
+  | 'paused'       // Paused
+  | 'stopping'     // Stopping
+  | 'stopped'      // Stopped
+  | 'error';       // Error
 
 export interface ContainerStatus {
   containerId: string;

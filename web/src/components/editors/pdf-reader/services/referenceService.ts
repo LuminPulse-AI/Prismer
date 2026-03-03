@@ -1,8 +1,8 @@
 /**
  * Reference Parser Service
  * 
- * 解析论文引用，提取 arXiv ID，获取元数据
- * 支持从本地 OCR 数据解析，并 fallback 到 Semantic Scholar API
+ * Parses paper references, extracts arXiv IDs, and fetches metadata.
+ * Supports parsing from local OCR data with fallback to Semantic Scholar API.
  */
 
 import {
@@ -16,27 +16,27 @@ import {
 // ============================================================================
 
 export interface ParsedReference {
-  /** 引用 ID (来自 detection id, e.g., p22_text_0) */
+  /** Reference ID (from detection id, e.g., p22_text_0) */
   id: string;
-  /** 原始文本 */
+  /** Raw text */
   rawText: string;
-  /** 解析出的作者列表 */
+  /** Parsed author list */
   authors: string[];
-  /** 论文标题 (如果能提取) */
+  /** Paper title (if extractable) */
   title?: string;
-  /** 发布年份 */
+  /** Publication year */
   year?: string;
-  /** arXiv ID (如果存在) */
+  /** arXiv ID (if available) */
   arxivId?: string;
-  /** DOI (如果存在) */
+  /** DOI (if available) */
   doi?: string;
-  /** 期刊/会议名称 */
+  /** Journal/conference name */
   venue?: string;
   /** URL */
   url?: string;
-  /** 是否可在本地打开 (有 OCR 数据) */
+  /** Whether locally available (has OCR data) */
   isLocallyAvailable?: boolean;
-  /** Semantic Scholar 额外数据 */
+  /** Semantic Scholar additional data */
   _s2Data?: {
     paperId: string;
     citationCount?: number;
@@ -61,12 +61,12 @@ export interface ArxivMetadata {
 // ============================================================================
 
 /**
- * 从 Markdown 内容中提取引用
+ * Extract references from Markdown content
  */
 export function parseReferencesFromMarkdown(markdown: string): ParsedReference[] {
   const references: ParsedReference[] = [];
   
-  // 找到 References 部分
+  // Find the References section
   const refSectionMatch = markdown.match(/##\s*References\s*\n([\s\S]*?)(?=\n##\s|$)/i);
   if (!refSectionMatch) {
     return references;
@@ -74,7 +74,7 @@ export function parseReferencesFromMarkdown(markdown: string): ParsedReference[]
   
   const refSection = refSectionMatch[1];
   
-  // 按 <!--ref:xxx--> 标记分割
+  // Split by <!--ref:xxx--> markers
   const refBlocks = refSection.split(/<!--ref:(p\d+_\w+_\d+)-->/);
   
   for (let i = 1; i < refBlocks.length; i += 2) {
@@ -93,9 +93,9 @@ export function parseReferencesFromMarkdown(markdown: string): ParsedReference[]
 }
 
 /**
- * 解析单条引用文本
- * 
- * 支持多种引用格式:
+ * Parse a single reference text
+ *
+ * Supports multiple reference formats:
  * - [1] Author, "Title," Venue, Year.
  * - [1] Author (Year). Title. Journal.
  * - Author et al., Title, arXiv:XXXX.XXXXX, Year.
@@ -109,29 +109,29 @@ function parseReferenceText(id: string, text: string): ParsedReference | null {
     authors: [],
   };
   
-  // 移除引用编号 [1], [2] 等
+  // Remove reference numbers [1], [2], etc.
   let cleanText = text.replace(/^\s*\[\d+\]\s*/, '').trim();
   
-  // 提取 arXiv ID (格式: arXiv:YYMM.NNNNN 或 arXiv preprint arXiv:YYMM.NNNNN)
+  // Extract arXiv ID (format: arXiv:YYMM.NNNNN or arXiv preprint arXiv:YYMM.NNNNN)
   const arxivMatch = cleanText.match(/arXiv(?:\s*preprint\s*arXiv)?[:\s]*(\d{4}\.\d{4,5}(?:v\d+)?)/i);
   if (arxivMatch) {
     reference.arxivId = arxivMatch[1];
   }
   
-  // 提取 DOI
+  // Extract DOI
   const doiMatch = cleanText.match(/doi[:\s]*([0-9.]+\/[^\s,]+)/i);
   if (doiMatch) {
     reference.doi = doiMatch[1];
   }
   
-  // 提取年份 - 多种格式
-  // 格式1: (2024)
-  // 格式2: , 2024.
-  // 格式3: 年份在末尾
+  // Extract year - multiple formats
+  // Format 1: (2024)
+  // Format 2: , 2024.
+  // Format 3: Year at end
   const yearPatterns = [
     /\((\d{4})\)/,           // (2024)
-    /,\s*(\d{4})\s*[.\s]*$/,  // , 2024. 或 , 2024
-    /(\d{4})\s*$/,            // 末尾年份
+    /,\s*(\d{4})\s*[.\s]*$/,  // , 2024. or , 2024
+    /(\d{4})\s*$/,            // Year at end
   ];
   for (const pattern of yearPatterns) {
     const match = cleanText.match(pattern);
@@ -141,43 +141,43 @@ function parseReferenceText(id: string, text: string): ParsedReference | null {
     }
   }
   
-  // 提取 URL
+  // Extract URL
   const urlMatch = cleanText.match(/(https?:\/\/[^\s)]+)/);
   if (urlMatch) {
     reference.url = urlMatch[1];
   }
   
-  // 提取标题 - 多种格式
-  // 格式1: "Title" 或 "Title," (引号中的标题)
-  // 格式2: Author (Year). Title. (年份后的标题)
-  // 格式3: Author, Title, Venue (逗号分隔)
-  
-  // 尝试引号中的标题
+  // Extract title - multiple formats
+  // Format 1: "Title" or "Title," (quoted title)
+  // Format 2: Author (Year). Title. (title after year)
+  // Format 3: Author, Title, Venue (comma-separated)
+
+  // Try quoted title
   const quotedTitle = cleanText.match(/"([^"]+)"/);
   if (quotedTitle) {
     reference.title = quotedTitle[1].trim();
   }
   
-  // 如果没有引号标题，尝试其他格式
+  // If no quoted title, try other formats
   if (!reference.title) {
-    // 格式: Author (Year). Title. 或 Author (Year), Title,
+    // Format: Author (Year). Title. or Author (Year), Title,
     const afterYearMatch = cleanText.match(/\(\d{4}\)[a-z]?[.,]\s*([^.]+)/);
     if (afterYearMatch) {
       const potentialTitle = afterYearMatch[1].trim();
-      // 排除太短或像期刊名的内容
+      // Exclude content that is too short or looks like a journal name
       if (potentialTitle.length > 10 && !potentialTitle.match(/^(Proc\.|Journal|Trans\.|IEEE|ACM|ICML|NeurIPS|ICLR|ACL|EMNLP)/i)) {
         reference.title = potentialTitle;
       }
     }
   }
   
-  // 如果还没有标题，尝试从逗号分隔的格式中提取
+  // If still no title, try extracting from comma-separated format
   if (!reference.title) {
-    // 格式: Author, Title, Venue, Year
-    // 跳过第一个逗号前的作者部分，取第二部分作为标题
+    // Format: Author, Title, Venue, Year
+    // Skip author part before first comma, take second part as title
     const parts = cleanText.split(/,\s*/);
     if (parts.length >= 3) {
-      // 第一部分通常是作者，第二部分可能是标题
+      // First part is usually the author, second part may be the title
       const potentialTitle = parts[1];
       if (potentialTitle && potentialTitle.length > 10 && 
           !potentialTitle.match(/^\d{4}$/) && 
@@ -187,23 +187,23 @@ function parseReferenceText(id: string, text: string): ParsedReference | null {
     }
   }
   
-  // 提取作者
-  // 格式1: Author and Author (Year)
-  // 格式2: Author, Author, and Author,
-  // 格式3: Author et al.
-  
-  // 先尝试匹配到年份括号之前的内容
+  // Extract authors
+  // Format 1: Author and Author (Year)
+  // Format 2: Author, Author, and Author,
+  // Format 3: Author et al.
+
+  // Try matching content before year parentheses
   let authorsStr = '';
   const authorsBeforeYear = cleanText.match(/^(.+?)\s*\(\d{4}\)/);
   if (authorsBeforeYear) {
     authorsStr = authorsBeforeYear[1];
   } else {
-    // 尝试匹配到第一个引号之前
+    // Try matching content before first quote
     const authorsBeforeQuote = cleanText.match(/^(.+?)\s*"/);
     if (authorsBeforeQuote) {
-      authorsStr = authorsBeforeQuote[1].replace(/,\s*$/, ''); // 移除尾部逗号
+      authorsStr = authorsBeforeQuote[1].replace(/,\s*$/, ''); // Remove trailing comma
     } else {
-      // 取第一个逗号之前的内容作为作者
+      // Take content before first comma as author
       const firstPart = cleanText.split(',')[0];
       if (firstPart && firstPart.length < 100) {
         authorsStr = firstPart;
@@ -212,15 +212,15 @@ function parseReferenceText(id: string, text: string): ParsedReference | null {
   }
   
   if (authorsStr) {
-    // 解析作者列表
+    // Parse author list
     reference.authors = authorsStr
-      .replace(/\s+et\s+al\.?/gi, '') // 移除 et al.
+      .replace(/\s+et\s+al\.?/gi, '') // Remove et al.
       .split(/,\s*(?:and\s*)?|\s+and\s+/)
       .map(a => a.trim())
       .filter(a => a.length > 1 && a.length < 50 && !a.match(/^\d+$/));
   }
   
-  // 提取会议/期刊名称
+  // Extract conference/journal name
   const venuePatterns = [
     /(Proc\.\s*of\s*[A-Z]+|NeurIPS|ICML|ICLR|ACL|EMNLP|NAACL|CVPR|ICCV|ECCV|AAAI|IJCAI)/i,
     /(Journal\s*of\s*[^,]+)/i,
@@ -244,7 +244,7 @@ function parseReferenceText(id: string, text: string): ParsedReference | null {
 const ARXIV_API_BASE = "https://export.arxiv.org/api/query";
 
 /**
- * 从 arXiv API 获取论文元数据
+ * Fetch paper metadata from arXiv API
  */
 export async function fetchArxivMetadata(arxivId: string): Promise<ArxivMetadata | null> {
   try {
@@ -268,7 +268,7 @@ export async function fetchArxivMetadata(arxivId: string): Promise<ArxivMetadata
 }
 
 /**
- * 解析 arXiv API 返回的 XML
+ * Parse arXiv API XML response
  */
 function parseArxivXml(xmlText: string, arxivId: string): ArxivMetadata | null {
   try {
@@ -316,7 +316,7 @@ function parseArxivXml(xmlText: string, arxivId: string): ArxivMetadata | null {
 const metadataCache = new Map<string, ArxivMetadata>();
 
 /**
- * 获取 arXiv 元数据（带缓存）
+ * Get arXiv metadata (with cache)
  */
 export async function getArxivMetadata(arxivId: string): Promise<ArxivMetadata | null> {
   if (metadataCache.has(arxivId)) {
@@ -332,7 +332,7 @@ export async function getArxivMetadata(arxivId: string): Promise<ArxivMetadata |
 }
 
 /**
- * 批量获取 arXiv 元数据
+ * Batch fetch arXiv metadata
  */
 export async function batchGetArxivMetadata(
   arxivIds: string[]

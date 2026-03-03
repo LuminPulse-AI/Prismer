@@ -3,10 +3,10 @@
 /**
  * PDF Reader Wrapper
  * 
- * 多文档管理包装组件
- * - 管理多个打开的文档
- * - 处理文档切换
- * - 论文库对话框
+ * Multi-document management wrapper component.
+ * - Manages multiple open documents
+ * - Handles document switching
+ * - Paper library dialog
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from "react";
@@ -26,9 +26,9 @@ import { StorageProvider } from "@/lib/storage/provider";
 // ============================================================================
 
 interface PDFReaderWrapperProps {
-  /** 初始 PDF 源（可选） */
+  /** Initial PDF source (optional) */
   initialSource?: PDFSource;
-  /** 关闭阅读器回调 */
+  /** Callback to close the reader */
   onClose: () => void;
 }
 
@@ -62,36 +62,36 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  // 获取 reset 函数
+  // Get reset function
   const { reset } = useMultiDocumentStore();
-  
-  // 记录初始 source 的 key，用于检测变化
+
+  // Track the initial source key to detect changes
   const initialSourceKey = initialSource?.arxivId || initialSource?.path || '';
   
-  // 初始化：当组件挂载或 initialSource 变化时，重置 store 并打开新文档
+  // Initialize: when the component mounts or initialSource changes, reset the store and open a new document
   useEffect(() => {
     if (initialSource && initialSourceKey) {
       console.log('[PDFReaderWrapper] Initializing with source:', initialSourceKey);
-      // 重置 store，确保每次从干净状态开始
+      // Reset store to ensure a clean state each time
       reset();
-      // 打开新文档
+      // Open the new document
       openDocument(initialSource);
     }
-    
-    // 组件卸载时重置 store
+
+    // Reset store on component unmount
     return () => {
       console.log('[PDFReaderWrapper] Unmounting, resetting store');
       reset();
     };
-  }, [initialSourceKey]); // 只依赖 sourceKey，避免无限循环
+  }, [initialSourceKey]); // Only depend on sourceKey to avoid infinite loops
 
-  // 获取当前活动文档
+  // Get the current active document
   const activeDocument = useMemo(() => {
     if (!activeDocumentId) return null;
     return documents.get(activeDocumentId) || null;
   }, [documents, activeDocumentId]);
 
-  // 转换为 OpenDocument 格式供 DocumentTabs 使用
+  // Convert to OpenDocument format for DocumentTabs
   const openDocuments: OpenDocument[] = useMemo(() => {
     return tabOrder.map((id) => {
       const doc = documents.get(id);
@@ -106,9 +106,9 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
     }).filter(Boolean) as OpenDocument[];
   }, [tabOrder, documents]);
 
-  // 处理选择论文（从论文库）
+  // Handle paper selection (from the paper library)
   const handleSelectPaper = useCallback((paper: PaperMeta) => {
-    // 使用 API 路由获取 PDF（更可靠）
+    // Use API route to fetch the PDF (more reliable)
     const pdfPath = paper.pdfPath || `/api/ocr/${paper.arxivId}/pdf`;
     
     const source: PDFSource = {
@@ -121,40 +121,40 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
     openDocument(source);
   }, [openDocument]);
 
-  // 处理关闭文档
+  // Handle closing a document
   const handleCloseDocument = useCallback((id: string) => {
     const doc = documents.get(id);
-    
-    // 如果文档有未保存的更改，可以在这里添加确认对话框
+
+    // If the document has unsaved changes, a confirmation dialog can be added here
     if (doc?.isDirty) {
-      // TODO: 添加确认对话框
+      // TODO: Add a confirmation dialog
       console.log("Document has unsaved changes");
     }
     
     closeDocument(id);
     
-    // 如果所有文档都关闭了，关闭整个阅读器
+    // If all documents are closed, close the entire reader
     if (documents.size <= 1) {
       onClose();
     }
   }, [documents, closeDocument, onClose]);
 
-  // 处理切换文档
+  // Handle switching documents
   const handleSelectDocument = useCallback((id: string) => {
     setActiveDocument(id);
   }, [setActiveDocument]);
 
-  // 处理添加文档（从论文库）
+  // Handle adding a document (from the paper library)
   const handleAddDocument = useCallback(() => {
     setIsPaperLibraryOpen(true);
   }, []);
 
-  // 处理从 Assets 添加文档
+  // Handle adding a document from Assets
   const handleAddFromAssets = useCallback(() => {
     setIsAssetBrowserOpen(true);
   }, []);
 
-  // 处理选择 Asset
+  // Handle selecting an Asset
   const handleSelectAsset = useCallback((asset: AssetItem) => {
     // Parse metadata to get sourceId for the PDF source
     const metadata = (asset as unknown as { metadata?: Record<string, unknown> }).metadata;
@@ -173,7 +173,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
     openDocument(source);
   }, [openDocument]);
 
-  // 如果没有文档，显示空状态
+  // If no document is open, show the empty state
   if (!activeDocument) {
     return (
       <div className="h-full w-full bg-stone-200/50 flex flex-col items-center justify-center p-4">
@@ -201,7 +201,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
 
   return (
     <div className="pdf-reader-wrapper h-full w-full bg-stone-200/50 flex flex-col overflow-hidden p-2 gap-2">
-      {/* 顶栏 */}
+      {/* Top bar */}
       <PDFReaderTopBar
         documents={openDocuments}
         activeDocumentId={activeDocumentId}
@@ -218,7 +218,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
       />
 
-      {/* 文档内容区域 */}
+      {/* Document content area */}
       <div className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
@@ -241,7 +241,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* 论文库对话框 */}
+      {/* Paper library dialog */}
       <PaperLibraryDialog
         isOpen={isPaperLibraryOpen}
         onClose={() => setIsPaperLibraryOpen(false)}
@@ -249,7 +249,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
         openPaperIds={tabOrder}
       />
 
-      {/* Asset 浏览器对话框 */}
+      {/* Asset browser dialog */}
       <AssetBrowser
         isOpen={isAssetBrowserOpen}
         onClose={() => setIsAssetBrowserOpen(false)}
@@ -264,7 +264,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
 /**
  * PDFReaderWrapper with StorageProvider
  * 
- * 包装组件，确保 StorageProvider 可用于持久化 hooks
+ * Wrapper component that ensures StorageProvider is available for persistence hooks.
  */
 const PDFReaderWrapperWithStorage: React.FC<PDFReaderWrapperProps> = (props) => {
   return (

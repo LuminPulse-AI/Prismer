@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import DOMPurify from "dompurify";
 
 import { createEditorEventEmitter } from "@/lib/events";
 
@@ -53,6 +54,7 @@ import { useWorkspaceId } from "@/app/workspace/components/WorkspaceContext";
 import { TemplateManager } from "./latex-templates/components/TemplateManager";
 import type { TemplateFiles } from "./latex-templates/types";
 import { PdfViewer } from "./latex-agent";
+import { WorkspaceFileBrowser } from "@/components/shared/WorkspaceFileBrowser";
 
 // ============================================================
 // Types
@@ -628,6 +630,7 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const autoRefreshRef = useRef(true);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
   
   const [previewMode, setPreviewMode] = useState<PreviewMode>("katex");
   const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
@@ -647,6 +650,34 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
       setCompileError(null);
     }
   }, [storedLatexState, pdfDataUrl]);
+
+  // Restore compiled PDF from DB when no in-memory PDF and no store PDF available
+  const hasRestoredPdfRef = useRef(false);
+  useEffect(() => {
+    if (isDefaultWorkspace || hasRestoredPdfRef.current || pdfDataUrl) return;
+    const storedPdf = storedLatexState?.compiledPdfUrl as string | undefined;
+    if (storedPdf) return; // store already has it, let the effect above handle it
+    hasRestoredPdfRef.current = true;
+    fetch(`/api/workspace/${workspaceId}/files/output/compiled.pdf.b64`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.success && json.data?.content) {
+          setPdfDataUrl(json.data.content);
+          setPreviewMode('pdf');
+        }
+      })
+      .catch(() => {}); // silent fail
+  }, [workspaceId, isDefaultWorkspace, pdfDataUrl, storedLatexState]);
+
+  /** Fire-and-forget save of compiled PDF to WorkspaceFile for restore on refresh */
+  const savePdfToDb = useCallback((dataUrl: string) => {
+    if (isDefaultWorkspace) return;
+    fetch(`/api/workspace/${workspaceId}/files/output/compiled.pdf.b64`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: dataUrl }),
+    }).catch(() => {});
+  }, [workspaceId, isDefaultWorkspace]);
 
   const hasCompileSuccess = !!pdfDataUrl && !isCompiling && !compileError;
 
@@ -720,7 +751,9 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
               setPdfDataUrl(result.pdfDataUrl);
               setPdfFileUrl(result.pdfUrl);
               setPreviewMode('pdf');
-              
+
+              savePdfToDb(result.pdfDataUrl);
+
               emitEvent({
                 type: 'actionComplete',
                 payload: { action: 'compile', result: { success: true, pdfUrl: result.pdfUrl } },
@@ -909,15 +942,15 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
         console.log('[LaTeX] TeXLive check result:', data);
         setTexliveAvailable(data.available);
         texliveAvailableRef.current = data.available;
-        // 如果 TeXLive 可用，默认使用 PDF 预览模式并自动编译
+        // If TeXLive is available, default to PDF preview mode and auto-compile
         if (data.available) {
           setPreviewMode('pdf');
-          // 初始编译 - 立即执行
+          // Initial compile - execute immediately
           const mainFile = files.find(f => f.name.endsWith('.tex'));
           if (mainFile) {
             console.log('[LaTeX] Initial PDF compile for:', mainFile.name);
             setIsCompiling(true);
-            // 直接调用 API 而不是通过 handleCompilePDF（避免闭包问题）
+            // Call the API directly instead of through handleCompilePDF (to avoid closure issues)
             const allContent = files.map(f => f.content).join('\n');
             const needsXe = /\\usepackage\{fontspec\}|\\documentclass\{awesome-cv\}|\\usepackage\{fontawesome5?\}/
               .test(allContent);
@@ -939,6 +972,7 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
                   setPdfDataUrl(result.pdfDataUrl);
                   setPdfFileUrl(result.pdfUrl);
                   setCompileError(null);
+                  savePdfToDb(result.pdfDataUrl);
                 } else if (!pdfDataUrl) {
                   // Only set error if no PDF already loaded (e.g. from agent directive)
                   setCompileError(result.error || 'Initial compilation failed');
@@ -1158,6 +1192,78 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
     URL.revokeObjectURL(url);
   }, [currentFile]);
 
+  // Download compiled PDF
+  const handleDownloadPdf = useCallback(() => {
+    if (!pdfDataUrl) return;
+    const base64 = pdfDataUrl.split(',')[1];
+    if (!base64) return;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'compiled.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [pdfDataUrl]);
+
+  // Download all project files as ZIP
+  const handleDownloadZip = useCallback(async () => {
+    const { default: JSZip } = await import('jszip');
+    const zip = new JSZip();
+    for (const file of files) {
+      zip.file(file.path || file.name, file.content);
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'latex-project.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [files]);
+
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+
+  // Handle file selected from WorkspaceFileBrowser
+  const handleFileFromBrowser = useCallback((file: { path: string; content: string }) => {
+    if (file.path.endsWith('.pdf.b64') && file.content.startsWith('data:application/pdf')) {
+      // Restore compiled PDF
+      setPdfDataUrl(file.content);
+      setPreviewMode('pdf');
+    } else {
+      // Restore a source file — add or replace in editor
+      const name = file.path.replace(/^latex\//, '');
+      const ext = name.split('.').pop()?.toLowerCase();
+      const type = (ext === 'bib' ? 'bib' : ext === 'sty' ? 'sty' : ext === 'cls' ? 'cls' : 'tex') as TexFile['type'];
+      setFiles((prev) => {
+        const idx = prev.findIndex((f) => f.name === name);
+        const updated: TexFile = { name, path: name, content: file.content, type };
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = updated;
+          return next;
+        }
+        return [...prev, updated];
+      });
+      setActiveFile(name);
+    }
+  }, []);
+
+  // Close download menu on outside click
+  useEffect(() => {
+    if (!showDownloadMenu) return;
+    const close = () => setShowDownloadMenu(false);
+    document.addEventListener('click', close, { once: true });
+    return () => document.removeEventListener('click', close);
+  }, [showDownloadMenu]);
+
   // Add new file
   const handleAddFile = useCallback(() => {
     const name = prompt("Enter file name (e.g., chapter1.tex):");
@@ -1225,7 +1331,9 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
         setPdfDataUrl(data.pdfDataUrl);
         setPdfFileUrl(data.pdfUrl);
         setPreviewMode('pdf');
-        
+
+        savePdfToDb(data.pdfDataUrl);
+
         // Emit success event for demo flow
         emitEvent({
           type: 'actionComplete',
@@ -1390,6 +1498,17 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
             <FolderOpen className="h-3.5 w-3.5" />
             Templates
           </button>
+
+          {/* Browse Saved Files */}
+          {!isDefaultWorkspace && (
+            <button
+              onClick={() => setShowFileBrowser(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200/60 transition-colors"
+            >
+              <FileCode className="h-3.5 w-3.5" />
+              Files
+            </button>
+          )}
 
           {/* Snippet Dropdown */}
           <div className="relative">
@@ -1585,13 +1704,39 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
           </button>
 
-          {/* Download */}
-          <button
-            onClick={handleDownload}
-            className="flex items-center gap-1 px-2 py-1.5 text-xs bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200/60 transition-colors"
-          >
-            <Download className="h-3.5 w-3.5" />
-          </button>
+          {/* Download Dropdown */}
+          <div className="relative">
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowDownloadMenu(v => !v); }}
+              className="flex items-center gap-0.5 px-2 py-1.5 text-xs bg-stone-100 text-stone-600 rounded-lg hover:bg-stone-200/60 transition-colors"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <ChevronDown className="h-3 w-3" />
+            </button>
+            {showDownloadMenu && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-stone-200 rounded-xl shadow-lg z-50 py-1">
+                <button
+                  onClick={() => { handleDownload(); setShowDownloadMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-100"
+                >
+                  <FileText className="h-3.5 w-3.5" /> Current File (.tex)
+                </button>
+                <button
+                  onClick={() => { handleDownloadPdf(); setShowDownloadMenu(false); }}
+                  disabled={!pdfDataUrl}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <FileOutput className="h-3.5 w-3.5" /> Compiled PDF
+                </button>
+                <button
+                  onClick={() => { handleDownloadZip(); setShowDownloadMenu(false); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-100"
+                >
+                  <Package className="h-3.5 w-3.5" /> Project (.zip)
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Upload */}
           <label className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-colors cursor-pointer">
@@ -1640,7 +1785,7 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Editor Panel — 使用 CSS hidden 而非条件渲染，防止 CodeMirror DOM 被销毁 */}
+        {/* Editor Panel — Use CSS hidden instead of conditional rendering to prevent CodeMirror DOM destruction */}
         <div
           className={`relative flex flex-col overflow-hidden ${
             layout === "preview" ? "hidden" : layout === "split" ? "w-1/2 border-r border-stone-200" : "w-full"
@@ -1709,7 +1854,7 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
               <div className="flex-1 overflow-auto p-6 bg-white text-stone-800">
                 <div
                   className="latex-preview prose prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
                   style={{
                     fontFamily: "'Times New Roman', 'Computer Modern', serif",
                   }}
@@ -1838,6 +1983,15 @@ export default function LatexEditorPreview({ onOutput }: ComponentPreviewProps) 
         isOpen={showTemplateManager}
         onClose={() => setShowTemplateManager(false)}
         onImport={handleTemplateImport}
+      />
+
+      {/* Workspace File Browser Modal */}
+      <WorkspaceFileBrowser
+        isOpen={showFileBrowser}
+        onClose={() => setShowFileBrowser(false)}
+        workspaceId={workspaceId}
+        onSelectFile={handleFileFromBrowser}
+        title="Workspace Files"
       />
     </div>
   );

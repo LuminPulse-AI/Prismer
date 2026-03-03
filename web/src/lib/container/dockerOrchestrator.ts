@@ -21,10 +21,10 @@ import {
 // Constants
 // ============================================================
 
-/** Container Gateway 内部端口 */
+/** Container Gateway internal port */
 const DEFAULT_GATEWAY_PORT = 3000;
 
-/** OpenClaw Gateway 代理端口 (TCP proxy → 127.0.0.1:18900) */
+/** OpenClaw Gateway proxy port (TCP proxy → 127.0.0.1:18900) */
 const OPENCLAW_GATEWAY_PROXY_PORT = 18901;
 
 // ============================================================

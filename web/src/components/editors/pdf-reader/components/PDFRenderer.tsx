@@ -15,13 +15,13 @@ import { useCitationStore } from "../store/citationStore";
 import { TargetLanguage, DEFAULT_LANGUAGE } from "../services/translateService";
 
 /**
- * TODO: [SELECTION_MODE] 文本选择模式开关
- * 
- * 当启用时，使用 CustomSelectionLayer 替代原生 TextLayer 选择
- * 优点：解决从空白处开始选择时的"反选"问题
- * 缺点：可能略微影响性能
- * 
- * 设为 true 启用自定义选择层
+ * TODO: [SELECTION_MODE] Text selection mode toggle
+ *
+ * When enabled, uses CustomSelectionLayer instead of native TextLayer selection.
+ * Pros: Fixes the "reverse selection" issue when starting selection from whitespace.
+ * Cons: May slightly affect performance.
+ *
+ * Set to true to enable the custom selection layer.
  */
 const ENABLE_CUSTOM_SELECTION = true;
 
@@ -67,13 +67,13 @@ interface PDFRendererProps {
   // Object selection layer (images, tables, etc.)
   isObjectLayerEnabled?: boolean;
   pageDetections?: PageDetection[];
-  /** OCR 图像尺寸 (用于坐标转换)。格式: { width: number, height: number } */
+  /** OCR image dimensions (for coordinate conversion). Format: { width: number, height: number } */
   ocrImageSize?: { width: number; height: number };
   onObjectClick?: (detection: Detection, position: { x: number; y: number }) => void;
   onExplainObject?: (detection: Detection) => void;
   /** Paper ID for constructing image paths */
   paperId?: string;
-  /** 交互模式：selection（文本选择）或 translate（段落翻译） */
+  /** Interaction mode: selection (text selection) or translate (paragraph translation) */
   interactionMode?: InteractionMode;
 }
 
@@ -115,36 +115,36 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   
-  // 组件卸载时清理
+  // Clean up on component unmount
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      // 清理 timeout
+      // Clean up timeout
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
   }, []);
   
-  // 翻译层状态
+  // Translation layer state
   const [translateLanguage, setTranslateLanguage] = useState<TargetLanguage>(DEFAULT_LANGUAGE);
   
-  // 根据交互模式决定启用哪个层
-  // sentence 模式：启用 CustomSelectionLayer（句子/文本选择）
-  // paragraph 模式：启用 TextBlockLayer（段落翻译）
+  // Determine which layer to enable based on interaction mode
+  // sentence mode: enable CustomSelectionLayer (sentence/text selection)
+  // paragraph mode: enable TextBlockLayer (paragraph translation)
   const isTranslateLayerEnabled = isObjectLayerEnabled && interactionMode === "paragraph";
   const isCustomSelectionEnabled = ENABLE_CUSTOM_SELECTION && interactionMode === "sentence";
 
-  // 处理PDF注释层中的链接，使其在新标签页打开
+  // Handle links in the PDF annotation layer, making them open in a new tab
   React.useEffect(() => {
     const handleLinkAnnotations = () => {
-      // 查找所有PDF注释层中的链接
+      // Find all links in PDF annotation layers
       const annotationLinks = document.querySelectorAll('.linkAnnotation a[href]');
       
       annotationLinks.forEach((link) => {
         const anchor = link as HTMLAnchorElement;
-        // 只处理外部链接（不是内部页面跳转链接）
+        // Only handle external links (not internal page jump links)
         if (anchor.href && !anchor.href.startsWith('#') && !anchor.href.includes('page=')) {
           anchor.setAttribute('target', '_blank');
           anchor.setAttribute('rel', 'noopener noreferrer');
@@ -152,12 +152,12 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
       });
     };
 
-    // 使用 MutationObserver 监听 DOM 变化，因为 PDF 页面是异步渲染的
+    // Use MutationObserver to watch DOM changes, since PDF pages are rendered asynchronously
     const observer = new MutationObserver(() => {
       handleLinkAnnotations();
     });
 
-    // 开始观察文档变化
+    // Start observing document changes
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -165,13 +165,13 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
       attributeFilter: ['href']
     });
 
-    // 初始处理已存在的链接
+    // Initial handling of existing links
     handleLinkAnnotations();
 
     return () => {
       observer.disconnect();
     };
-  }, [pageNumber, scale]); // 当页码或缩放改变时重新处理
+  }, [pageNumber, scale]); // Re-process when page number or scale changes
 
   // Handle scroll for continuous mode
   const handleScroll = useCallback(() => {
@@ -201,32 +201,32 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
     }
   }, [readingMode, numPages, onPageChange]);
 
-  // 使用 ref 存储最新的值 - 同步更新（在每次渲染时直接赋值）
+  // Use refs to store latest values - synchronous updates (assigned directly during each render)
   const lastScrollTargetRef = useRef<{ page: number; time: number } | null>(null);
   const currentPageRef = useRef(pageNumber);
   const readingModeRef = useRef(readingMode);
   const onPageChangeRef = useRef(onPageChange);
   const ocrImageSizeRef = useRef(ocrImageSize);
   
-  // 同步更新 ref 值（不使用 useEffect，确保在事件触发前值已更新）
+  // Synchronously update ref values (without useEffect, ensuring values are updated before events fire)
   currentPageRef.current = pageNumber;
   readingModeRef.current = readingMode;
   onPageChangeRef.current = onPageChange;
   ocrImageSizeRef.current = ocrImageSize;
 
-  // 监听 scroll-to-detection 事件 (用于双向索引导航)
+  // Listen for scroll-to-detection events (for bidirectional index navigation)
   useEffect(() => {
     const handleScrollToDetection = (event: CustomEvent<{
       detectionId: string;
       pageNumber: number;
       bbox?: { x1_px: number; y1_px: number; x2_px: number; y2_px: number };
     }>) => {
-      // 安全检查：确保组件仍然挂载
+      // Safety check: ensure the component is still mounted
       if (!isMountedRef.current) {
         return;
       }
       
-      // 安全检查：确保 event.detail 存在
+      // Safety check: ensure event.detail exists
       if (!event.detail) {
         console.warn('[PDFRenderer] Received scroll event with null detail');
         return;
@@ -234,7 +234,7 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
       
       const { pageNumber: targetPage, bbox, detectionId } = event.detail;
       
-      // 安全检查：确保 targetPage 是有效的数字
+      // Safety check: ensure targetPage is a valid number
       if (typeof targetPage !== 'number' || isNaN(targetPage)) {
         console.warn('[PDFRenderer] Invalid targetPage:', targetPage);
         return;
@@ -252,13 +252,13 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
         readingMode: mode,
       });
       
-      // 如果目标页和当前页相同，直接返回
+      // If target page is the same as current page, return immediately
       if (targetPage === currentPage) {
         console.log('[PDFRenderer] Already on target page, skipping');
         return;
       }
       
-      // 防抖：500ms 内相同目标页不重复跳转
+      // Debounce: do not repeat navigation to the same target page within 500ms
       const now = Date.now();
       if (lastScrollTargetRef.current && 
           lastScrollTargetRef.current.page === targetPage &&
@@ -268,12 +268,12 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
       }
       lastScrollTargetRef.current = { page: targetPage, time: now };
       
-      // 获取目标页面元素
+      // Get the target page element
       const pageElement = pageRefs.current[targetPage];
       
-      // 处理不同阅读模式
+      // Handle different reading modes
       if (mode === 'continuous') {
-        // 连续模式：滚动到目标页面
+        // Continuous mode: scroll to target page
         console.log('[PDFRenderer] Continuous mode - scrolling to page', targetPage);
         if (pageElement) {
           isProgrammaticScroll.current = true;
@@ -282,9 +282,9 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
           if (bbox && imgSize) {
             const pageRect = pageElement.getBoundingClientRect();
             const container = containerRef.current;
-            
+
             if (container) {
-              // 计算 bbox 在页面中的相对位置
+              // Calculate the relative position of the bbox within the page
               const relativeTop = bbox.y1_px / imgSize.height;
               const targetScrollY = pageElement.offsetTop + (pageRect.height * relativeTop) - (container.clientHeight / 3);
               
@@ -305,10 +305,10 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
           }, 1000);
         }
       } else {
-        // 单页/双页模式
+        // Single/double page mode
         console.log('[PDFRenderer] Single/Double mode - changing to page:', targetPage);
         if (pageChanger) {
-          // 立即更新 ref，防止连续点击时值过时
+          // Immediately update ref to prevent stale values during rapid clicks
           currentPageRef.current = targetPage;
           pageChanger(targetPage);
         }
@@ -322,12 +322,12 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
       window.removeEventListener('pdf-scroll-to-detection', handleScrollToDetection as EventListener);
       console.log('[PDFRenderer] Event listener removed');
     };
-  }, []); // 空依赖数组，只在挂载时添加一次
+  }, []); // Empty dependency array, only add once on mount
 
-  // 为每个页面创建 ref 用于 CustomSelectionLayer
+  // Create refs for each page for CustomSelectionLayer
   const pageContentRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-  // 通用页面渲染函数
+  // Generic page rendering function
   const renderPage = (pageNum: number, showPageNumber = false) => (
     <div
       className="relative rounded-2xl overflow-hidden bg-white shadow-lg pdf-page-container"
@@ -379,7 +379,7 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
           selectedSentenceIds={selectedSentenceIds}
           onSentenceClick={onSentenceClick}
         />
-        {/* 对象选择层 - 图像、表格、公式等 */}
+        {/* Object selection layer - images, tables, formulas, etc. */}
         <ObjectSelectionLayer
           pageNumber={pageNum}
           pageWidth={originalPageSize.width}
@@ -394,7 +394,7 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
           paperId={paperId}
           allDetections={pageDetections}
         />
-        {/* 文本翻译层 - Hover 1秒自动翻译 */}
+        {/* Text translation layer - auto-translate on 1-second hover */}
         <TextBlockLayer
           pageNumber={pageNum}
           pageWidth={originalPageSize.width}
@@ -407,14 +407,14 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
           targetLanguage={translateLanguage}
           onLanguageChange={setTranslateLanguage}
         />
-        {/* 引用高亮层 - 显示 AI 双向索引 */}
+        {/* Citation highlight layer - displays AI bidirectional index */}
         <CitationHighlightLayer
           pageNumber={pageNum}
           scale={scale}
           pageDimensions={originalPageSize}
           ocrImageSize={ocrImageSize}
         />
-        {/* 自定义选择层 - 文本选择模式 */}
+        {/* Custom selection layer - text selection mode */}
         {isCustomSelectionEnabled && pageContentRefs.current[pageNum] && (
           <CustomSelectionLayer
             pageWidth={originalPageSize.width}
@@ -441,14 +441,14 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
     </div>
   );
 
-  // 单页模式 - 简化版本（移除动画以确保状态稳定）
+  // Single page mode - simplified version (animations removed for state stability)
   const renderSinglePage = () => (
     <div className="max-h-[calc(100vh-120px)] overflow-y-auto overflow-x-hidden scroll-smooth">
       {renderPage(pageNumber)}
     </div>
   );
 
-  // 连续滚动模式
+  // Continuous scroll mode
   const renderContinuousPages = () => (
     <div
       ref={containerRef}
@@ -463,9 +463,9 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
             ref={(el) => {
               if (el) {
                 pageRefs.current[currentPageNumber] = el;
-                // 当目标页面的引用建立时，如果这是我们要滚动到的页面，触发滚动
+                // When the target page ref is established, trigger scroll if this is the page we want to navigate to
                 if (currentPageNumber === pageNumber) {
-                  // 延迟执行以确保DOM完全渲染
+                  // Delay execution to ensure the DOM is fully rendered
                   setTimeout(() => {
                     const container = containerRef.current;
                     if (container && el) {
@@ -504,7 +504,7 @@ export const PDFRenderer: React.FC<PDFRendererProps> = ({
     </div>
   );
 
-  // 双页模式 - 添加页面切换动画
+  // Double page mode - with page switch animation
   const renderDoublePages = () => {
     const leftPage = pageNumber % 2 === 0 ? pageNumber - 1 : pageNumber;
     const rightPage = leftPage + 1;

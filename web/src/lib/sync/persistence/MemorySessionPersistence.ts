@@ -2,8 +2,8 @@
  * Memory Session Persistence
  *
  * @description
- * Phase 3D: 内存会话持久化实现
- * 用于开发测试，数据仅保存在内存中
+ * Phase 3D: In-memory session persistence implementation
+ * Used for development and testing; data is stored in memory only
  */
 
 import type { SessionState } from '../types';
@@ -254,7 +254,7 @@ export class MemorySessionPersistence implements SessionPersistence {
     const session = this.getOrCreateSession(sessionId);
     session.snapshots.push(snapshot);
 
-    // 限制快照数量
+    // Limit snapshot count
     if (session.snapshots.length > 100) {
       session.snapshots = session.snapshots.slice(-100);
     }

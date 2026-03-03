@@ -50,6 +50,21 @@ async function apiCall<T>(url: string, options?: RequestInit): Promise<T | null>
 }
 
 // ============================================================
+// Compiled PDF Persistence
+// ============================================================
+
+/** Fire-and-forget save of compiled PDF data URL to WorkspaceFile */
+function persistCompiledPdf(pdfDataUrl: string): void {
+  const wsId = useAgentInstanceStore.getState().workspaceId;
+  if (!wsId || wsId === 'default') return;
+  fetch(`/api/workspace/${wsId}/files/output/compiled.pdf.b64`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: pdfDataUrl }),
+  }).catch((err) => console.warn('[Sync] Failed to persist compiled PDF:', err));
+}
+
+// ============================================================
 // UI Directive Execution
 // ============================================================
 
@@ -241,6 +256,7 @@ export async function executeDirective(directive: UIDirective): Promise<void> {
           compiledPdfUrl: pdfDataUrl,
           compileStatus: 'success' as const,
         });
+        persistCompiledPdf(pdfDataUrl);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('agent:directive:LATEX_COMPILE_COMPLETE', {
             detail: { pdfDataUrl, filename: data?.filename },
@@ -351,10 +367,12 @@ export async function executeDirective(directive: UIDirective): Promise<void> {
 
     case 'latex_project_compile_complete':
       if (data?.success && data?.pdfBase64) {
+        const projectPdfDataUrl = `data:application/pdf;base64,${data.pdfBase64 as string}`;
         useComponentStore.getState().updateComponentState('latex-editor', {
-          compiledPdfUrl: `data:application/pdf;base64,${data.pdfBase64 as string}`,
+          compiledPdfUrl: projectPdfDataUrl,
           compileStatus: 'success' as const,
         });
+        persistCompiledPdf(projectPdfDataUrl);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('agent:directive:LATEX_PROJECT_COMPILE_COMPLETE', {
             detail: {

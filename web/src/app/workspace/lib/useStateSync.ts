@@ -3,21 +3,21 @@
 /**
  * useStateSync Hook
  * 
- * 用于在多个客户端之间同步状态的 Hook
- * 支持 iOS 模拟器和 macOS 桌面端共享 mock 数据变更
- * 
- * 使用方式:
- * 1. 启动同步服务器: npx tsx scripts/sync-server.ts
- * 2. 在组件中调用: const { isConnected, syncState } = useStateSync();
+ * Hook for synchronizing state across multiple clients.
+ * Supports sharing mock data changes between iOS simulator and macOS desktop.
+ *
+ * Usage:
+ * 1. Start the sync server: npx tsx scripts/sync-server.ts
+ * 2. Use in a component: const { isConnected, syncState } = useStateSync();
  */
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useWorkspaceStore } from '../stores';
 
-// 同步服务器配置
+// Sync server configuration
 const SYNC_SERVER_URL = process.env.NEXT_PUBLIC_SYNC_SERVER_URL || 'ws://localhost:3456';
 
-// 消息类型
+// Message types
 interface SyncMessage {
   type: string;
   payload?: unknown;
@@ -39,26 +39,26 @@ export function useStateSync(enabled: boolean = true) {
   const markInteractionComplete = useWorkspaceStore((s) => s.markInteractionComplete);
   const reset = useWorkspaceStore((s) => s.reset);
   
-  // 发送消息到服务器
+  // Send message to server
   const sendMessage = useCallback((type: string, payload?: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type, payload, clientId }));
     }
   }, [clientId]);
   
-  // 处理来自服务器的消息
+  // Handle messages from server
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const message: SyncMessage = JSON.parse(event.data);
       
-      // 忽略自己发送的消息
+      // Ignore messages sent by self
       if (message.source === clientId) return;
       
       console.log(`[StateSync] Received: ${message.type}`, message.payload);
       
       switch (message.type) {
         case 'FULL_STATE':
-          // 接收完整状态
+          // Receive full state
           const state = message.payload as {
             messages: any[];
             tasks: any[];
@@ -86,7 +86,7 @@ export function useStateSync(enabled: boolean = true) {
           break;
           
         case 'STATE_UPDATE':
-          // 增量状态更新
+          // Incremental state update
           const updates = message.payload as Record<string, unknown>;
           if (updates.participants) {
             setParticipants(updates.participants as any[]);
@@ -97,7 +97,7 @@ export function useStateSync(enabled: boolean = true) {
           break;
           
         case 'ADD_MESSAGE':
-          // 添加新消息
+          // Add new message
           const newMsg = message.payload as any;
           const currentStore = useWorkspaceStore.getState();
           if (!currentStore.messages.find(m => m.id === newMsg.id)) {
@@ -106,16 +106,16 @@ export function useStateSync(enabled: boolean = true) {
           break;
           
         case 'UPDATE_TASK':
-          // 更新任务
+          // Update task
           const taskUpdate = message.payload as { id: string; [key: string]: any };
           updateTask(taskUpdate.id, taskUpdate);
           break;
           
         case 'INTERACTION':
-          // 交互事件 - 同时标记完成并通知 demo 控制器
+          // Interaction event - mark complete and notify demo controller
           const interaction = message.payload as { componentId: string; actionId?: string };
           markInteractionComplete(interaction.componentId);
-          // 触发 demo 控制器推进（如果有等待的交互）
+          // Trigger demo controller advancement (if there is a pending interaction)
           if (interaction.actionId) {
             import('./demoFlowController').then(({ demoFlowController }) => {
               demoFlowController.handleInteraction(interaction.componentId, interaction.actionId!);
@@ -124,7 +124,7 @@ export function useStateSync(enabled: boolean = true) {
           break;
           
         case 'RESET':
-          // 重置状态
+          // Reset state
           reset();
           break;
       }
@@ -133,7 +133,7 @@ export function useStateSync(enabled: boolean = true) {
     }
   }, [clientId, addMessage, setParticipants, setTasks, updateTask, markInteractionComplete, reset]);
   
-  // 连接到同步服务器
+  // Connect to sync server
   const connect = useCallback(() => {
     if (!enabled) return;
     
@@ -154,7 +154,7 @@ export function useStateSync(enabled: boolean = true) {
         setIsConnected(false);
         wsRef.current = null;
         
-        // 尝试重连
+        // Attempt to reconnect
         if (enabled) {
           reconnectTimeoutRef.current = setTimeout(() => {
             console.log('[StateSync] Attempting to reconnect...');
@@ -162,22 +162,22 @@ export function useStateSync(enabled: boolean = true) {
           }, 3000);
         }
       };
-      
+
       ws.onerror = (err) => {
         console.error('[StateSync] WebSocket error:', err);
       };
-      
+
     } catch (err) {
       console.error('[StateSync] Connection error:', err);
-      
-      // 尝试重连
+
+      // Attempt to reconnect
       if (enabled) {
         reconnectTimeoutRef.current = setTimeout(connect, 3000);
       }
     }
   }, [enabled, handleMessage]);
   
-  // 初始化连接
+  // Initialize connection
   useEffect(() => {
     if (enabled) {
       connect();
@@ -193,7 +193,7 @@ export function useStateSync(enabled: boolean = true) {
     };
   }, [enabled, connect]);
   
-  // 暴露同步方法
+  // Expose sync methods
   const syncMessage = useCallback((message: any) => {
     sendMessage('ADD_MESSAGE', message);
   }, [sendMessage]);

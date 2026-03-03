@@ -1,7 +1,7 @@
 /**
  * usePaperContext Hook
  * 
- * 管理论文上下文的加载和状态
+ * Manages paper context loading and state
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -15,37 +15,37 @@ import {
 import { getDefaultPaperContextProvider } from '../services/paperContextProvider';
 
 export interface UsePaperContextOptions {
-  /** 自动加载 OCR 数据 */
+  /** Auto-load OCR data */
   autoLoadOCR?: boolean;
-  /** OCR 数据基础路径 */
+  /** OCR data base path */
   ocrBasePath?: string;
 }
 
 export interface UsePaperContextReturn {
-  /** 论文上下文 */
+  /** Paper context */
   context: PaperContext;
-  /** 加载状态 */
+  /** Loading state */
   loadingState: PaperLoadingState;
-  /** 是否有 OCR 数据 */
+  /** Whether OCR data is available */
   hasOCRData: boolean;
-  /** 错误信息 */
+  /** Error message */
   error: string | null;
-  /** 加载论文 */
+  /** Load paper */
   loadPaper: (source: PDFSource) => Promise<void>;
-  /** 从文件路径加载 */
+  /** Load from file path */
   loadFromFile: (filePath: string, arxivId?: string) => Promise<void>;
-  /** 从 URL 加载 */
+  /** Load from URL */
   loadFromUrl: (url: string, arxivId?: string) => Promise<void>;
-  /** 从 ArXiv ID 加载 */
+  /** Load from ArXiv ID */
   loadFromArxiv: (arxivId: string) => Promise<void>;
-  /** 重新加载 OCR 数据 */
+  /** Reload OCR data */
   reloadOCRData: () => Promise<void>;
-  /** 清除上下文 */
+  /** Clear context */
   clearContext: () => void;
 }
 
 /**
- * 论文上下文 Hook
+ * Paper context hook
  */
 export function usePaperContext(
   initialSource?: PDFSource,
@@ -64,7 +64,7 @@ export function usePaperContext(
   const provider = useMemo(() => getDefaultPaperContextProvider(), []);
 
   /**
-   * 加载论文
+   * Load paper
    */
   const loadPaper = useCallback(async (source: PDFSource) => {
     setError(null);
@@ -93,7 +93,7 @@ export function usePaperContext(
   }, [provider]);
 
   /**
-   * 从文件路径加载
+   * Load from file path
    */
   const loadFromFile = useCallback(async (filePath: string, arxivId?: string) => {
     const source = createPDFSource.fromFile(filePath, arxivId);
@@ -101,7 +101,7 @@ export function usePaperContext(
   }, [loadPaper]);
 
   /**
-   * 从 URL 加载
+   * Load from URL
    */
   const loadFromUrl = useCallback(async (url: string, arxivId?: string) => {
     const source = createPDFSource.fromUrl(url, arxivId);
@@ -109,7 +109,7 @@ export function usePaperContext(
   }, [loadPaper]);
 
   /**
-   * 从 ArXiv ID 加载
+   * Load from ArXiv ID
    */
   const loadFromArxiv = useCallback(async (arxivId: string) => {
     const source = createPDFSource.fromArxiv(arxivId);
@@ -117,7 +117,7 @@ export function usePaperContext(
   }, [loadPaper]);
 
   /**
-   * 重新加载 OCR 数据
+   * Reload OCR data
    */
   const reloadOCRData = useCallback(async () => {
     if (!context.source.arxivId) {
@@ -159,7 +159,7 @@ export function usePaperContext(
   }, [context.source.arxivId, provider]);
 
   /**
-   * 清除上下文
+   * Clear context
    */
   const clearContext = useCallback(() => {
     setContext(createEmptyPaperContext(createPDFSource.fromFile('')));
@@ -167,8 +167,8 @@ export function usePaperContext(
   }, []);
 
   /**
-   * 当 source 变化时重新加载
-   * 使用 arxivId 或 path 作为稳定的依赖值，避免对象引用变化导致的无限循环
+   * Reload when source changes.
+   * Uses arxivId or path as stable dependency values to avoid infinite loops from object reference changes.
    */
   const sourceKey = initialSource?.arxivId || initialSource?.path || '';
   
@@ -194,8 +194,8 @@ export function usePaperContext(
 }
 
 /**
- * 从 pdfData prop 创建 PDFSource
- * 兼容现有的 PDFReader 组件接口
+ * Create PDFSource from pdfData prop.
+ * Compatible with the existing PDFReader component interface.
  */
 export function createSourceFromPdfData(pdfData: {
   source_path?: string;
@@ -205,26 +205,26 @@ export function createSourceFromPdfData(pdfData: {
 }): PDFSource {
   const arxivId = pdfData.arxiv_id;
   
-  // 优先使用 source_path
+  // Prefer source_path
   if (pdfData.source_path) {
-    // 判断是 URL 还是文件路径
+    // Determine if it's a URL or file path
     if (pdfData.source_path.startsWith('http')) {
       return createPDFSource.fromUrl(pdfData.source_path, arxivId);
     }
     return createPDFSource.fromFile(pdfData.source_path, arxivId);
   }
   
-  // 其次使用 pdf_url
+  // Fallback to pdf_url
   if (pdfData.pdf_url) {
     return createPDFSource.fromUrl(pdfData.pdf_url, arxivId);
   }
   
-  // 如果有 arxiv_id，使用 ArXiv 源
+  // If arxiv_id is available, use ArXiv source
   if (arxivId) {
     return createPDFSource.fromArxiv(arxivId);
   }
   
-  // 默认返回空文件源
+  // Default to empty file source
   return createPDFSource.fromFile('');
 }
 

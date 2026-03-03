@@ -1,11 +1,11 @@
 /**
- * AgentOrchestrator - Agent 编排服务
- * 
- * 集中管理 Agent 逻辑：
- * - 处理用户查询
- * - 构建上下文
- * - 调用 LLM API
- * - 安全检查
+ * AgentOrchestrator - Agent Orchestration Service
+ *
+ * Centralized Agent logic management:
+ * - Process user queries
+ * - Build context
+ * - Call LLM API
+ * - Safety checks
  */
 
 import type {
@@ -41,7 +41,7 @@ interface SafetyCheckResult {
 }
 
 /**
- * AgentOrchestrator 类
+ * AgentOrchestrator class
  */
 export class AgentOrchestrator {
   private config: AgentConfig;
@@ -60,14 +60,14 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 设置 Agent 模式
+   * Set Agent mode
    */
   setMode(mode: AgentMode): void {
     this.mode = mode;
   }
 
   /**
-   * 处理用户查询
+   * Process user query
    */
   async processQuery(
     query: string,
@@ -87,7 +87,7 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 取消当前操作
+   * Cancel current operation
    */
   cancel(): void {
     if (this.abortController) {
@@ -98,25 +98,25 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 构建上下文
+   * Build context
    */
   buildContext(cells: Cell[], activeCellId?: string | null): CompiledContext {
     const codeCells = cells.filter((c): c is CodeCell => c.type === 'code');
-    
-    // 最近 5 个 cell 完整内容
+
+    // Full content of the most recent 5 cells
     const recentCells = codeCells.slice(-5);
-    
-    // 其余 cell 只保留摘要
+
+    // Only keep summaries for older cells
     const olderCells = codeCells.slice(0, -5);
     const summaries = olderCells.map(cell => ({
       id: cell.id,
       summary: this.summarizeCell(cell),
     }));
 
-    // 提取变量信息
+    // Extract variable information
     const variables = this.extractVariables(codeCells);
 
-    // 提取错误信息
+    // Extract error information
     const errors = this.extractErrors(codeCells);
 
     return {
@@ -135,7 +135,7 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 流式响应
+   * Stream response
    */
   private async *streamResponse(
     query: string,
@@ -146,11 +146,11 @@ export class AgentOrchestrator {
       const systemPrompt = this.buildSystemPrompt(context);
       const messages = [
         { role: 'system', content: systemPrompt },
-        ...history.slice(-10), // 最近 10 轮对话
+        ...history.slice(-10), // Last 10 conversation turns
         { role: 'user', content: query },
       ];
 
-      // 调用 API
+      // Call API
       const response = await fetch(this.config.apiEndpoint, {
         method: 'POST',
         headers: {
@@ -171,7 +171,7 @@ export class AgentOrchestrator {
         throw new Error(`API request failed: ${response.status}`);
       }
 
-      // 处理流式响应
+      // Process streaming response
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
@@ -200,16 +200,16 @@ export class AgentOrchestrator {
                 this.events.onThinking?.(content);
               }
             } catch {
-              // 忽略解析错误
+              // Ignore parse errors
             }
           }
         }
       }
 
-      // 解析完整响应并提取 actions
+      // Parse complete response and extract actions
       const actions = this.parseResponse(fullContent);
       for (const action of actions) {
-        // 安全检查
+        // Safety check
         if (action.type === 'create_cell' || action.type === 'update_cell') {
           const safetyCheck = this.checkCodeSafety(action.code || '');
           if (safetyCheck.blocked) {
@@ -241,7 +241,7 @@ export class AgentOrchestrator {
   }
 
   /**
-   * 构建系统提示词
+   * Build system prompt
    */
   private buildSystemPrompt(context: CompiledContext): string {
     return `You are an AI assistant helping with Jupyter Notebook tasks.
@@ -290,12 +290,12 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
   }
 
   /**
-   * 解析响应提取 actions
+   * Parse response to extract actions
    */
   private parseResponse(content: string): AgentAction[] {
     const actions: AgentAction[] = [];
     
-    // 提取代码块
+    // Extract code blocks
     const codeBlockRegex = /```action:(create_cell|update_cell|execute_cell)(?::([^\n]+))?\n([\s\S]*?)```/g;
     let match;
     
@@ -309,7 +309,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
       });
     }
 
-    // 如果没有找到特殊格式，尝试提取普通代码块
+    // If no special format found, try to extract plain code blocks
     if (actions.length === 0) {
       const simpleCodeRegex = /```(?:python)?\n([\s\S]*?)```/g;
       while ((match = simpleCodeRegex.exec(content)) !== null) {
@@ -324,7 +324,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
       }
     }
 
-    // 添加解释 action（响应文本）
+    // Add explanation action (response text)
     const textContent = content
       .replace(/```[\s\S]*?```/g, '')
       .trim();
@@ -340,14 +340,14 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
   }
 
   /**
-   * 安全检查
+   * Safety check
    */
   checkCodeSafety(code: string): SafetyCheckResult {
     const warnings: string[] = [];
     let blocked = false;
     let reason: string | undefined;
 
-    // 危险模式检测
+    // Dangerous pattern detection
     const dangerousPatterns = [
       { pattern: /os\.system\s*\(/i, reason: 'System command execution' },
       { pattern: /subprocess\./i, reason: 'Subprocess execution' },
@@ -364,7 +364,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
         if (this.mode === 'interactive') {
           warnings.push(patternReason);
         } else {
-          // 自主模式下阻止危险代码
+          // Block dangerous code in autonomous mode
           blocked = true;
           reason = patternReason;
           break;
@@ -372,7 +372,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
       }
     }
 
-    // 警告模式
+    // Warning patterns
     const warningPatterns = [
       { pattern: /!pip\s+install/i, reason: 'Package installation' },
       { pattern: /requests\.(get|post|put|delete)/i, reason: 'Network request' },
@@ -395,7 +395,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
   }
 
   // ============================================================
-  // 辅助方法
+  // Helper Methods
   // ============================================================
 
   private summarizeCell(cell: CodeCell): string {
@@ -424,12 +424,12 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
   }
 
   private extractVariables(cells: CodeCell[]): Array<{ name: string; type: string; shape?: string }> {
-    // 简单的变量提取（通过正则匹配赋值语句）
+    // Simple variable extraction (via regex matching assignment statements)
     const variables: Array<{ name: string; type: string; shape?: string }> = [];
     const seen = new Set<string>();
 
     for (const cell of cells) {
-      // 匹配 DataFrame 创建
+      // Match DataFrame creation
       const dfMatches = cell.source.matchAll(/(\w+)\s*=\s*pd\.(read_\w+|DataFrame)/g);
       for (const match of dfMatches) {
         if (!seen.has(match[1])) {
@@ -438,7 +438,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
         }
       }
 
-      // 匹配 numpy array
+      // Match numpy array
       const npMatches = cell.source.matchAll(/(\w+)\s*=\s*np\.(array|zeros|ones|arange)/g);
       for (const match of npMatches) {
         if (!seen.has(match[1])) {
@@ -447,7 +447,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
         }
       }
 
-      // 匹配普通变量
+      // Match regular variables
       const varMatches = cell.source.matchAll(/^(\w+)\s*=\s*(?!.*(?:def|class|import))/gm);
       for (const match of varMatches) {
         if (!seen.has(match[1]) && !match[1].startsWith('_')) {
@@ -457,7 +457,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
       }
     }
 
-    return variables.slice(0, 20); // 限制数量
+    return variables.slice(0, 20); // Limit count
   }
 
   private extractErrors(cells: CodeCell[]): string[] {
@@ -471,7 +471,7 @@ Current mode: ${this.mode === 'interactive' ? 'Interactive (user confirms before
 }
 
 /**
- * 创建 AgentOrchestrator 实例
+ * Create an AgentOrchestrator instance
  */
 export function createAgentOrchestrator(
   config: AgentConfig,

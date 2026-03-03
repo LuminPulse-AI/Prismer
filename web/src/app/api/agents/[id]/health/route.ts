@@ -1,15 +1,15 @@
 /**
  * Agent Health API
  *
- * GET /api/agents/:id/health - 获取 Agent 健康状态
+ * GET /api/agents/:id/health - Get agent health status
  *
  * @description
- * 执行 Agent 健康检查，返回：
- * - 容器运行状态
- * - Gateway 连接状态
- * - 资源使用情况
+ * Performs an agent health check and returns:
+ * - Container running status
+ * - Gateway connection status
+ * - Resource usage
  *
- * 响应格式:
+ * Response format:
  * ```json
  * {
  *   "success": true,
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       });
     }
 
-    // 查询 Agent 和 Container
+    // Query Agent and Container
     const agent = await prisma.agentInstance.findUnique({
       where: { id },
       include: { container: true },
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 检查是否有容器
+    // Check if a container exists
     if (!agent.container) {
       return NextResponse.json({
         success: true,
@@ -208,7 +208,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       }
     }
 
-    // 更新数据库中的健康状态
+    // Update health status in the database
     await prisma.container.update({
       where: { id: agent.container.id },
       data: {
@@ -231,7 +231,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   } catch (error) {
     console.error('GET /api/agents/:id/health error:', error);
 
-    // 处理编排器错误
+    // Handle orchestrator errors
     if (error instanceof OrchestratorError) {
       return NextResponse.json({
         success: true,

@@ -2,8 +2,8 @@
 
 /**
  * InteractiveComponents
- * 
- * 交互组件渲染器 - 根据组件类型动态渲染对应的交互组件
+ *
+ * Interactive component renderer - Dynamically renders the corresponding interactive component based on type
  */
 
 import React, { memo, useCallback } from 'react';
@@ -24,8 +24,8 @@ interface InteractiveComponentRendererProps {
 }
 
 /**
- * 交互组件渲染器
- * 接收组件配置数组，动态渲染对应的组件
+ * Interactive component renderer
+ * Receives an array of component configs and dynamically renders the corresponding components
  */
 export const InteractiveComponentRenderer = memo(function InteractiveComponentRenderer({
   components,
@@ -100,7 +100,7 @@ export const InteractiveComponentRenderer = memo(function InteractiveComponentRe
             return null;
 
           default:
-            // 未知类型，返回 null
+            // Unknown type, return null
             console.warn(`Unknown interactive component type: ${(component as InteractiveComponent).type}`);
             return null;
         }
@@ -109,7 +109,7 @@ export const InteractiveComponentRenderer = memo(function InteractiveComponentRe
   );
 });
 
-// 导出所有组件
+// Export all components
 export { ButtonGroup } from './ButtonGroup';
 export { ChoiceCard } from './ChoiceCard';
 export { SummaryCard } from './SummaryCard';

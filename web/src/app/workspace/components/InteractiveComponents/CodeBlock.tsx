@@ -2,8 +2,8 @@
 
 /**
  * CodeBlock
- * 
- * 可执行代码块组件 - 支持语法高亮和一键运行
+ *
+ * Executable code block component - Supports syntax highlighting and one-click execution
  */
 
 import React, { memo, useState, useCallback } from 'react';
@@ -33,11 +33,11 @@ export const CodeBlock = memo(function CodeBlock({
     if (!config.executable) return;
     setIsRunning(true);
     onAction('execute', { code: config.code, language: config.language });
-    // 模拟运行状态
+    // Simulate running state
     setTimeout(() => setIsRunning(false), 2000);
   }, [config.code, config.language, config.executable, onAction]);
 
-  // 简单的行号渲染
+  // Simple line number rendering
   const lines = config.code.split('\n');
 
   return (
@@ -60,7 +60,7 @@ export const CodeBlock = memo(function CodeBlock({
             type="button"
             onClick={handleCopy}
             className="p-1.5 rounded-md hover:bg-slate-700 transition-colors"
-            title="复制代码"
+            title="Copy code"
           >
             {copied ? (
               <Check className="w-4 h-4 text-green-400" />
@@ -85,7 +85,7 @@ export const CodeBlock = memo(function CodeBlock({
               `}
             >
               <Play className={`w-3 h-3 ${isRunning ? 'animate-pulse' : ''}`} />
-              {isRunning ? '运行中...' : '运行'}
+              {isRunning ? 'Running...' : 'Run'}
             </button>
           )}
         </div>

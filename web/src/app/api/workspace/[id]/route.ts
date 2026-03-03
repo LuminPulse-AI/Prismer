@@ -1,9 +1,9 @@
 /**
- * Workspace API - 单个工作空间操作
+ * Workspace API - Single workspace operations
  *
- * GET    /api/workspace/[id]     - 获取工作空间详情
- * PATCH  /api/workspace/[id]     - 更新工作空间
- * DELETE /api/workspace/[id]     - 删除工作空间
+ * GET    /api/workspace/[id]     - Get workspace details
+ * PATCH  /api/workspace/[id]     - Update workspace
+ * DELETE /api/workspace/[id]     - Delete workspace
  */
 
 import { NextRequest, NextResponse } from 'next/server';

@@ -1,13 +1,13 @@
 /**
  * Unified AI Client
  *
- * 统一的 AI 调用客户端，所有组件通过此模块调用 LLM。
- * 支持流式/非流式、意图预设、AbortController、SSE 解析。
+ * Unified AI client; all components call LLM through this module.
+ * Supports streaming/non-streaming, intent presets, AbortController, and SSE parsing.
  *
- * 设计原则：
- * - 组件声明意图 (creative/analytical/code)，客户端负责参数预设
- * - 服务端 /api/ai/chat 负责推理模型归一化（temperature、system message 等）
- * - 统一的 SSE 流解析和错误处理
+ * Design principles:
+ * - Components declare intent (creative/analytical/code); the client applies parameter presets
+ * - Server-side /api/ai/chat handles model normalization (temperature, system message, etc.)
+ * - Unified SSE stream parsing and error handling
  */
 
 // ============================================================
@@ -22,28 +22,28 @@ export interface AIMessage {
 }
 
 export interface AIRequestOptions {
-  /** 消息列表 */
+  /** Message list */
   messages: AIMessage[];
-  /** 模型名称，'default' 使用服务端配置 */
+  /** Model name; 'default' uses server-side config */
   model?: string;
-  /** 意图预设 — 自动设置 temperature/max_tokens */
+  /** Intent preset — automatically sets temperature/max_tokens */
   intent?: AIIntent;
-  /** 是否流式响应 */
+  /** Whether to stream the response */
   stream?: boolean;
-  /** 覆盖 temperature (优先于 intent 预设) */
+  /** Override temperature (takes precedence over intent preset) */
   temperature?: number;
-  /** 覆盖 max_tokens (优先于 intent 预设) */
+  /** Override max_tokens (takes precedence over intent preset) */
   maxTokens?: number;
-  /** AbortSignal 用于取消请求 */
+  /** AbortSignal for request cancellation */
   signal?: AbortSignal;
-  /** 额外参数透传 */
+  /** Additional passthrough parameters */
   extra?: Record<string, unknown>;
 }
 
 export interface AIStreamChunk {
   content: string;
   done: boolean;
-  /** 完整响应（仅在 done=true 时可用） */
+  /** Full response (only available when done=true) */
   fullContent?: string;
 }
 
@@ -93,7 +93,7 @@ function buildRequestBody(options: AIRequestOptions): Record<string, unknown> {
 }
 
 /**
- * 非流式 AI 调用
+ * Non-streaming AI call
  */
 export async function aiChat(options: AIRequestOptions): Promise<AIResponse> {
   const body = buildRequestBody({ ...options, stream: false });
@@ -124,9 +124,9 @@ export async function aiChat(options: AIRequestOptions): Promise<AIResponse> {
 }
 
 /**
- * 流式 AI 调用 — 返回 AsyncGenerator
+ * Streaming AI call — returns AsyncGenerator
  *
- * 用法：
+ * Usage:
  * ```ts
  * for await (const chunk of aiChatStream({ messages, intent: 'chat' })) {
  *   console.log(chunk.content);
@@ -208,9 +208,9 @@ export async function* aiChatStream(
 }
 
 /**
- * 流式 AI 调用 — 回调模式 (适配现有组件)
+ * Streaming AI call — callback mode (for existing component compatibility)
  *
- * 返回 AbortController，调用 .abort() 可取消请求
+ * Returns AbortController; call .abort() to cancel the request
  */
 export function aiChatStreamCallback(
   options: Omit<AIRequestOptions, 'signal'>,
@@ -245,7 +245,7 @@ export function aiChatStreamCallback(
 // ============================================================
 
 /**
- * 快速单次对话
+ * Quick single-turn chat
  */
 export async function aiQuickChat(
   prompt: string,
@@ -260,7 +260,7 @@ export async function aiQuickChat(
 }
 
 /**
- * 系统指令 + 用户输入 模式
+ * System prompt + user input mode
  */
 export async function aiWithSystem(
   systemPrompt: string,

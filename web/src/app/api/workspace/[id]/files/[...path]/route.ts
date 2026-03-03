@@ -1,9 +1,9 @@
 /**
- * Workspace File API - 单个文件操作
+ * Workspace File API - Single file operations
  *
- * GET    /api/workspace/[id]/files/[...path] - 读取文件内容
- * PUT    /api/workspace/[id]/files/[...path] - 更新文件内容
- * DELETE /api/workspace/[id]/files/[...path] - 删除文件
+ * GET    /api/workspace/[id]/files/[...path] - Read file content
+ * PUT    /api/workspace/[id]/files/[...path] - Update file content
+ * DELETE /api/workspace/[id]/files/[...path] - Delete file
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -15,14 +15,14 @@ interface Params {
 }
 
 /**
- * 计算内容的 SHA256 哈希
+ * Compute SHA256 hash of content
  */
 function hashContent(content: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
 /**
- * 从 path 数组构建文件路径
+ * Build file path from path segments array
  */
 function buildPath(pathSegments: string[]): string {
   return pathSegments.join('/');
@@ -31,7 +31,7 @@ function buildPath(pathSegments: string[]): string {
 /**
  * GET /api/workspace/[id]/files/[...path]
  *
- * 读取文件内容
+ * Read file content
  */
 export async function GET(request: NextRequest, { params }: Params) {
   try {
@@ -74,12 +74,12 @@ export async function GET(request: NextRequest, { params }: Params) {
 /**
  * PUT /api/workspace/[id]/files/[...path]
  *
- * 更新文件内容 (upsert 语义)
+ * Update file content (upsert semantics)
  *
  * Request body:
  * {
- *   content: string,       // 新内容
- *   expectedHash?: string  // 可选: 期望的当前哈希，用于冲突检测
+ *   content: string,       // New content
+ *   expectedHash?: string  // Optional: expected current hash for conflict detection
  * }
  */
 export async function PUT(request: NextRequest, { params }: Params) {
@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const body = await request.json();
     const { content, expectedHash } = body;
 
-    // 参数验证
+    // Parameter validation
     if (content === undefined || typeof content !== 'string') {
       return NextResponse.json(
         { success: false, error: 'content is required' },
@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 验证 workspace 存在
+    // Verify workspace exists
     const workspace = await prisma.workspaceSession.findUnique({
       where: { id: workspaceId },
       select: { id: true },
@@ -110,14 +110,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 检查现有文件
+    // Check for existing file
     const existing = await prisma.workspaceFile.findUnique({
       where: {
         workspaceId_path: { workspaceId, path: filePath },
       },
     });
 
-    // 冲突检测
+    // Conflict detection
     if (expectedHash && existing && existing.contentHash !== expectedHash) {
       return NextResponse.json(
         {
@@ -132,7 +132,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const contentHash = hashContent(content);
 
-    // Upsert 操作
+    // Upsert operation
     const file = await prisma.workspaceFile.upsert({
       where: {
         workspaceId_path: { workspaceId, path: filePath },
@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 /**
  * DELETE /api/workspace/[id]/files/[...path]
  *
- * 删除文件
+ * Delete a file
  */
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {

@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 
-// 客户端配置类型
+// Client configuration type
 interface ClientConfig {
   aiEnabled: boolean;
   cdnDomain: string;
@@ -17,48 +17,48 @@ interface ClientConfig {
   appName: string;
 }
 
-// 缓存配置，避免每次请求都读取
+// Cached config to avoid reading on every request
 let cachedConfig: ClientConfig | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 60 * 1000; // 1 分钟缓存
+const CACHE_TTL = 60 * 1000; // 1 minute cache
 
 export async function GET() {
   try {
     
     const now = Date.now();
     
-    // 使用缓存
+    // Use cache
     if (cachedConfig && now - cacheTime < CACHE_TTL) {
       return NextResponse.json(cachedConfig);
     }
     
-    // 返回客户端需要的配置
-    // 注意：只返回安全的、客户端需要的配置
-    // 
-    // ⚠️ 安全警告：绝不返回敏感信息如 API Keys、Secrets 等
-    // AI 请求通过 /api/ai/* 代理处理，客户端不需要 API Key
+    // Return configuration needed by the client
+    // Note: Only return safe, client-required configuration
+    //
+    // Security warning: Never return sensitive information like API Keys, Secrets, etc.
+    // AI requests are proxied through /api/ai/*, client does not need API Key
     const config = {
-      // AI 配置 - 只返回是否可用的状态，不返回 API Key
-      // 支持多种命名格式
+      // AI configuration - Only return availability status, not API Key
+      // Supports multiple naming formats
       aiEnabled: !!(
         process.env.OPENAI_API_KEY 
         || process.env.OPENAI_APIKEY 
         || process.env.AI_API_KEY
       ),
       
-      // CDN 配置
+      // CDN configuration
       cdnDomain: process.env.CDN_DOMAIN || process.env.NEXT_PUBLIC_CDN_DOMAIN || '',
       
-      // OAuth 配置 (Client IDs 是公开的，安全)
+      // OAuth configuration (Client IDs are public, safe to expose)
       githubClientId: process.env.GITHUB_CLIENT_ID || process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || '',
       googleClientId: process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
       
-      // App 配置
+      // App configuration
       appUrl: process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
       appName: process.env.APP_NAME || process.env.NEXT_PUBLIC_APP_NAME || 'Prismer Library',
     };
     
-    // 更新缓存
+    // Update cache
     cachedConfig = config;
     cacheTime = now;
     

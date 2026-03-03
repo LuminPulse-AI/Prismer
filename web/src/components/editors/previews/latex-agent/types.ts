@@ -6,11 +6,11 @@
 
 // Agent action types
 export type AgentActionType = 
-  | 'search_papers'      // 搜索相关论文
-  | 'analyze_paper'      // 分析论文内容
-  | 'draw_conclusion'    // 得出结论
-  | 'write_content'      // 写入内容到 LaTeX
-  | 'thinking';          // 思考过程
+  | 'search_papers'      // Search related papers
+  | 'analyze_paper'      // Analyze paper content
+  | 'draw_conclusion'    // Draw conclusions
+  | 'write_content'      // Write content to LaTeX
+  | 'thinking';          // Thinking process
 
 // Status of an action
 export type ActionStatus = 'pending' | 'running' | 'completed' | 'error';

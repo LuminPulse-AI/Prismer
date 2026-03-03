@@ -3,7 +3,7 @@
 /**
  * ComponentTabs
  *
- * 组件切换标签栏 - 支持横向滚动 + 连接状态指示
+ * Component switching tab bar - Supports horizontal scrolling + connection status indicator
  */
 
 import React, { memo, useRef, useState, useEffect } from 'react';
@@ -43,7 +43,7 @@ interface ComponentTabsProps {
   onOpenSettings?: () => void;
 }
 
-// 组件配置
+// Component configuration
 const componentConfig: Record<ComponentType, {
   label: string;
   shortLabel: string;
@@ -129,7 +129,7 @@ export const ComponentTabs = memo(function ComponentTabs({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // 检查滚动状态
+  // Check scroll state
   const checkScroll = () => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -176,7 +176,7 @@ export const ComponentTabs = memo(function ComponentTabs({
 
       {/* Center pill: Component tabs */}
       <div className="relative flex-1 min-w-0 flex items-center rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-sm">
-        {/* 左滚动按钮 */}
+        {/* Left scroll button */}
         {canScrollLeft && (
           <button
             type="button"
@@ -229,7 +229,7 @@ export const ComponentTabs = memo(function ComponentTabs({
           })}
         </div>
 
-        {/* 右滚动按钮 */}
+        {/* Right scroll button */}
         {canScrollRight && (
           <button
             type="button"

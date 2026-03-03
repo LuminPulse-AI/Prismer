@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
+import DOMPurify from "dompurify";
 import type { ComponentPreviewProps } from "@/components/playground/registry";
 import { AssetBrowser, type AssetItem } from "@/components/shared/AssetBrowser";
 import { componentEventBus, useComponentBusEvent } from "@/lib/events";
@@ -545,10 +546,23 @@ export default function AiEditorPreview({ className, onOutput }: ComponentPrevie
         window.dispatchEvent(new CustomEvent('aieditor-open-asset'));
       });
 
-      // Insert as first child, then add a divider after it
+      // Export as Markdown button
+      const exportBtn = document.createElement('div');
+      exportBtn.className = 'aie-menu-item';
+      exportBtn.setAttribute('data-custom-export', '');
+      exportBtn.title = 'Export as Markdown';
+      exportBtn.innerHTML = `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;cursor:pointer;border-radius:3px;white-space:nowrap;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>`;
+      exportBtn.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('aieditor-export-md'));
+      });
+
+      // Insert as first child: Open btn, Export btn, then divider
       const divider = document.createElement('div');
       divider.className = 'aie-menu-divider';
       toolbar.prepend(divider);
+      toolbar.prepend(exportBtn);
       toolbar.prepend(btn);
     }, 200);
 
@@ -560,6 +574,25 @@ export default function AiEditorPreview({ className, onOutput }: ComponentPrevie
     const handler = () => setShowAssetBrowser(true);
     window.addEventListener('aieditor-open-asset', handler);
     return () => window.removeEventListener('aieditor-open-asset', handler);
+  }, []);
+
+  // Listen for the custom Export event — download notes as Markdown
+  useEffect(() => {
+    const handler = () => {
+      if (!editorRef.current) return;
+      const markdown = editorRef.current.getMarkdown();
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'notes.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    window.addEventListener('aieditor-export-md', handler);
+    return () => window.removeEventListener('aieditor-export-md', handler);
   }, []);
 
   // Debounced content sync to componentStore
@@ -634,7 +667,7 @@ export default function AiEditorPreview({ className, onOutput }: ComponentPrevie
           >
             <div
               className="prose prose-sm max-w-none text-slate-800"
-              dangerouslySetInnerHTML={{ __html: fallbackHtml }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(fallbackHtml) }}
             />
           </div>
         )}

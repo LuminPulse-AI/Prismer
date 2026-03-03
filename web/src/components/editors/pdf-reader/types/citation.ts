@@ -1,152 +1,152 @@
 /**
- * 跨论文标签系统 - 类型定义
- * 
- * 设计目标：
- * 1. AI 生成逻辑简单 (单论文: [[p1_text_0]], 多论文: [[A:p1_text_0]])
- * 2. 支持跨论文唯一标识
- * 3. 向后兼容现有标签格式
+ * Cross-Paper Tag System - Type Definitions
+ *
+ * Design goals:
+ * 1. Simple AI generation logic (single paper: [[p1_text_0]], multi-paper: [[A:p1_text_0]])
+ * 2. Support cross-paper unique identification
+ * 3. Backward compatible with existing tag formats
  */
 
 // ============================================================
-// 基础类型
+// Base Types
 // ============================================================
 
 /**
- * Detection 类型枚举
+ * Detection type enumeration
  */
 export type DetectionType = 'text' | 'image' | 'table' | 'equation' | 'title' | 'sub_title' | 'reference';
 
 /**
- * 统一引用标识符 (Universal Reference Identifier)
- * 格式: {paperId}#{detectionId}
- * 示例: 2601.02346v1#p1_text_0
+ * Universal Reference Identifier
+ * Format: {paperId}#{detectionId}
+ * Example: 2601.02346v1#p1_text_0
  */
 export type UniversalReferenceId = `${string}#${string}`;
 
 /**
- * 论文别名映射
- * 例如: { A: "2601.02346v1", B: "1706.03762" }
+ * Paper alias map
+ * Example: { A: "2601.02346v1", B: "1706.03762" }
  */
 export type PaperAliasMap = Record<string, string>;
 
 // ============================================================
-// Citation 结构
+// Citation Structure
 // ============================================================
 
 /**
- * 统一引用结构
- * 用于 ChatMessage.citations 和 NoteEntry.citations
+ * Unified citation structure
+ * Used for ChatMessage.citations and NoteEntry.citations
  */
 export interface Citation {
-  /** 全局唯一标识符: "{paperId}#{detectionId}" */
+  /** Globally unique identifier: "{paperId}#{detectionId}" */
   uri: UniversalReferenceId;
   
-  /** 论文 ID (arxivId 或其他唯一标识) */
+  /** Paper ID (arxivId or other unique identifier) */
   paperId: string;
   
-  /** Detection ID (例如 p1_text_0) */
+  /** Detection ID (e.g. p1_text_0) */
   detectionId: string;
   
-  /** 论文标题 (缓存，避免重复查询) */
+  /** Paper title (cached to avoid redundant lookups) */
   paperTitle?: string;
   
-  /** 页码 */
+  /** Page number */
   pageNumber: number;
   
-  /** Detection 类型 */
+  /** Detection type */
   type: DetectionType;
   
-  /** 内容摘要 (前30-50字) */
+  /** Content excerpt (first 30-50 characters) */
   excerpt?: string;
   
-  /** 在当前上下文中的显示编号 (1, 2, 3...) */
+  /** Display index in the current context (1, 2, 3...) */
   displayIndex?: number;
   
-  /** 论文别名 (多论文模式下的 A, B, C...) */
+  /** Paper alias (A, B, C... in multi-paper mode) */
   paperAlias?: string;
 }
 
 // ============================================================
-// 标签解析结果
+// Tag Parse Results
 // ============================================================
 
 /**
- * 标签类型
+ * Tag type
  */
 export type TagType = 'local' | 'cross-paper';
 
 /**
- * 标签解析结果
+ * Tag parse result
  */
 export interface TagParseResult {
-  /** 标签类型 */
+  /** Tag type */
   type: TagType;
   
-  /** 多论文时的别名 (A, B, C...) */
+  /** Paper alias in multi-paper mode (A, B, C...) */
   paperAlias?: string;
   
-  /** Detection ID (例如 p1_text_0) */
+  /** Detection ID (e.g. p1_text_0) */
   detectionId: string;
   
-  /** 原始匹配字符串 */
+  /** Original matched string */
   raw: string;
   
-  /** 在原始内容中的起始位置 */
+  /** Start position in the original content */
   startIndex: number;
   
-  /** 在原始内容中的结束位置 */
+  /** End position in the original content */
   endIndex: number;
 }
 
 // ============================================================
-// 消息上下文
+// Message Context
 // ============================================================
 
 /**
- * 消息上下文 - 用于标签解析和映射
+ * Message context - used for tag parsing and mapping
  */
 export interface MessageContext {
-  /** 模式: 单论文或多论文 */
+  /** Mode: single paper or multi-paper */
   mode: 'single' | 'multi';
   
-  /** 单论文模式下的默认论文 ID */
+  /** Default paper ID in single-paper mode */
   defaultPaperId?: string;
   
-  /** 多论文模式下的别名映射 */
+  /** Alias map in multi-paper mode */
   paperAliasMap?: PaperAliasMap;
 }
 
 // ============================================================
-// 验证结果
+// Validation Results
 // ============================================================
 
 /**
- * 引用验证结果
+ * Citation validation result
  */
 export interface CitationValidationResult {
-  /** 是否有效 */
+  /** Whether valid */
   valid: boolean;
   
-  /** 错误类型 */
+  /** Error type */
   error?: 'unknown_paper' | 'unknown_detection' | 'invalid_format';
   
-  /** 用户提示 */
+  /** User-facing suggestion */
   suggestion?: string;
 }
 
 // ============================================================
-// 工具函数
+// Utility Functions
 // ============================================================
 
 /**
- * 创建统一引用标识符
+ * Create a universal reference identifier
  */
 export function createCitationUri(paperId: string, detectionId: string): UniversalReferenceId {
   return `${paperId}#${detectionId}` as UniversalReferenceId;
 }
 
 /**
- * 解析统一引用标识符
+ * Parse a universal reference identifier
  */
 export function parseCitationUri(uri: UniversalReferenceId): { paperId: string; detectionId: string } | null {
   const parts = uri.split('#');
@@ -155,7 +155,7 @@ export function parseCitationUri(uri: UniversalReferenceId): { paperId: string; 
 }
 
 /**
- * 从 detection ID 提取页码
+ * Extract page number from detection ID
  * @example extractPageNumber("p1_text_0") => 1
  */
 export function extractPageNumber(detectionId: string): number {
@@ -164,7 +164,7 @@ export function extractPageNumber(detectionId: string): number {
 }
 
 /**
- * 从 detection ID 提取类型
+ * Extract type from detection ID
  * @example extractDetectionType("p1_text_0") => "text"
  */
 export function extractDetectionType(detectionId: string): DetectionType {
@@ -178,7 +178,7 @@ export function extractDetectionType(detectionId: string): DetectionType {
 }
 
 /**
- * 创建 Citation 对象
+ * Create a Citation object
  */
 export function createCitation(
   paperId: string,

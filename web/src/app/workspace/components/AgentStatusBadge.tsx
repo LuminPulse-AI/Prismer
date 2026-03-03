@@ -1,26 +1,26 @@
 /**
- * AgentStatusBadge - Agent 状态指示器
+ * AgentStatusBadge - Agent Status Indicator
  *
  * @description
- * 显示当前 Workspace 绑定的 Agent Instance 的运行状态。
- * 用于 ChatHeader、MobileHeader 等位置，提供快速状态反馈。
+ * Displays the running status of the Agent Instance bound to the current Workspace.
+ * Used in ChatHeader, MobileHeader, etc. to provide quick status feedback.
  *
- * 状态说明:
- * - idle: 灰色，未绑定或未启动
- * - starting: 黄色闪烁，启动中
- * - running: 绿色，正常运行
- * - stopped: 灰色，已停止
- * - error: 红色，出错
+ * Status descriptions:
+ * - idle: Gray, not bound or not started
+ * - starting: Flashing yellow, starting up
+ * - running: Green, running normally
+ * - stopped: Gray, stopped
+ * - error: Red, error occurred
  *
  * @example
  * ```tsx
- * // 基础用法
+ * // Basic usage
  * <AgentStatusBadge />
  *
- * // 显示详细信息
+ * // Show detailed info
  * <AgentStatusBadge showLabel />
  *
- * // 自定义大小
+ * // Custom size
  * <AgentStatusBadge size="lg" />
  * ```
  */
@@ -35,11 +35,11 @@ import { cn } from '@/lib/utils';
 // ============================================================
 
 interface AgentStatusBadgeProps {
-  /** 是否显示状态文字标签 */
+  /** Whether to show the status text label */
   showLabel?: boolean;
-  /** 徽章大小 */
+  /** Badge size */
   size?: 'sm' | 'md' | 'lg';
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
 }
 
@@ -48,8 +48,8 @@ interface AgentStatusBadgeProps {
 // ============================================================
 
 /**
- * 状态配置映射
- * 定义每种状态对应的颜色、动画和标签
+ * Status configuration map
+ * Defines the color, animation, and label for each status
  */
 const STATUS_CONFIG = {
   idle: {
@@ -85,7 +85,7 @@ const STATUS_CONFIG = {
 } as const;
 
 /**
- * 大小配置
+ * Size configuration
  */
 const SIZE_CONFIG = {
   sm: {
@@ -113,7 +113,7 @@ export function AgentStatusBadge({
 }: AgentStatusBadgeProps) {
   const { status, hasAgent, error } = useAgentInstance();
 
-  // 如果没有绑定 Agent，显示空状态
+  // If no Agent is bound, show empty state
   if (!hasAgent) {
     return showLabel ? (
       <span className={cn('text-muted-foreground', SIZE_CONFIG[size].text, className)}>

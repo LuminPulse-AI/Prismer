@@ -1,8 +1,8 @@
 /**
  * UI Directive Executor
  * 
- * 执行 Agent 发出的 UI 指令，控制前端状态变化
- * 支持延迟执行、批量执行、动画过渡
+ * Executes UI directives issued by the Agent, controlling frontend state changes.
+ * Supports delayed execution, batch execution, and animated transitions.
  */
 
 import type {
@@ -62,12 +62,12 @@ export class UIDirectiveExecutor {
   }
 
   /**
-   * 执行单个指令
+   * Execute a single directive
    */
   async execute(directive: UIDirective): Promise<void> {
     const delay = directive.delay ?? this.config.defaultDelay ?? 0;
 
-    // 延迟执行
+    // Delayed execution
     if (delay > 0) {
       await this.sleep(delay);
     }
@@ -84,7 +84,7 @@ export class UIDirectiveExecutor {
   }
 
   /**
-   * 批量执行指令 (按顺序)
+   * Execute directives in batch (sequentially)
    */
   async executeAll(directives: UIDirective[]): Promise<void> {
     for (const directive of directives) {
@@ -93,7 +93,7 @@ export class UIDirectiveExecutor {
   }
 
   /**
-   * 将指令加入队列
+   * Enqueue a directive
    */
   enqueue(directive: UIDirective): void {
     this.executionQueue.push(directive);
@@ -103,7 +103,7 @@ export class UIDirectiveExecutor {
   }
 
   /**
-   * 处理队列
+   * Process the queue
    */
   private async processQueue(): Promise<void> {
     if (this.isExecuting || this.executionQueue.length === 0) {
@@ -123,14 +123,14 @@ export class UIDirectiveExecutor {
   }
 
   /**
-   * 清空队列
+   * Clear the queue
    */
   clearQueue(): void {
     this.executionQueue = [];
   }
 
   /**
-   * 执行具体指令
+   * Execute a specific directive
    */
   private async executeDirective(directive: UIDirective): Promise<void> {
     const { type, target, data } = directive;
@@ -181,7 +181,7 @@ export class UIDirectiveExecutor {
     }
   }
 
-  // ==================== 指令实现 ====================
+  // ==================== Directive Implementations ====================
 
   private executeSwitchComponent(component: ComponentType): void {
     this.context.setActiveComponent(component);
@@ -233,7 +233,7 @@ export class UIDirectiveExecutor {
   }
 
   private executeScrollTo(target: string, data?: Record<string, unknown>): void {
-    // 尝试滚动到指定元素
+    // Attempt to scroll to the specified element
     const selector = data?.selector as string ?? `#${target}`;
     const element = document.querySelector(selector);
     if (element) {
@@ -301,7 +301,7 @@ export class UIDirectiveExecutor {
     }
   }
 
-  // ==================== 工具方法 ====================
+  // ==================== Utility Methods ====================
 
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -313,7 +313,7 @@ export class UIDirectiveExecutor {
 // ============================================================
 
 /**
- * 创建 UI Directive 执行器
+ * Create a UI Directive executor
  */
 export function createUIDirectiveExecutor(
   context: DirectiveExecutionContext,
@@ -327,7 +327,7 @@ export function createUIDirectiveExecutor(
 // ============================================================
 
 /**
- * 从 Store 创建执行上下文
+ * Create an execution context from a Store
  */
 export function createExecutionContextFromStore(store: {
   setActiveComponent: (type: ComponentType) => void;
@@ -346,8 +346,8 @@ export function createExecutionContextFromStore(store: {
     setActiveComponent: store.setActiveComponent,
     updateComponentState: store.updateComponentState,
     setActiveDiff: store.setActiveDiff,
-    setChatExpanded: () => {}, // 从外部传入
-    setTaskPanelHeight: () => {}, // 从外部传入
+    setChatExpanded: () => {}, // Provided externally
+    setTaskPanelHeight: () => {}, // Provided externally
     captureSnapshot: store.captureSnapshot,
   };
 }

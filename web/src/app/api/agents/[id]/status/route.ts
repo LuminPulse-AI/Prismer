@@ -1,7 +1,7 @@
 /**
  * Agent Status API
  *
- * GET /api/agents/:id/status - 获取 Agent 运行状态
+ * GET /api/agents/:id/status - Get agent running status
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       ...fromDb.filter((s) => !installedIds.has(s.id)),
     ];
 
-    // 构建状态响应
+    // Build status response
     const status = {
       id: agent.id,
       name: agent.name,
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: Params) {
       lastActiveAt: agent.lastActiveAt,
       installedSkills: installedSkills ?? [],
 
-      // 容器信息
+      // Container information
       container: agent.container
         ? {
             id: agent.container.containerId,
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest, { params }: Params) {
           }
         : null,
 
-      // Gateway 连接信息
+      // Gateway connection information
       gateway: agent.gatewayUrl
         ? {
             url: agent.gatewayUrl,
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest, { params }: Params) {
           }
         : null,
 
-      // 配置信息
+      // Configuration information
       config: agent.config
         ? {
             modelName: agent.config.modelName,

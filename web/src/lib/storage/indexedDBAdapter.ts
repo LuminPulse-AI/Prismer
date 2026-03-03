@@ -1,8 +1,8 @@
 /**
  * IndexedDB Storage Adapter
  * 
- * 使用 IndexedDB 实现数据持久化
- * 支持：Chat Sessions, Notebooks, Paper Insights 缓存
+ * Uses IndexedDB for data persistence
+ * Supports: Chat Sessions, Notebooks, Paper Insights cache
  */
 
 import { StorageAdapter, ChatSession, Notebook, PaperMeta, PaperData, ReferenceMetadata } from "./types";
@@ -454,8 +454,8 @@ export function getIndexedDBAdapter(): IndexedDBAdapter {
 }
 
 /**
- * 重置 IndexedDB adapter 实例
- * 用于用户登出后重新初始化
+ * Reset IndexedDB adapter instance
+ * Used to re-initialize after user logout
  */
 export function resetIndexedDBAdapter(): void {
   if (instance) {
@@ -465,15 +465,15 @@ export function resetIndexedDBAdapter(): void {
 }
 
 /**
- * 删除整个 IndexedDB 数据库
- * 用于用户登出时彻底清理数据
+ * Delete the entire IndexedDB database
+ * Used for complete data cleanup on user logout
  */
 export async function deleteIndexedDB(): Promise<void> {
   if (typeof window === 'undefined') return;
   
   return new Promise((resolve) => {
     try {
-      // 先重置实例
+      // Reset instance first
       if (instance) {
         instance = null;
       }

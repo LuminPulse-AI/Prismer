@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * PackageManager - Python 包管理组件
- * 
- * 支持多种包管理器：
+ * PackageManager - Python Package Management Component
+ *
+ * Supports multiple package managers:
  * - UV (uv pip install)
  * - pip (pip install)
- * - conda (conda install) [仅检测]
- * 
- * 自动检测环境并选择合适的包管理器
+ * - conda (conda install) [detection only]
+ *
+ * Auto-detects the environment and selects the appropriate package manager
  */
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
@@ -33,7 +33,7 @@ import {
 import type { JupyterService } from '../services/JupyterService';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export type PackageManagerType = 'uv' | 'pip' | 'conda' | 'auto';
@@ -57,10 +57,10 @@ interface PackageManagerProps {
 }
 
 // ============================================================
-// Python 代码片段
+// Python Code Snippets
 // ============================================================
 
-// 检测可用的包管理器
+// Detect available package managers
 const DETECT_MANAGER_CODE = `
 import json
 import subprocess
@@ -77,31 +77,31 @@ def detect_package_manager():
         "recommended": "pip"
     }
     
-    # 检测 UV
+    # Detect UV
     uv_path = shutil.which("uv")
     if uv_path:
         result["uv"] = True
         result["uv_path"] = uv_path
-        # 检查是否在 UV 管理的环境中
+        # Check if running in a UV-managed environment
         import os
         if os.environ.get("UV_CACHE_DIR") or os.environ.get("VIRTUAL_ENV", "").find(".venv") != -1:
             result["in_uv_env"] = True
             result["recommended"] = "uv"
     
-    # 检测 pip
+    # Detect pip
     pip_path = shutil.which("pip") or shutil.which("pip3")
     if pip_path:
         result["pip"] = True
         result["pip_path"] = pip_path
     
-    # 检测 conda
+    # Detect conda
     if shutil.which("conda"):
         result["conda"] = True
         import os
         if os.environ.get("CONDA_DEFAULT_ENV"):
             result["recommended"] = "conda"
     
-    # 如果有 UV 且在 UV 环境，优先使用 UV
+    # If UV is available and we're in a UV environment, prefer UV
     if result["uv"] and result["in_uv_env"]:
         result["recommended"] = "uv"
     
@@ -110,7 +110,7 @@ def detect_package_manager():
 detect_package_manager()
 `;
 
-// 获取已安装的包（通用方法，不依赖 pip）
+// Get installed packages (universal method, not dependent on pip)
 const GET_PACKAGES_CODE = `
 import json
 import sys
@@ -158,19 +158,19 @@ def get_installed_packages():
 get_installed_packages()
 `;
 
-// 生成安装命令 - 使用实时输出
+// Generate install command - with real-time output
 function getInstallCommand(manager: PackageManagerType, packageSpec: string): string {
-  // 使用 Popen 实时输出，而不是 run() 等待完成
+  // Use Popen for real-time output instead of run() which waits for completion
   const baseCode = `
 import subprocess
 import sys
 
 def run_with_realtime_output(cmd):
-    """运行命令并实时输出"""
+    """Run command with real-time output"""
     print(f">>> Running: {' '.join(cmd)}")
     print("-" * 40)
     sys.stdout.flush()
-    
+
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
@@ -179,19 +179,19 @@ def run_with_realtime_output(cmd):
         bufsize=1,
         universal_newlines=True
     )
-    
+
     for line in process.stdout:
         print(line, end='')
         sys.stdout.flush()
-    
+
     process.wait()
     print("-" * 40)
-    
+
     if process.returncode == 0:
         print("✓ SUCCESS")
     else:
         print(f"✗ FAILED (exit code: {process.returncode})")
-    
+
     return process.returncode == 0
 `;
 
@@ -212,14 +212,14 @@ run_with_realtime_output([sys.executable, "-m", "pip", "install", "${packageSpec
   }
 }
 
-// 生成卸载命令 - 使用实时输出
+// Generate uninstall command - with real-time output
 function getUninstallCommand(manager: PackageManagerType, packageName: string): string {
   const baseCode = `
 import subprocess
 import sys
 
 def run_with_realtime_output(cmd):
-    """运行命令并实时输出"""
+    """Run command with real-time output"""
     print(f">>> Running: {' '.join(cmd)}")
     print("-" * 40)
     sys.stdout.flush()
@@ -266,7 +266,7 @@ run_with_realtime_output([sys.executable, "-m", "pip", "uninstall", "-y", "${pac
 }
 
 // ============================================================
-// PackageManager 组件
+// PackageManager Component
 // ============================================================
 
 export const PackageManager = memo(function PackageManager({
@@ -281,7 +281,7 @@ export const PackageManager = memo(function PackageManager({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   
-  // 包管理器状态
+  // Package manager state
   const [detectedManager, setDetectedManager] = useState<{
     uv: boolean;
     pip: boolean;
@@ -291,14 +291,14 @@ export const PackageManager = memo(function PackageManager({
   const [activeManager, setActiveManager] = useState<PackageManagerType>('pip');
   const [showSettings, setShowSettings] = useState(false);
   
-  // 安装对话框状态
+  // Install dialog state
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   const [installInput, setInstallInput] = useState('');
   const [isInstalling, setIsInstalling] = useState(false);
   const [installOutput, setInstallOutput] = useState('');
   const [installStatus, setInstallStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  // 检测包管理器
+  // Detect package manager
   const detectManager = useCallback(async () => {
     if (!jupyterService || !isConnected) return;
 
@@ -324,14 +324,14 @@ export const PackageManager = memo(function PackageManager({
             recommended: data.recommended,
           });
           
-          // 自动选择
+          // Auto-select
           if (preferredManager === 'auto') {
             setActiveManager(data.recommended);
           } else {
             setActiveManager(preferredManager);
           }
         } catch {
-          // 默认使用 pip
+          // Default to pip
           setActiveManager('pip');
         }
       }
@@ -340,7 +340,7 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [jupyterService, isConnected, preferredManager]);
 
-  // 获取已安装的包
+  // Fetch installed packages
   const fetchPackages = useCallback(async () => {
     if (!jupyterService || !isConnected) return;
 
@@ -380,7 +380,7 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [jupyterService, isConnected]);
 
-  // 连接时自动检测和刷新
+  // Auto-detect and refresh on connection
   useEffect(() => {
     if (isConnected) {
       detectManager();
@@ -390,7 +390,7 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [isConnected, detectManager, fetchPackages]);
 
-  // 安装包
+  // Install package
   const installPackage = useCallback(async (packageSpec: string) => {
     if (!jupyterService || !isConnected) return;
 
@@ -433,7 +433,7 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [jupyterService, isConnected, activeManager, fetchPackages]);
 
-  // 卸载包状态
+  // Uninstall dialog state
   const [uninstallDialog, setUninstallDialog] = useState<{
     isOpen: boolean;
     packageName: string;
@@ -442,11 +442,11 @@ export const PackageManager = memo(function PackageManager({
     status: 'idle' | 'success' | 'error';
   }>({ isOpen: false, packageName: '', output: '', isRunning: false, status: 'idle' });
 
-  // 卸载包
+  // Uninstall package
   const uninstallPackage = useCallback(async (packageName: string) => {
     if (!jupyterService || !isConnected) return;
-    
-    // 显示卸载对话框
+
+    // Show uninstall dialog
     setUninstallDialog({
       isOpen: true,
       packageName,
@@ -479,7 +479,7 @@ export const PackageManager = memo(function PackageManager({
         };
       });
       
-      // 成功后刷新列表
+      // Refresh list on success
       const finalOutput = uninstallDialog.output;
       if (finalOutput.includes('SUCCESS') || !finalOutput.includes('FAILED')) {
         await fetchPackages();
@@ -494,7 +494,7 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [jupyterService, isConnected, activeManager, fetchPackages, uninstallDialog.output]);
 
-  // 导出 requirements.txt
+  // Export requirements.txt
   const exportRequirements = useCallback(() => {
     const content = packages
       .map(p => `${p.name}==${p.version}`)
@@ -511,7 +511,7 @@ export const PackageManager = memo(function PackageManager({
     URL.revokeObjectURL(url);
   }, [packages]);
 
-  // 导入 requirements.txt
+  // Import requirements.txt
   const importRequirements = useCallback(async (file: File) => {
     const content = await file.text();
     const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('#'));
@@ -525,7 +525,7 @@ export const PackageManager = memo(function PackageManager({
 
     setIsInstalling(true);
     try {
-      // 逐个安装以便追踪进度
+      // Install one by one to track progress
       for (const line of lines) {
         const packageSpec = line.trim();
         if (packageSpec) {
@@ -540,12 +540,12 @@ export const PackageManager = memo(function PackageManager({
     }
   }, [activeManager, installPackage, fetchPackages]);
 
-  // 过滤包
+  // Filter packages
   const filteredPackages = packages.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // 获取管理器图标和颜色
+  // Get manager icon and color
   const getManagerStyle = (manager: PackageManagerType) => {
     switch (manager) {
       case 'uv':
@@ -569,7 +569,7 @@ export const PackageManager = memo(function PackageManager({
           <span className="text-xs text-stone-500">({packages.length})</span>
         </div>
         <div className="flex items-center gap-1">
-          {/* 当前管理器标签 */}
+          {/* Current manager label */}
           <span className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded ${managerStyle.bg} ${managerStyle.color}`}>
             {managerStyle.icon}
             {activeManager.toUpperCase()}
@@ -733,7 +733,7 @@ export const PackageManager = memo(function PackageManager({
         )}
       </div>
 
-      {/* Install — 内联在面板内 */}
+      {/* Install — inline within the panel */}
       {showInstallDialog && (
         <div className="px-3 py-3 border-b border-stone-200 bg-stone-50/80">
           <div className="flex items-center justify-between mb-2">
@@ -793,7 +793,7 @@ export const PackageManager = memo(function PackageManager({
         </div>
       )}
 
-      {/* Uninstall — 内联在面板内 */}
+      {/* Uninstall — inline within the panel */}
       {uninstallDialog.isOpen && (
         <div className="px-3 py-3 border-b border-stone-200 bg-red-50/50">
           <div className="flex items-center justify-between mb-2">
@@ -845,7 +845,7 @@ export const PackageManager = memo(function PackageManager({
 });
 
 // ============================================================
-// InstallOutputArea 组件 - 实时输出显示
+// InstallOutputArea Component - Real-time Output Display
 // ============================================================
 
 interface InstallOutputAreaProps {
@@ -859,7 +859,7 @@ const InstallOutputArea = memo(function InstallOutputArea({
 }: InstallOutputAreaProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   
-  // 自动滚动到底部
+  // Auto-scroll to bottom
   React.useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -888,7 +888,7 @@ const InstallOutputArea = memo(function InstallOutputArea({
         {output ? (
           <pre className="text-xs font-mono whitespace-pre-wrap">
             {output.split('\n').map((line, i) => {
-              // 根据内容着色
+              // Color based on content
               let className = 'text-stone-600';
               if (line.startsWith('>>>')) {
                 className = 'text-blue-400 font-semibold';
@@ -922,7 +922,7 @@ const InstallOutputArea = memo(function InstallOutputArea({
 });
 
 // ============================================================
-// PackageItem 组件
+// PackageItem Component
 // ============================================================
 
 interface PackageItemProps {

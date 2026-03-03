@@ -1,7 +1,7 @@
 /**
- * AiEditor 类型声明
- * 
- * 解决 aieditor CSS 模块导入的 TypeScript 类型检查问题
+ * AiEditor type declarations
+ *
+ * Resolves TypeScript type-checking issues for aieditor CSS module imports
  */
 
 declare module 'aieditor/dist/style.css' {

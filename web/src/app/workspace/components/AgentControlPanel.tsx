@@ -1,12 +1,12 @@
 /**
- * AgentControlPanel - Agent 控制面板
+ * AgentControlPanel - Agent Control Panel
  *
  * @description
- * 提供 Agent Instance 的完整生命周期控制和可观测性，包括：
- * - 启动/停止 Agent（支持 Docker/Kubernetes 编排器选择）
- * - 实时启动进度显示（SSE 驱动）
- * - 运行时信息面板（Container ID, Gateway URL, Port, Uptime）
- * - 错误信息清晰可读
+ * Provides full lifecycle control and observability for an Agent Instance, including:
+ * - Start/stop Agent (supports Docker/Kubernetes orchestrator selection)
+ * - Real-time startup progress display (SSE-driven)
+ * - Runtime info panel (Container ID, Gateway URL, Port, Uptime)
+ * - Clear and readable error messages
  *
  * @example
  * ```tsx

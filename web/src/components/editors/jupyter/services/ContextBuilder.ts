@@ -1,11 +1,11 @@
 /**
- * ContextBuilder - 上下文构建服务
- * 
- * 负责：
- * - 分层摘要（最近 cell 完整，旧 cell 摘要）
- * - 增量更新（脏标记、缓存）
- * - 变量信息提取
- * - Token 估算
+ * ContextBuilder - Context Building Service
+ *
+ * Responsibilities:
+ * - Layered summaries (recent cells in full, older cells summarized)
+ * - Incremental updates (dirty flag, caching)
+ * - Variable information extraction
+ * - Token estimation
  */
 
 import type { 
@@ -18,26 +18,26 @@ import type {
 import type { DetectedArtifact } from './ArtifactManager';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface ContextConfig {
-  // 分层策略
-  recentCellCount: number;      // 完整包含的最近 cell 数量
-  maxSummaryLength: number;     // 摘要最大长度
-  maxTotalTokens: number;       // 上下文最大 token 数
-  
-  // 变量信息
+  // Layering strategy
+  recentCellCount: number;      // Number of recent cells to include in full
+  maxSummaryLength: number;     // Maximum summary length
+  maxTotalTokens: number;       // Maximum context token count
+
+  // Variable information
   includeVariables: boolean;
   maxVariables: number;
-  
-  // 产物信息
+
+  // Artifact information
   includeArtifacts: boolean;
   maxArtifacts: number;
-  
-  // 增量更新
+
+  // Incremental updates
   enableCaching: boolean;
-  cacheExpiry: number;          // 缓存过期时间（毫秒）
+  cacheExpiry: number;          // Cache expiry time (milliseconds)
 }
 
 export interface CellVersion {
@@ -54,7 +54,7 @@ export interface ContextCache {
 }
 
 // ============================================================
-// ContextBuilder 类
+// ContextBuilder Class
 // ============================================================
 
 export class ContextBuilder {
@@ -74,7 +74,7 @@ export class ContextBuilder {
       includeArtifacts: true,
       maxArtifacts: 10,
       enableCaching: true,
-      cacheExpiry: 30000,  // 30 秒
+      cacheExpiry: 30000,  // 30 seconds
       ...config,
     };
 
@@ -85,14 +85,14 @@ export class ContextBuilder {
   }
 
   /**
-   * 标记为脏（需要重新构建）
+   * Mark as dirty (needs rebuild)
    */
   markDirty(): void {
     this.isDirty = true;
   }
 
   /**
-   * 构建上下文（带防抖）
+   * Build context (with debounce)
    */
   buildContextDebounced(
     cells: Cell[],
@@ -117,14 +117,14 @@ export class ContextBuilder {
   }
 
   /**
-   * 构建上下文
+   * Build context
    */
   buildContext(
     cells: Cell[],
     artifacts: DetectedArtifact[],
     activeCellId?: string | null
   ): CompiledContext {
-    // 检查缓存
+    // Check cache
     if (this.config.enableCaching && !this.isDirty) {
       const cacheAge = Date.now() - this.cache.lastBuild;
       if (cacheAge < this.config.cacheExpiry && this.cache.compiledContext) {
@@ -134,12 +134,12 @@ export class ContextBuilder {
 
     const codeCells = cells.filter((c): c is CodeCell => c.type === 'code');
     
-    // 分层：最近 N 个 cell 完整，其余摘要
+    // Layering: most recent N cells in full, rest summarized
     const recentCount = this.config.recentCellCount;
     const recentCells = codeCells.slice(-recentCount);
     const olderCells = codeCells.slice(0, -recentCount);
 
-    // 构建最近 cell 的完整信息
+    // Build full information for recent cells
     const recentCellsData = recentCells.map(cell => ({
       id: cell.id,
       source: cell.source,
@@ -147,7 +147,7 @@ export class ContextBuilder {
       executionState: cell.executionState,
     }));
 
-    // 构建旧 cell 的摘要（使用增量更新）
+    // Build summaries for older cells (using incremental updates)
     const summaries = olderCells.map(cell => {
       const cached = this.getCachedSummary(cell);
       if (cached) {
@@ -159,15 +159,15 @@ export class ContextBuilder {
       return { id: cell.id, summary };
     });
 
-    // 提取变量信息
+    // Extract variable information
     const variables = this.config.includeVariables
       ? this.extractVariables(codeCells).slice(0, this.config.maxVariables)
       : [];
 
-    // 提取错误信息
+    // Extract error information
     const errors = this.extractErrors(codeCells);
 
-    // 产物摘要
+    // Artifact summaries
     const artifactSummaries = this.config.includeArtifacts
       ? this.formatArtifactSummaries(artifacts).slice(0, this.config.maxArtifacts)
       : [];
@@ -183,7 +183,7 @@ export class ContextBuilder {
       estimatedTokens: this.estimateTokens(recentCellsData, summaries, variables),
     };
 
-    // 更新缓存
+    // Update cache
     this.cache.compiledContext = context;
     this.cache.lastBuild = Date.now();
     this.isDirty = false;
@@ -192,12 +192,12 @@ export class ContextBuilder {
   }
 
   /**
-   * 生成 Cell 摘要
+   * Generate cell summary
    */
   private generateCellSummary(cell: CodeCell): string {
     const lines = cell.source.split('\n').filter(l => l.trim());
     
-    // 提取关键信息
+    // Extract key information
     const imports: string[] = [];
     const definitions: string[] = [];
     const operations: string[] = [];
@@ -205,29 +205,29 @@ export class ContextBuilder {
     for (const line of lines) {
       const trimmed = line.trim();
       
-      // 导入语句
+      // Import statements
       if (trimmed.startsWith('import ') || trimmed.startsWith('from ')) {
         const match = trimmed.match(/(?:import|from)\s+(\w+)/);
         if (match) imports.push(match[1]);
       }
-      // 函数定义
+      // Function definitions
       else if (trimmed.startsWith('def ')) {
         const match = trimmed.match(/def\s+(\w+)/);
         if (match) definitions.push(`fn:${match[1]}`);
       }
-      // 类定义
+      // Class definitions
       else if (trimmed.startsWith('class ')) {
         const match = trimmed.match(/class\s+(\w+)/);
         if (match) definitions.push(`class:${match[1]}`);
       }
-      // 变量赋值
+      // Variable assignment
       else if (trimmed.match(/^\w+\s*=\s*/)) {
         const match = trimmed.match(/^(\w+)\s*=/);
         if (match) operations.push(`${match[1]}=...`);
       }
     }
 
-    // 构建摘要
+    // Build summary
     const parts: string[] = [];
     if (imports.length > 0) {
       parts.push(`imports: ${imports.slice(0, 3).join(', ')}${imports.length > 3 ? '...' : ''}`);
@@ -239,7 +239,7 @@ export class ContextBuilder {
       parts.push(`assigns: ${operations.slice(0, 3).join(', ')}`);
     }
 
-    // 添加执行状态
+    // Add execution state
     if (cell.executionState === 'error') {
       parts.push('[ERROR]');
     } else if (cell.executionCount) {
@@ -251,7 +251,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 获取缓存的摘要
+   * Get cached summary
    */
   private getCachedSummary(cell: CodeCell): string | undefined {
     if (!this.config.enableCaching) return undefined;
@@ -266,7 +266,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 缓存摘要
+   * Cache summary
    */
   private cacheSummary(cell: CodeCell, summary: string): void {
     if (!this.config.enableCaching) return;
@@ -281,11 +281,11 @@ export class ContextBuilder {
   }
 
   /**
-   * 计算 Cell 哈希
+   * Compute cell hash
    */
   private hashCell(cell: CodeCell): string {
     const content = `${cell.source}|${cell.executionState}|${cell.executionCount}`;
-    // 简单哈希
+    // Simple hash
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
@@ -296,7 +296,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 摘要化输出
+   * Summarize outputs
    */
   private summarizeOutputs(outputs: Output[]): string {
     if (outputs.length === 0) return 'No output';
@@ -327,7 +327,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 提取变量信息
+   * Extract variable information
    */
   private extractVariables(
     cells: CodeCell[]
@@ -335,12 +335,12 @@ export class ContextBuilder {
     const variables: Array<{ name: string; type: string; shape?: string }> = [];
     const seen = new Set<string>();
 
-    // 反向遍历，获取最新的变量定义
+    // Traverse in reverse to get the latest variable definitions
     for (let i = cells.length - 1; i >= 0; i--) {
       const cell = cells[i];
       if (cell.executionState !== 'success') continue;
 
-      // DataFrame 检测
+      // DataFrame detection
       const dfMatches = cell.source.matchAll(/(\w+)\s*=\s*pd\.(read_\w+|DataFrame)\([^)]*\)/g);
       for (const match of dfMatches) {
         if (!seen.has(match[1])) {
@@ -349,7 +349,7 @@ export class ContextBuilder {
         }
       }
 
-      // NumPy array 检测
+      // NumPy array detection
       const npMatches = cell.source.matchAll(/(\w+)\s*=\s*np\.(array|zeros|ones|arange|linspace)\([^)]*\)/g);
       for (const match of npMatches) {
         if (!seen.has(match[1])) {
@@ -358,7 +358,7 @@ export class ContextBuilder {
         }
       }
 
-      // 列表检测
+      // List detection
       const listMatches = cell.source.matchAll(/(\w+)\s*=\s*\[/g);
       for (const match of listMatches) {
         if (!seen.has(match[1]) && !match[1].startsWith('_')) {
@@ -367,7 +367,7 @@ export class ContextBuilder {
         }
       }
 
-      // 字典检测
+      // Dict detection
       const dictMatches = cell.source.matchAll(/(\w+)\s*=\s*\{/g);
       for (const match of dictMatches) {
         if (!seen.has(match[1]) && !match[1].startsWith('_')) {
@@ -381,7 +381,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 提取错误信息
+   * Extract error information
    */
   private extractErrors(cells: CodeCell[]): string[] {
     const errors: string[] = [];
@@ -396,11 +396,11 @@ export class ContextBuilder {
       }
     }
 
-    return errors.slice(-5);  // 最近 5 个错误
+    return errors.slice(-5);  // Last 5 errors
   }
 
   /**
-   * 格式化产物摘要
+   * Format artifact summaries
    */
   private formatArtifactSummaries(
     artifacts: DetectedArtifact[]
@@ -416,7 +416,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 描述产物
+   * Describe artifact
    */
   private describeArtifact(artifact: DetectedArtifact): string {
     switch (artifact.type) {
@@ -433,14 +433,14 @@ export class ContextBuilder {
   }
 
   /**
-   * 估算 Token 数量
+   * Estimate token count
    */
   private estimateTokens(
     recentCells: Array<{ source: string; outputs: string }>,
     summaries: Array<{ summary: string }>,
     variables: Array<{ name: string; type: string }>
   ): number {
-    // 粗略估算：4 字符 ≈ 1 token
+    // Rough estimate: 4 characters ~ 1 token
     let charCount = 0;
 
     for (const cell of recentCells) {
@@ -459,7 +459,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 清除缓存
+   * Clear cache
    */
   clearCache(): void {
     this.cache = {
@@ -470,7 +470,7 @@ export class ContextBuilder {
   }
 
   /**
-   * 获取缓存统计
+   * Get cache statistics
    */
   getCacheStats(): {
     cachedCells: number;
@@ -486,7 +486,7 @@ export class ContextBuilder {
 }
 
 /**
- * 创建 ContextBuilder 实例
+ * Create a ContextBuilder instance
  */
 export function createContextBuilder(
   config?: Partial<ContextConfig>

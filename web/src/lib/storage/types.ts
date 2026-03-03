@@ -1,8 +1,8 @@
 /**
  * Storage Layer Type Definitions
  * 
- * 定义存储适配器接口和相关类型
- * 所有存储操作都通过统一接口进行，支持 Mock 和 IndexedDB 实现
+ * Defines storage adapter interface and related types
+ * All storage operations go through a unified interface, supporting Mock and IndexedDB implementations
  */
 
 import type {
@@ -18,31 +18,31 @@ import type {
 // ============================================================
 
 /**
- * 论文元信息 (列表展示用)
+ * Paper metadata (for list display)
  */
 export interface PaperMeta {
-  /** 论文 ID (arxiv_id 或自定义 ID) */
+  /** Paper ID (arxiv_id or custom ID) */
   id: string;
-  /** 论文标题 */
+  /** Paper title */
   title: string;
-  /** 作者列表 */
+  /** Author list */
   authors: string[];
-  /** ArXiv ID (如果有) */
+  /** ArXiv ID (if available) */
   arxivId?: string;
-  /** 发布日期 */
+  /** Publication date */
   published?: string;
-  /** 摘要 */
+  /** Abstract */
   abstract?: string;
-  /** 是否有 OCR 数据 */
+  /** Whether OCR data exists */
   hasOCRData: boolean;
-  /** 总页数 */
+  /** Total pages */
   totalPages?: number;
-  /** 分类 */
+  /** Categories */
   categories?: string[];
 }
 
 /**
- * OCR 结果
+ * OCR result
  */
 export interface OCRResult {
   success: boolean;
@@ -65,18 +65,18 @@ export interface OCRResult {
 }
 
 /**
- * 论文完整数据
+ * Full paper data
  */
 export interface PaperData {
-  /** 元信息 */
+  /** Metadata */
   meta: PaperMeta;
-  /** 完整元数据 */
+  /** Full metadata */
   metadata: PaperMetadata;
-  /** Markdown 全文 */
+  /** Full text in Markdown */
   markdown: string;
-  /** 检测结果 */
+  /** Detection results */
   detections: PageDetection[];
-  /** OCR 结果 */
+  /** OCR result */
   ocrResult: OCRResult;
 }
 
@@ -85,29 +85,29 @@ export interface PaperData {
 // ============================================================
 
 /**
- * 跨论文引用
+ * Cross-paper citation
  */
 export interface CrossPaperCitation {
-  /** 唯一标识 */
+  /** Unique identifier */
   id: string;
-  /** 论文 ID */
+  /** Paper ID */
   paperId: string;
-  /** 论文标题 */
+  /** Paper title */
   paperTitle: string;
   /** Detection ID */
   detectionId: string;
-  /** 页码 */
+  /** Page number */
   pageNumber: number;
-  /** 引用的原文片段 */
+  /** Cited text excerpt */
   excerpt: string;
-  /** 边界框 */
+  /** Bounding box */
   bbox?: BoundingBox;
-  /** 创建时间 */
+  /** Creation time */
   createdAt: number;
 }
 
 /**
- * 聊天消息
+ * Chat message
  */
 export interface StoredChatMessage {
   id: string;
@@ -118,22 +118,22 @@ export interface StoredChatMessage {
 }
 
 /**
- * 聊天会话
+ * Chat session
  */
 export interface ChatSession {
-  /** 会话 ID */
+  /** Session ID */
   id: string;
-  /** 会话标题 */
+  /** Session title */
   title: string;
-  /** 关联的论文 ID 列表 */
+  /** Associated paper ID list */
   paperIds: string[];
-  /** 消息历史 */
+  /** Message history */
   messages: StoredChatMessage[];
-  /** 创建时间 */
+  /** Creation time */
   createdAt: number;
-  /** 更新时间 */
+  /** Update time */
   updatedAt: number;
-  /** 是否归档 */
+  /** Whether archived */
   archived: boolean;
 }
 
@@ -142,7 +142,7 @@ export interface ChatSession {
 // ============================================================
 
 /**
- * 笔记条目类型
+ * Note entry type
  */
 export type NoteEntryType = 
   | 'text'
@@ -154,44 +154,44 @@ export type NoteEntryType =
   | 'chat_excerpt';
 
 /**
- * 笔记条目
+ * Note entry
  */
 export interface NoteEntry {
-  /** 条目 ID */
+  /** Entry ID */
   id: string;
-  /** 条目类型 */
+  /** Entry type */
   type: NoteEntryType;
-  /** 内容 (HTML/Markdown) */
+  /** Content (HTML/Markdown) */
   content: string;
-  /** 来源引用 */
+  /** Source citation */
   source?: CrossPaperCitation;
-  /** 原始 Insight */
+  /** Original Insight */
   originalInsight?: PaperInsight;
-  /** 创建时间 */
+  /** Creation time */
   createdAt: number;
-  /** 用户备注 */
+  /** User annotation */
   annotation?: string;
 }
 
 /**
- * 笔记本
+ * Notebook
  */
 export interface Notebook {
-  /** 笔记本 ID */
+  /** Notebook ID */
   id: string;
-  /** 笔记本名称 */
+  /** Notebook name */
   name: string;
-  /** 描述 */
+  /** Description */
   description?: string;
-  /** 笔记条目 */
+  /** Note entries */
   entries: NoteEntry[];
-  /** 关联的论文 ID */
+  /** Associated paper IDs */
   paperIds: string[];
-  /** 创建时间 */
+  /** Creation time */
   createdAt: number;
-  /** 更新时间 */
+  /** Update time */
   updatedAt: number;
-  /** 标签 */
+  /** Tags */
   tags: string[];
 }
 
@@ -200,28 +200,28 @@ export interface Notebook {
 // ============================================================
 
 /**
- * 引用元数据 (从外部 API 获取)
+ * Reference metadata (fetched from external API)
  */
 export interface ReferenceMetadata {
-  /** 标识符 (arxiv_id 或 doi) */
+  /** Identifier (arxiv_id or doi) */
   identifier: string;
-  /** 标题 */
+  /** Title */
   title: string;
-  /** 作者 */
+  /** Authors */
   authors: string[];
-  /** 摘要 */
+  /** Abstract */
   abstract?: string;
-  /** 年份 */
+  /** Year */
   year?: number;
-  /** 引用数 */
+  /** Citation count */
   citationCount?: number;
-  /** 期刊/会议 */
+  /** Journal/conference */
   venue?: string;
   /** PDF URL */
   pdfUrl?: string;
   /** ArXiv ID */
   arxivId?: string;
-  /** 获取时间 */
+  /** Fetch time */
   fetchedAt: number;
 }
 
@@ -230,74 +230,74 @@ export interface ReferenceMetadata {
 // ============================================================
 
 /**
- * 存储适配器接口
- * 
- * 所有存储操作的统一抽象
- * 支持 Mock (public/data/output) 和 IndexedDB 实现
+ * Storage adapter interface
+ *
+ * Unified abstraction for all storage operations
+ * Supports Mock (public/data/output) and IndexedDB implementations
  */
 export interface StorageAdapter {
   // ==========================================
-  // Paper Data (OCR 预处理数据)
+  // Paper Data (OCR preprocessed data)
   // ==========================================
   
-  /** 列出所有可用论文 */
+  /** List all available papers */
   listPapers(): Promise<PaperMeta[]>;
   
-  /** 获取论文完整数据 */
+  /** Get full paper data */
   getPaper(paperId: string): Promise<PaperData | null>;
   
-  /** 检查论文是否存在 */
+  /** Check if paper exists */
   hasPaper(paperId: string): Promise<boolean>;
   
   // ==========================================
   // Chat Sessions
   // ==========================================
   
-  /** 列出所有聊天会话 */
+  /** List all chat sessions */
   listChatSessions(): Promise<ChatSession[]>;
   
-  /** 获取单个聊天会话 */
+  /** Get a single chat session */
   getChatSession(id: string): Promise<ChatSession | null>;
   
-  /** 保存聊天会话 */
+  /** Save chat session */
   saveChatSession(session: ChatSession): Promise<void>;
   
-  /** 删除聊天会话 */
+  /** Delete chat session */
   deleteChatSession(id: string): Promise<void>;
   
   // ==========================================
   // Notebooks
   // ==========================================
   
-  /** 列出所有笔记本 */
+  /** List all notebooks */
   listNotebooks(): Promise<Notebook[]>;
   
-  /** 获取单个笔记本 */
+  /** Get a single notebook */
   getNotebook(id: string): Promise<Notebook | null>;
   
-  /** 保存笔记本 */
+  /** Save notebook */
   saveNotebook(notebook: Notebook): Promise<void>;
   
-  /** 删除笔记本 */
+  /** Delete notebook */
   deleteNotebook(id: string): Promise<void>;
   
   // ==========================================
   // Paper Insights Cache
   // ==========================================
   
-  /** 获取论文缓存的 Insights */
+  /** Get cached paper Insights */
   getPaperInsights(paperId: string): Promise<PaperInsight[]>;
   
-  /** 保存论文 Insights */
+  /** Save paper Insights */
   savePaperInsights(paperId: string, insights: PaperInsight[]): Promise<void>;
   
   // ==========================================
   // Reference Metadata Cache
   // ==========================================
   
-  /** 获取引用元数据 */
+  /** Get reference metadata */
   getReferenceMetadata(identifier: string): Promise<ReferenceMetadata | null>;
   
-  /** 保存引用元数据 */
+  /** Save reference metadata */
   saveReferenceMetadata(identifier: string, metadata: ReferenceMetadata): Promise<void>;
 }

@@ -3,10 +3,10 @@
 /**
  * PDF Reader Content
  * 
- * PDF 阅读器的主要内容区域
- * 包含：左边栏、PDF 渲染器（带内嵌工具栏）、右边栏
- * 
- * 此组件不包含顶栏，由 PDFReaderWrapper 管理
+ * Main content area of the PDF reader.
+ * Contains: left sidebar, PDF renderer (with inline toolbar), and right sidebar.
+ *
+ * This component does not include the top bar, which is managed by PDFReaderWrapper.
  */
 
 import React, {
@@ -135,12 +135,12 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
     height: number;
   }>({ width: 0, height: 0 });
   const [readingMode, setReadingMode] = useState<ReadingMode>("single");
-  const [leftPanelWidth, setLeftPanelWidth] = useState(250); // 15% 比例
-  const [rightPanelWidth, setRightPanelWidth] = useState(500); // 35% 比例
+  const [leftPanelWidth, setLeftPanelWidth] = useState(250); // 15% ratio
+  const [rightPanelWidth, setRightPanelWidth] = useState(500); // 35% ratio
   const [isSentenceLayerEnabled, setIsSentenceLayerEnabled] = useState(ENABLE_SENTENCE_LAYER);
   const [selectedSentences, setSelectedSentences] = useState<any>(null);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  // 交互模式：sentence（句子选择）或 paragraph（段落操作）
+  // Interaction mode: sentence (sentence selection) or paragraph (paragraph operations)
   const [interactionMode, setInteractionMode] = useState<InteractionMode>("sentence");
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -407,7 +407,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
 
   return (
     <div ref={containerRef} className="h-full flex overflow-hidden gap-2">
-      {/* 左侧面板 */}
+      {/* Left panel */}
       <IndexPanel
         file={pdfUrl}
         currentPage={pageNumber}
@@ -419,9 +419,9 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
         onWidthChange={setLeftPanelWidth}
       />
 
-      {/* 中间 PDF 容器 */}
+      {/* Center PDF container */}
       <div className="flex-1 flex flex-col overflow-hidden bg-white rounded-xl shadow-sm border border-stone-200/80">
-        {/* 内嵌工具栏 */}
+        {/* Inline toolbar */}
         <PDFToolbarInline
           viewState={pdfViewState}
           onViewStateChange={handleViewStateChange}
@@ -440,7 +440,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
           className="rounded-t-xl"
         />
 
-        {/* PDF 渲染区域 */}
+        {/* PDF rendering area */}
         <div className="flex-1 overflow-auto">
           {pdfUrl ? (
             <PDFRenderer
@@ -485,7 +485,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
         </div>
       </div>
 
-      {/* 右侧 AI 面板 */}
+      {/* Right AI panel */}
       <AIRightPanel
         isOpen={isRightPanelOpen}
         onClose={onToggleRightPanel}
@@ -493,7 +493,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
         onNavigateToPage={goToPage}
       />
 
-      {/* 选择文本弹窗 */}
+      {/* Text selection popup */}
       {selectedText && (
         <SelectionPopup
           position={selectedText.position}
@@ -503,7 +503,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
         />
       )}
 
-      {/* 句子选择弹窗 */}
+      {/* Sentence selection popup */}
       {selectedSentences && (
         <SelectionPopup
           position={selectedSentences.position}
@@ -513,7 +513,7 @@ export const PDFReaderContent: React.FC<PDFReaderContentProps> = ({
         />
       )}
 
-      {/* 快捷键浮动按钮 */}
+      {/* Shortcuts floating button */}
       <ShortcutsFloatingButton
         isIndexPanelOpen={isLeftPanelOpen}
         isOpen={isShortcutsOpen}

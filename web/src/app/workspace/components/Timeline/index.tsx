@@ -2,9 +2,9 @@
 
 /**
  * Timeline
- * 
- * 时间线组件 - 操作记录与回放
- * 支持事件详情预览、状态快照跳转
+ *
+ * Timeline component - Action recording and playback
+ * Supports event detail preview and state snapshot navigation
  */
 
 import React, { memo, useCallback, useState, useMemo, useRef } from 'react';
@@ -320,7 +320,7 @@ export const Timeline = memo(function Timeline({
 
   const currentTime = (currentPosition / 100) * duration;
 
-  // 计算事件位置 - 均匀分布在 5%-95% 之间
+  // Calculate event positions - evenly distributed between 5%-95%
   const eventPositions = useMemo(() => {
     if (events.length === 0) return [];
     if (events.length === 1) {
@@ -342,7 +342,7 @@ export const Timeline = memo(function Timeline({
     return eventPositions.find((ep) => ep.event.id === hoveredEventId);
   }, [hoveredEventId, eventPositions]);
 
-  // 如果没有事件，显示简化版带计时
+  // If no events, show simplified version with timer
   if (events.length === 0) {
     return (
       <div className="rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-sm">
@@ -361,7 +361,7 @@ export const Timeline = memo(function Timeline({
 
   return (
     <div className="rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-sm overflow-hidden">
-      {/* 展开的事件列表 */}
+      {/* Expanded event list */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -376,9 +376,9 @@ export const Timeline = memo(function Timeline({
         )}
       </AnimatePresence>
 
-      {/* 主时间线控制 */}
+      {/* Main timeline controls */}
       <div className="flex items-center gap-3 px-4 py-2.5">
-        {/* 展开/收起按钮 */}
+        {/* Expand/collapse button */}
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -392,7 +392,7 @@ export const Timeline = memo(function Timeline({
           )}
         </button>
 
-        {/* 事件计数 */}
+        {/* Event count */}
         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-200/60">
           <Activity className="w-3 h-3 text-slate-500" />
           <span className="text-[11px] text-slate-600 font-medium tabular-nums">
@@ -400,15 +400,15 @@ export const Timeline = memo(function Timeline({
           </span>
         </div>
 
-        {/* 时间线轨道 */}
+        {/* Timeline track */}
         <div 
           ref={trackRef}
           onClick={handleTrackClick}
           className="flex-1 relative h-8 cursor-pointer group"
         >
-          {/* 轨道背景 */}
+          {/* Track background */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-            {/* 进度填充 */}
+            {/* Progress fill */}
             <motion.div
               className="h-full bg-gradient-to-r from-slate-400 to-slate-500 rounded-full"
               style={{ width: `${currentPosition}%` }}
@@ -417,7 +417,7 @@ export const Timeline = memo(function Timeline({
             />
           </div>
 
-          {/* 事件标记点 */}
+          {/* Event marker points */}
           {eventPositions.map(({ event, position }) => (
             <EventMarker
               key={event.id}
@@ -429,7 +429,7 @@ export const Timeline = memo(function Timeline({
             />
           ))}
 
-          {/* 当前位置指示器 */}
+          {/* Current position indicator */}
           <motion.div
             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-slate-800 rounded-full shadow-lg border-2 border-white z-20 cursor-grab active:cursor-grabbing"
             style={{ left: `${currentPosition}%` }}
@@ -437,7 +437,7 @@ export const Timeline = memo(function Timeline({
             whileTap={{ scale: 0.95 }}
           />
 
-          {/* 事件详情弹窗 */}
+          {/* Event detail popup */}
           <AnimatePresence>
             {hoveredEvent && (
               <EventDetailPopup
@@ -448,7 +448,7 @@ export const Timeline = memo(function Timeline({
           </AnimatePresence>
         </div>
 
-        {/* 时间显示 */}
+        {/* Time display */}
         <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-200/60">
           <span className="text-[11px] text-slate-600 font-mono tabular-nums">
             {formatTime(currentTime)}
@@ -459,7 +459,7 @@ export const Timeline = memo(function Timeline({
           </span>
         </div>
 
-        {/* 播放控制 */}
+        {/* Playback controls */}
         <div className="flex items-center gap-0.5">
           <button
             type="button"

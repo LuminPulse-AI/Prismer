@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * CodeCell - 代码单元格组件
- * 
- * Phase 5 增强：
- * - Cell 类型切换
- * - AI 工具栏
- * - Pending Edit 状态显示
- * - 右键菜单
+ * CodeCell - Code Cell Component
+ *
+ * Phase 5 enhancements:
+ * - Cell type switching
+ * - AI toolbar
+ * - Pending Edit state display
+ * - Context menu
  */
 
 import React, { useCallback, useMemo, memo } from 'react';
@@ -18,7 +18,7 @@ import { OutputArea } from './OutputArea';
 import { CellAIToolbar, CellContextMenu, type CellAIAction } from './CellContextMenu';
 import { PendingEditBanner } from './PendingEditBanner';
 
-/** 单元格主题：与工程配色一致 */
+/** Cell theme: consistent with the engineering color scheme */
 export type CodeCellTheme = 'default' | 'slate' | 'indigo';
 
 const THEME_STYLES: Record<
@@ -54,7 +54,7 @@ interface CodeCellProps {
   isFirst?: boolean;
   isLast?: boolean;
   kernelStatus: KernelStatus;
-  /** 主题：default（浅色+靛蓝）/ slate / indigo */
+  /** Theme: default (light + indigo) / slate / indigo */
   theme?: CodeCellTheme;
   pendingEdit?: {
     source: string;
@@ -106,7 +106,7 @@ export const CodeCell = memo(function CodeCell({
   const hasPendingEdit = !!pendingEdit;
   const styles = THEME_STYLES[theme];
   
-  // 计算执行指示器
+  // Compute execution indicator
   const executionIndicator = useMemo(() => {
     if (isRunning) {
       return (
@@ -127,7 +127,7 @@ export const CodeCell = memo(function CodeCell({
     );
   }, [isRunning, cell.executionCount]);
 
-  // 状态条颜色（左侧竖条）
+  // Status bar color (left vertical bar)
   const statusColor = useMemo(() => {
     if (hasPendingEdit) return 'bg-yellow-500';
     switch (cell.executionState) {
@@ -142,7 +142,7 @@ export const CodeCell = memo(function CodeCell({
     }
   }, [cell.executionState, isActive, hasPendingEdit]);
 
-  // 处理快捷键
+  // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey)) {
       e.preventDefault();
@@ -152,7 +152,7 @@ export const CodeCell = memo(function CodeCell({
     }
   }, [canExecute, onExecute]);
 
-  // 计算编辑器高度
+  // Calculate editor height
   const editorHeight = useMemo(() => {
     const lines = cell.source.split('\n').length;
     return Math.max(60, Math.min(400, lines * 19 + 20));
@@ -164,7 +164,7 @@ export const CodeCell = memo(function CodeCell({
       onClick={onFocus}
       onKeyDown={handleKeyDown}
     >
-      {/* 状态指示条（左侧竖条） */}
+      {/* Status indicator bar (left vertical bar) */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${statusColor}`} aria-hidden />
 
       <div className="pl-4">
@@ -182,12 +182,12 @@ export const CodeCell = memo(function CodeCell({
         {/* Cell Header */}
         <div className={`flex items-center justify-between px-3 py-1.5 ${styles.header} rounded-t-xl`}>
           <div className="flex items-center gap-2">
-          {/* 执行指示器 */}
+          {/* Execution indicator */}
           <div className="w-12 flex justify-end pl-1">
             {executionIndicator}
           </div>
           
-          {/* 类型选择器 */}
+          {/* Type selector */}
           {onChangeType ? (
             <select
               value={cell.type}
@@ -205,14 +205,14 @@ export const CodeCell = memo(function CodeCell({
             </span>
           )}
           
-          {/* 来源标签 */}
+          {/* Source label */}
           {cell.createdBy === 'agent' && (
             <span className="text-xs text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded">
               AI
             </span>
           )}
           
-          {/* 状态标签 */}
+          {/* Status label */}
           {cell.executionState === 'error' && (
             <span className="text-xs text-red-600 bg-red-100 px-2 py-0.5 rounded">
               Error
@@ -220,16 +220,16 @@ export const CodeCell = memo(function CodeCell({
           )}
           </div>
 
-          {/* 操作按钮 */}
+          {/* Action buttons */}
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* AI 工具栏 */}
+          {/* AI toolbar */}
           {onAIAction && (
             <CellAIToolbar cell={cell} onAction={onAIAction} />
           )}
 
           <div className="w-px h-4 bg-stone-200 mx-1" />
 
-          {/* 移动按钮 */}
+          {/* Move buttons */}
           {onMoveUp && !isFirst && (
             <button
               onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
@@ -249,7 +249,7 @@ export const CodeCell = memo(function CodeCell({
             </button>
           )}
 
-          {/* 右键菜单 */}
+          {/* Context menu */}
           {onCopy && onCut && onPaste && onDuplicate && onAIAction && (
             <CellContextMenu
               cell={cell}
@@ -266,7 +266,7 @@ export const CodeCell = memo(function CodeCell({
             />
           )}
 
-          {/* 删除按钮 */}
+          {/* Delete button */}
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="p-1 hover:bg-red-100 rounded text-stone-500 hover:text-red-600"
@@ -275,7 +275,7 @@ export const CodeCell = memo(function CodeCell({
             <Trash2 size={14} />
           </button>
 
-          {/* 执行按钮 */}
+          {/* Execute button */}
           <button
             onClick={(e) => { e.stopPropagation(); onExecute(); }}
             disabled={!canExecute}
@@ -293,7 +293,7 @@ export const CodeCell = memo(function CodeCell({
           </div>
         </div>
 
-        {/* Editor — 浅色主题与工程配色一致 */}
+        {/* Editor — light theme consistent with engineering color scheme */}
         <div className="overflow-hidden border-b border-slate-200/80 bg-slate-50/50">
           <Editor
             height={editorHeight}

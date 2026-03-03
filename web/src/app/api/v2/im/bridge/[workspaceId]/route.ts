@@ -62,7 +62,7 @@ function enqueuePluginDirective(agentId: string, type: string, payload: Record<s
 function isNotesIntent(content: string): boolean {
   // Keep static notes fallback scoped to explicit notes intents.
   // Avoid matching "notebook" (e.g. Jupyter prompts) via word boundaries.
-  return /\b(note|notes|note editor|notes editor|ai-editor|笔记)\b/i.test(content);
+  return /\b(note|notes|note editor|notes editor|ai-editor)\b/i.test(content);
 }
 
 // ============================================================
@@ -315,7 +315,7 @@ function isLatexIntent(content: string): boolean {
 }
 
 function isCodeIntent(content: string): boolean {
-  return /\b(code|script|run|execute|coding|playground|算法|代码)\b/i.test(content)
+  return /\b(code|script|run|execute|coding|playground|algorithm)\b/i.test(content)
     && !/\b(notebook|jupyter|latex|notes?)\b/i.test(content);
 }
 
@@ -323,7 +323,7 @@ function extractTopic(userPrompt: string): string {
   // Try to extract meaningful topic from user message
   // Remove common intent words, keep the subject
   const cleaned = userPrompt
-    .replace(/\b(help|me|to|write|create|make|generate|draft|prepare|notes?|about|on|关于|写|帮我|一个|笔记|的|用)\b/gi, '')
+    .replace(/\b(help|me|to|write|create|make|generate|draft|prepare|notes?|about|on)\b/gi, '')
     .trim();
   if (cleaned.length >= 2 && cleaned.length <= 80) return cleaned;
   return 'Research';
@@ -441,7 +441,7 @@ function buildStaticJupyterContent(userPrompt: string): string {
 function buildStaticCodeContent(userPrompt: string): { code: string; filename: string; chatReply: string } {
   const topic = extractTopic(userPrompt);
 
-  if (/\b(sort|sorting|算法)\b/i.test(userPrompt)) {
+  if (/\b(sort|sorting|algorithm)\b/i.test(userPrompt)) {
     return {
       filename: 'sort_demo.py',
       code: [

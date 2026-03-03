@@ -1,10 +1,10 @@
 /**
  * Storage Persistence Hook
  * 
- * 自动同步 Zustand stores 到 IndexedDB
- * - 自动保存
- * - 启动时加载
- * - 防抖处理
+ * Automatically syncs Zustand stores to IndexedDB
+ * - Auto-save
+ * - Load on startup
+ * - Debounced writes
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -15,11 +15,11 @@ import { useStorage, getUserStorageManager } from '@/lib/storage';
 import { ChatSession as StorageChatSession, Notebook as StorageNotebook } from '@/lib/storage/types';
 
 // ============================================================
-// 类型转换
+// Type Conversion
 // ============================================================
 
 /**
- * 将 Store 的 ChatSession 转换为 Storage 格式
+ * Convert Store ChatSession to Storage format
  */
 function toStorageChatSession(session: ChatSession): StorageChatSession {
   return {
@@ -48,14 +48,14 @@ function toStorageChatSession(session: ChatSession): StorageChatSession {
 }
 
 /**
- * 将 Storage 的 ChatSession 转换为 Store 格式
+ * Convert Storage ChatSession to Store format
  */
 function fromStorageChatSession(session: StorageChatSession): ChatSession {
   return {
     id: session.id,
     title: session.title,
     paperIds: session.paperIds,
-    paperAliasMap: {}, // 会在加载后重新计算
+    paperAliasMap: {}, // Will be recalculated after loading
     messages: session.messages.map(m => ({
       id: m.id,
       role: m.role,
@@ -66,7 +66,7 @@ function fromStorageChatSession(session: StorageChatSession): ChatSession {
         detectionId: c.detectionId,
         paperTitle: c.paperTitle,
         pageNumber: c.pageNumber,
-        type: 'text' as const, // 默认类型
+        type: 'text' as const, // Default type
         excerpt: c.excerpt,
       })),
       messageContext: {
@@ -87,7 +87,7 @@ function fromStorageChatSession(session: StorageChatSession): ChatSession {
 }
 
 /**
- * 将 Store 的 Notebook 转换为 Storage 格式
+ * Convert Store Notebook to Storage format
  */
 function toStorageNotebook(notebook: Notebook): StorageNotebook {
   return {
@@ -118,7 +118,7 @@ function toStorageNotebook(notebook: Notebook): StorageNotebook {
 }
 
 /**
- * 将 Storage 的 Notebook 转换为 Store 格式
+ * Convert Storage Notebook to Store format
  */
 function fromStorageNotebook(notebook: StorageNotebook): Notebook {
   return {
@@ -129,7 +129,7 @@ function fromStorageNotebook(notebook: StorageNotebook): Notebook {
       id: e.id,
       type: e.type,
       rawContent: e.content,
-      citations: [], // 可以后续重新解析
+      citations: [], // Can be re-parsed later
       source: e.source ? {
         uri: `${e.source.paperId}#${e.source.detectionId}` as const,
         paperId: e.source.paperId,
@@ -154,9 +154,9 @@ function fromStorageNotebook(notebook: StorageNotebook): Notebook {
 // ============================================================
 
 /**
- * 自动持久化 Hook
- * 
- * 使用方式:
+ * Auto-persistence hook
+ *
+ * Usage:
  * ```tsx
  * function App() {
  *   useStoragePersistence();
@@ -174,19 +174,19 @@ export function useStoragePersistence() {
   const notebooks = useNotebookStore(s => s.notebooks);
   const paperInsightsCache = useInsightStore(s => s.paperInsightsCache);
   
-  // 获取用户认证状态
+  // Get user authentication state
   const storageManager = getUserStorageManager();
   const isLoggedIn = storageManager.isLoggedIn();
   
   // ============================================================
-  // 初始加载 (仅登录用户)
+  // Initial load (logged-in users only)
   // ============================================================
   
   useEffect(() => {
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
     
-    // 未登录用户不加载持久化数据
+    // Skip loading persisted data for unauthenticated users
     if (!isLoggedIn) {
       console.log('[Persistence] Skip loading: user not logged in');
       return;
@@ -196,16 +196,16 @@ export function useStoragePersistence() {
       try {
         console.log('[Persistence] Loading from IndexedDB...');
         
-        // 加载 Chat Sessions
+        // Load Chat Sessions
         const storedSessions = await storage.listChatSessions();
         if (storedSessions.length > 0) {
           const sessions = storedSessions.map(fromStorageChatSession);
-          // 直接设置到 store (绕过 persist 中间件避免循环)
+          // Set directly to store (bypass persist middleware to avoid loops)
           useChatSessionStore.setState({ sessions });
           console.log(`[Persistence] Loaded ${sessions.length} chat sessions`);
         }
         
-        // 加载 Notebooks
+        // Load Notebooks
         const storedNotebooks = await storage.listNotebooks();
         if (storedNotebooks.length > 0) {
           const nbs = storedNotebooks.map(fromStorageNotebook);
@@ -213,7 +213,7 @@ export function useStoragePersistence() {
           console.log(`[Persistence] Loaded ${nbs.length} notebooks`);
         }
         
-        // Insights 通过 paperId 按需加载，不在这里全量加载
+        // Insights are loaded on demand by paperId, not bulk-loaded here
         
       } catch (error) {
         console.error('[Persistence] Failed to load from storage:', error);
@@ -224,11 +224,11 @@ export function useStoragePersistence() {
   }, [storage, isLoggedIn]);
   
   // ============================================================
-  // 自动保存 Chat Sessions (防抖)
+  // Auto-save Chat Sessions (debounced)
   // ============================================================
   
   const saveChatSessions = useCallback(async () => {
-    // 未登录用户不保存
+    // Skip saving for unauthenticated users
     if (!storageManager.isLoggedIn()) {
       console.log('[Persistence] Skip saving chat sessions: user not logged in');
       return;
@@ -254,7 +254,7 @@ export function useStoragePersistence() {
     
     saveTimeoutRef.current = setTimeout(() => {
       saveChatSessions();
-    }, 2000); // 2秒防抖
+    }, 2000); // 2-second debounce
     
     return () => {
       if (saveTimeoutRef.current) {
@@ -264,11 +264,11 @@ export function useStoragePersistence() {
   }, [chatSessions, saveChatSessions]);
   
   // ============================================================
-  // 自动保存 Notebooks (防抖)
+  // Auto-save Notebooks (debounced)
   // ============================================================
   
   const saveNotebooks = useCallback(async () => {
-    // 未登录用户不保存
+    // Skip saving for unauthenticated users
     if (!storageManager.isLoggedIn()) {
       console.log('[Persistence] Skip saving notebooks: user not logged in');
       return;
@@ -304,7 +304,7 @@ export function useStoragePersistence() {
   }, [notebooks, saveNotebooks]);
   
   // ============================================================
-  // 自动保存 Insights (按论文)
+  // Auto-save Insights (per paper)
   // ============================================================
   
   const saveInsights = useCallback(async () => {
@@ -328,7 +328,7 @@ export function useStoragePersistence() {
     
     saveTimeoutRef.current = setTimeout(() => {
       saveInsights();
-    }, 3000); // Insights 保存频率更低
+    }, 3000); // Insights saved less frequently
     
     return () => {
       if (saveTimeoutRef.current) {
@@ -338,13 +338,13 @@ export function useStoragePersistence() {
   }, [paperInsightsCache, saveInsights]);
   
   // ============================================================
-  // 页面卸载时立即保存
+  // Save immediately on page unload
   // ============================================================
   
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // 同步保存可能不完整，但尽量尝试
-      // Zustand persist 中间件会处理大部分情况
+      // Sync save may be incomplete, but try our best
+      // Zustand persist middleware handles most cases
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -353,12 +353,12 @@ export function useStoragePersistence() {
 }
 
 // ============================================================
-// 单独的 Insight 加载 Hook
+// Standalone Insight Loading Hook
 // ============================================================
 
 /**
- * 加载指定论文的 Insights
- * 注意：仅对登录用户从持久化存储加载
+ * Load insights for a specific paper.
+ * Note: Only loads from persistent storage for logged-in users.
  */
 export function useLoadPaperInsights(paperId: string | null) {
   const storage = useStorage();
@@ -369,10 +369,10 @@ export function useLoadPaperInsights(paperId: string | null) {
   useEffect(() => {
     if (!paperId) return;
     
-    // 未登录用户不从持久化存储加载
+    // Skip loading from persistent storage for unauthenticated users
     if (!storageManager.isLoggedIn()) return;
     
-    // 如果已有缓存，不重新加载
+    // If cache already exists, skip reloading
     if (getCachedInsights(paperId)) return;
     
     const currentPaperId = paperId; // Capture for async closure

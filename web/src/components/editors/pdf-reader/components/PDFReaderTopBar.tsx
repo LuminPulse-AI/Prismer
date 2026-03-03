@@ -24,31 +24,31 @@ import { toast } from "sonner";
 // ============================================================================
 
 interface PDFReaderTopBarProps {
-  /** 已打开的文档列表 */
+  /** List of open documents */
   documents: OpenDocument[];
-  /** 当前活动文档 ID */
+  /** Currently active document ID */
   activeDocumentId: string | null;
-  /** 当前活动文档的 arxiv ID (用于 Save to Assets) */
+  /** ArXiv ID of the active document (for Save to Assets) */
   currentArxivId?: string;
-  /** 当前活动文档的标题 */
+  /** Title of the active document */
   currentTitle?: string;
-  /** 切换文档回调 */
+  /** Callback to switch documents */
   onSelectDocument: (id: string) => void;
-  /** 关闭文档回调 */
+  /** Callback to close a document */
   onCloseDocument: (id: string) => void;
-  /** 添加新文档回调 */
+  /** Callback to add a new document */
   onAddDocument: () => void;
-  /** 从 Assets 添加文档回调 */
+  /** Callback to add a document from Assets */
   onAddFromAssets?: () => void;
-  /** 最小化阅读器回调 (回到 Library 主页) */
+  /** Callback to minimize the reader (return to Library home) */
   onMinimize: () => void;
-  /** 左边栏状态 */
+  /** Left sidebar state */
   isLeftPanelOpen: boolean;
-  /** 切换左边栏 */
+  /** Toggle left sidebar */
   onToggleLeftPanel: () => void;
-  /** 右边栏状态 */
+  /** Right sidebar state */
   isRightPanelOpen: boolean;
-  /** 切换右边栏 */
+  /** Toggle right sidebar */
   onToggleRightPanel: () => void;
 }
 
@@ -82,7 +82,7 @@ export const PDFReaderTopBar: React.FC<PDFReaderTopBarProps> = ({
     <TooltipProvider>
       <div className="pdf-reader-topbar flex items-center justify-between px-3 py-2 
                       bg-white rounded-xl shadow-sm border border-stone-200/80">
-        {/* 左侧：最小化按钮 + 左边栏切换 */}
+        {/* Left: minimize button + left sidebar toggle */}
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -124,7 +124,7 @@ export const PDFReaderTopBar: React.FC<PDFReaderTopBarProps> = ({
           </Tooltip>
         </div>
 
-        {/* 中间：文档标签页 */}
+        {/* Center: document tabs */}
         <div className="flex-1 mx-4 overflow-hidden">
           <DocumentTabs
             documents={documents}
@@ -136,7 +136,7 @@ export const PDFReaderTopBar: React.FC<PDFReaderTopBarProps> = ({
           />
         </div>
 
-        {/* 右侧：Save to Assets + 右边栏切换 */}
+        {/* Right: Save to Assets + right sidebar toggle */}
         <div className="flex items-center gap-2">
           {/* Save to Assets Button */}
           {currentArxivId && (

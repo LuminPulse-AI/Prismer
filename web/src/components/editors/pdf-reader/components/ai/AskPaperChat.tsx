@@ -1,9 +1,9 @@
 /**
  * Ask Paper Chat
  * 
- * 对话式论文问答面板（支持 Markdown 渲染）
- * 
- * 更新：集成 ChatSessionStore 支持会话持久化和跨论文对话
+ * Conversational paper Q&A panel (supports Markdown rendering)
+ *
+ * Updated: integrated ChatSessionStore for session persistence and cross-paper conversations
  */
 
 "use client";
@@ -101,11 +101,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     setTimeout(() => setCopied(false), 2000);
   }, [displayContent]);
 
-  // 提取引用 - 支持各种括号格式：[[id]], [id], [[A:id]], [A:id] 等
+  // Extract citations - supports various bracket formats: [[id]], [id], [[A:id]], [A:id], etc.
   const citationRefs = useMemo(() => {
     if (isUser) return [];
     const refs: { id: string; alias?: string; index: number }[] = [];
-    // 更宽松的正则：匹配 1-2 个开括号，可选别名，detection ID，1-2 个闭括号
+    // Relaxed regex: matches 1-2 opening brackets, optional alias, detection ID, 1-2 closing brackets
     const pattern = /\[{1,2}(?:([A-Z]):)?(p\d+_\w+_\d+)\]{1,2}/g;
     let match: RegExpExecArray | null;
     let index = 1;
@@ -118,13 +118,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
     return refs;
   }, [displayContent, isUser]);
 
-  // 处理后的内容 - 将引用替换为可渲染的占位符
+  // Processed content - replace citations with renderable placeholders
   const processedContent = useMemo(() => {
     if (isUser) return displayContent;
     let content = displayContent;
     
-    // 使用单一正则一次性替换所有引用格式
-    // 这样可以避免多次替换导致的格式错乱
+    // Use a single regex to replace all citation formats in one pass
+    // This avoids formatting issues caused by multiple sequential replacements
     const citationPattern = /\[{1,2}(?:([A-Z]):)?(p\d+_\w+_\d+)\]{1,2}/g;
     
     content = content.replace(citationPattern, (match, alias, detectionId) => {
@@ -135,13 +135,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
         }
         return `\`cite:${detectionId}:${ref.index}\``;
       }
-      return match; // 如果没找到引用，保持原样
+      return match; // If no matching citation found, keep as-is
     });
     
-    // 清理多余的逗号和空括号（列表格式残留）
-    content = content.replace(/\[\[\s*,?\s*\]\]/g, ''); // 移除空的 [[, ]]
-    content = content.replace(/,\s*`cite:/g, ' `cite:'); // 移除引用前的逗号
-    content = content.replace(/`\s*,\s*/g, '` '); // 移除引用后的逗号
+    // Clean up extra commas and empty brackets (leftover from list format)
+    content = content.replace(/\[\[\s*,?\s*\]\]/g, ''); // Remove empty [[, ]]
+    content = content.replace(/,\s*`cite:/g, ' `cite:'); // Remove commas before citations
+    content = content.replace(/`\s*,\s*/g, '` '); // Remove commas after citations
     
     return content;
   }, [displayContent, citationRefs, isUser]);
@@ -406,7 +406,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
   const currentPaperId = paperContext?.source?.arxivId || null;
   const currentPaperTitle = paperContext?.metadata?.title;
 
-  // 滚动到底部
+  // Scroll to bottom
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
@@ -415,31 +415,31 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     scrollToBottom();
   }, [messages, streamingMessage, scrollToBottom]);
 
-  // 跟踪当前论文 ID，用于检测论文切换
+  // Track the current paper ID to detect paper switches
   const prevPaperIdRef = useRef<string | null>(null);
   
   // Auto-switch session when paper changes
-  // 每次切换论文时，切换到该论文对应的会话（如果不存在则创建）
+  // When switching papers, switch to the session for that paper (create one if it doesn't exist)
   useEffect(() => {
     if (!currentPaperId) return;
     
-    // 检测是否是论文切换（不是首次加载）
+    // Detect whether this is a paper switch (not the initial load)
     const isPaperSwitch = prevPaperIdRef.current !== null && prevPaperIdRef.current !== currentPaperId;
     prevPaperIdRef.current = currentPaperId;
     
-    // 如果是论文切换，或者没有活动会话，切换到对应论文的会话
+    // If this is a paper switch or there's no active session, switch to the session for this paper
     if (isPaperSwitch || !activeSession) {
       console.log('[AskPaperChat] Switching to session for paper:', currentPaperId);
       createOrGetSessionForPaper(currentPaperId, currentPaperTitle);
     }
   }, [currentPaperId, currentPaperTitle, activeSession, createOrGetSessionForPaper]);
 
-  // 初始化 Agent
+  // Initialize Agent
   const [agentReady, setAgentReady] = useState(false);
   const [agentError, setAgentError] = useState<string | null>(null);
   const agentRef = useRef(getDefaultPaperAgentService());
 
-  // 初始化 Agent - API Key 由服务端管理
+  // Initialize Agent - API key managed by the server
   useEffect(() => {
     const initAgent = async () => {
       try {
@@ -509,12 +509,12 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     };
   }, [activeSession, currentPaperId, currentPaperTitle, createOrGetSessionForPaper, addMessage, appendToStreamingMessage, finishStreamingMessage]);
 
-  // 发送消息 (支持可选的预设问题文本)
+  // Send message (supports optional preset question text)
   const handleSend = useCallback(async (questionText?: string) => {
     const trimmedInput = questionText?.trim() || input.trim();
     if (!trimmedInput || isLoading) return;
 
-    // 检查 Agent 和 Paper Context
+    // Check Agent and Paper Context
     if (!agentReady) {
       console.error('Agent not ready');
       return;
@@ -529,12 +529,12 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
       createOrGetSessionForPaper(currentPaperId, currentPaperTitle);
     }
 
-    // 清空输入框（如果是用户输入的）
+    // Clear the input field (only if user typed it directly)
     if (!questionText) {
       setInput('');
     }
 
-    // 构建消息内容 - 如果有引用则包含引用
+    // Build message content - include reference if available
     let messageContent = trimmedInput;
     let contextualQuestion = trimmedInput;
     
@@ -543,7 +543,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
       const pageInfo = chatReference.pageNumber ? ` (Page ${chatReference.pageNumber})` : '';
       messageContent = `[Regarding: "${refText}${chatReference.text.length > 300 ? '...' : ''}"${pageInfo}]\n\n${trimmedInput}`;
       contextualQuestion = `Regarding this text from the paper${pageInfo}:\n\n"${chatReference.text.slice(0, 500)}${chatReference.text.length > 500 ? '...' : ''}"\n\n${trimmedInput}`;
-      // 清除引用
+      // Clear the reference
       clearChatReference();
     }
 
@@ -558,7 +558,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
           defaultPaperId: currentPaperId || undefined,
         };
 
-    // 添加用户消息
+    // Add user message
     addMessage({
       role: 'user',
       rawContent: messageContent,
@@ -570,13 +570,13 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     clearStreamingMessage();
 
     try {
-      // 构建对话历史（排除当前刚添加的用户消息）
+      // Build conversation history (excluding the just-added user message)
       const conversationHistory = messages.map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.rawContent,
       }));
       
-      // 调用真正的 Agent Service，传递对话历史
+      // Call the actual Agent Service, passing conversation history
       await agentRef.current.askPaper(
         contextualQuestion,
         paperContext,
@@ -618,7 +618,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
       );
     } catch (error) {
       console.error('Chat error:', error);
-      // 如果出错，显示错误消息
+      // If an error occurs, show the error message
       appendToStreamingMessage('\n\n⚠️ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
       finishStreamingMessage();
       // Emit failure event for demo flow
@@ -638,7 +638,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     clearChatReference, createOrGetSessionForPaper
   ]);
 
-  // 监听待发送问题 (从其他组件触发，如 Explain 按钮 or demo:sendChat)
+  // Listen for pending questions (triggered from other components, e.g., Explain button or demo:sendChat)
   // This effect must be after handleSend is defined
   useEffect(() => {
     if (!pendingQuestion) return;
@@ -648,14 +648,14 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     
     if (agentReady && !isLoading && (paperContext?.hasOCRData || paperContext?.markdown)) {
       console.log('[AskPaperChat] Conditions met, sending question...');
-      // 自动发送问题
+      // Automatically send the question
       handleSend(pendingQuestion);
-      // 清除待发送问题
+      // Clear the pending question
       clearPendingQuestion();
     }
   }, [pendingQuestion, agentReady, isLoading, paperContext, handleSend, clearPendingQuestion]);
 
-  // 处理按键
+  // Handle key press
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -663,7 +663,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
     }
   }, [handleSend]);
 
-  // 使用建议问题
+  // Use a suggested question
   const handleSuggestedQuestion = useCallback((question: string) => {
     setInput(question);
     inputRef.current?.focus();
@@ -680,7 +680,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
         />
       </div>
 
-      {/* 消息列表 */}
+      {/* Message list */}
       <div className="flex-1 overflow-y-auto p-4">
         {messages.length > 0 ? (
           <div className="space-y-4">
@@ -748,7 +748,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
                   I can help you understand the paper, explain concepts, or find specific information.
                 </p>
 
-                {/* 建议问题 */}
+                {/* Suggested questions */}
                 <div className="w-full space-y-2">
                   <p className="text-xs text-stone-500">Try asking:</p>
                   <div className="flex flex-wrap justify-center gap-2">
@@ -776,7 +776,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
         )}
       </div>
 
-      {/* 建议问题（有对话时显示在输入框上方） */}
+      {/* Suggested questions (shown above input when there are messages) */}
       {messages.length > 0 && !isLoading && (
         <div className="px-4 py-2 border-t border-stone-200 bg-stone-50/50">
           <div className="flex gap-2 overflow-x-auto pb-1">
@@ -798,9 +798,9 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
         </div>
       )}
 
-      {/* 输入区域 */}
+      {/* Input area */}
       <div className="p-4 border-t border-stone-200 bg-stone-50">
-        {/* 引用标签 - 显示选中的文本引用 */}
+        {/* Reference tag - shows the selected text reference */}
         {chatReference && (
           <div className="mb-2 flex items-start gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg">
             <FileText className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
@@ -830,7 +830,7 @@ export const AskPaperChat: React.FC<AskPaperChatProps> = ({
           </div>
         )}
         <div className="flex items-end gap-2">
-          {/* Context Indicator - 圆形进度指示器，与发送按钮等高 */}
+          {/* Context Indicator - circular progress indicator, same height as send button */}
           <ContextIndicator size={40} />
           
           <textarea

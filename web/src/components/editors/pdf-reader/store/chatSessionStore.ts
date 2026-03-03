@@ -1,10 +1,10 @@
 /**
  * Chat Session Store
  * 
- * 独立于文档的聊天会话管理
- * - 支持多论文对话
- * - 会话持久化
- * - 切换论文不丢失对话
+ * Document-independent chat session management
+ * - Supports multi-paper conversations
+ * - Session persistence
+ * - Switching papers does not lose conversations
  */
 
 import { create } from 'zustand';
@@ -24,33 +24,33 @@ const EMPTY_MESSAGES: ChatMessage[] = [];
 const EMPTY_SESSIONS: ChatSession[] = [];
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 /**
- * 聊天消息
+ * Chat message
  */
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   
-  /** 原始内容 (保留 AI 生成的标签) */
+  /** Raw content (preserves AI-generated tags) */
   rawContent: string;
   
-  /** 解析后的引用列表 */
+  /** Parsed citation list */
   citations: Citation[];
-  
-  /** 消息上下文 */
+
+  /** Message context */
   messageContext: MessageContext;
-  
-  /** 消息关联的论文 */
+
+  /** Papers associated with the message */
   targetPaperIds?: string[];
   
   timestamp: number;
 }
 
 /**
- * 上下文配置
+ * Context configuration
  */
 export interface ChatContextConfig {
   mode: 'single' | 'multi' | 'selective';
@@ -60,22 +60,22 @@ export interface ChatContextConfig {
 }
 
 /**
- * 聊天会话
+ * Chat session
  */
 export interface ChatSession {
   id: string;
   title: string;
   
-  /** 关联的论文 ID 列表 */
+  /** Associated paper ID list */
   paperIds: string[];
-  
-  /** 论文别名映射 (会话级别，稳定不变) */
+
+  /** Paper alias map (session-level, stable and immutable) */
   paperAliasMap: PaperAliasMap;
-  
-  /** 消息历史 */
+
+  /** Message history */
   messages: ChatMessage[];
-  
-  /** 上下文配置 */
+
+  /** Context configuration */
   contextConfig: ChatContextConfig;
   
   createdAt: number;
@@ -84,59 +84,59 @@ export interface ChatSession {
 }
 
 // ============================================================
-// Store 状态
+// Store State
 // ============================================================
 
 interface ChatSessionState {
-  /** 会话列表 */
+  /** Session list */
   sessions: ChatSession[];
-  
-  /** 当前活动会话 ID */
+
+  /** Current active session ID */
   activeSessionId: string | null;
-  
-  /** 流式响应内容 */
+
+  /** Streaming response content */
   streamingMessage: string;
-  
-  /** 加载状态 */
+
+  /** Loading state */
   isLoading: boolean;
-  
-  /** 错误信息 */
+
+  /** Error message */
   error: string | null;
 }
 
 interface ChatSessionActions {
-  // 会话管理
+  // Session management
   createSession: (title: string, paperIds?: string[]) => ChatSession;
   deleteSession: (id: string) => void;
   archiveSession: (id: string) => void;
   updateSession: (id: string, updates: Partial<ChatSession>) => void;
-  
-  // 切换会话
+
+  // Switch session
   setActiveSession: (id: string | null) => void;
   getActiveSession: () => ChatSession | null;
-  
-  // 论文关联
+
+  // Paper association
   addPaperToSession: (sessionId: string, paperId: string) => void;
   removePaperFromSession: (sessionId: string, paperId: string) => void;
-  
-  // 消息管理
+
+  // Message management
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp' | 'citations'>) => void;
   updateLastMessage: (content: string) => void;
   appendToStreamingMessage: (chunk: string) => void;
   finishStreamingMessage: () => void;
   clearStreamingMessage: () => void;
-  
-  // 状态管理
+
+  // State management
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  
-  // 工具方法
+
+  // Utility methods
   getSessionForPaper: (paperId: string) => ChatSession | null;
   createOrGetSessionForPaper: (paperId: string, paperTitle?: string) => ChatSession;
 }
 
 // ============================================================
-// 默认值
+// Default Values
 // ============================================================
 
 const DEFAULT_CONTEXT_CONFIG: ChatContextConfig = {
@@ -146,14 +146,14 @@ const DEFAULT_CONTEXT_CONFIG: ChatContextConfig = {
 };
 
 // ============================================================
-// Store 实现
+// Store Implementation
 // ============================================================
 
 export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>()(
   devtools(
     persist(
       (set, get) => ({
-        // 初始状态
+        // Initial state
         sessions: [],
         activeSessionId: null,
         streamingMessage: '',
@@ -161,14 +161,14 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         error: null,
         
         // ============================================================
-        // 会话管理
+        // Session management
         // ============================================================
-        
+
         createSession: (title, paperIds = []) => {
           const id = uuidv4();
           const now = Date.now();
-          
-          // 分配论文别名
+
+          // Assign paper aliases
           const paperAliasMap = paperAliasAssigner.assignAliases(paperIds);
           
           const newSession: ChatSession = {
@@ -215,7 +215,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         },
         
         // ============================================================
-        // 切换会话
+        // Switch session
         // ============================================================
         
         setActiveSession: (id) => {
@@ -229,7 +229,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         },
         
         // ============================================================
-        // 论文关联
+        // Paper association
         // ============================================================
         
         addPaperToSession: (sessionId, paperId) => {
@@ -238,7 +238,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
               if (s.id !== sessionId) return s;
               if (s.paperIds.includes(paperId)) return s;
               
-              // 更新论文列表和别名映射
+              // Update paper list and alias map
               const newPaperIds = [...s.paperIds, paperId];
               const newAliasMap = paperAliasAssigner.assignAliases(
                 newPaperIds,
@@ -256,14 +256,14 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         },
         
         removePaperFromSession: (sessionId, paperId) => {
-          // 注意：通常不建议移除论文，因为会影响历史消息的标签解析
+          // Note: removing papers is generally not recommended as it affects tag parsing in historical messages
           set(state => ({
             sessions: state.sessions.map(s => {
               if (s.id !== sessionId) return s;
               return {
                 ...s,
                 paperIds: s.paperIds.filter(id => id !== paperId),
-                // 保留别名映射，不删除
+                // Keep alias map, do not delete
                 updatedAt: Date.now(),
               };
             }),
@@ -271,7 +271,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         },
         
         // ============================================================
-        // 消息管理
+        // Message management
         // ============================================================
         
         addMessage: (messageData) => {
@@ -281,7 +281,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
             return;
           }
           
-          // 解析标签并映射为 Citations
+          // Parse tags and map to Citations
           const tags = citationTagParser.parse(messageData.rawContent);
           const citations = citationMapper.mapToCitations(tags, messageData.messageContext);
           
@@ -310,7 +310,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
           
           const lastMessage = session.messages[session.messages.length - 1];
           
-          // 重新解析引用
+          // Re-parse citations
           const tags = citationTagParser.parse(content);
           const citations = citationMapper.mapToCitations(tags, lastMessage.messageContext);
           
@@ -340,7 +340,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
           
           if (!session || !streamingMessage) return;
           
-          // 确定消息上下文
+          // Determine message context
           const messageContext: MessageContext = session.paperIds.length > 1
             ? {
                 mode: 'multi',
@@ -351,7 +351,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
                 defaultPaperId: session.paperIds[0],
               };
           
-          // 添加 assistant 消息
+          // Add assistant message
           get().addMessage({
             role: 'assistant',
             rawContent: streamingMessage,
@@ -366,19 +366,19 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
         },
         
         // ============================================================
-        // 状态管理
+        // State management
         // ============================================================
         
         setLoading: (loading) => set({ isLoading: loading }),
         setError: (error) => set({ error }),
         
         // ============================================================
-        // 工具方法
+        // Utility methods
         // ============================================================
         
         getSessionForPaper: (paperId) => {
           const { sessions } = get();
-          // 查找包含该论文的最近更新的会话
+          // Find the most recently updated session containing this paper
           const matchingSessions = sessions
             .filter(s => s.paperIds.includes(paperId) && !s.archived)
             .sort((a, b) => b.updatedAt - a.updatedAt);
@@ -394,7 +394,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
               : `Chat: ${paperId}`;
             session = get().createSession(title, [paperId]);
           } else {
-            // 确保会话是活动的
+            // Ensure the session is active
             get().setActiveSession(session.id);
           }
           
@@ -404,7 +404,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
       {
         name: 'chat-session-storage',
         version: 1,
-        // 使用用户隔离存储，未登录用户不保存聊天记录
+        // Use user-isolated storage; unauthenticated users do not persist chat history
         storage: createUserIsolatedStorage('chat-session-storage', true),
         partialize: (state) => ({
           sessions: state.sessions,
@@ -429,7 +429,7 @@ export const useChatSessionStore = create<ChatSessionState & ChatSessionActions>
 // ============================================================
 
 /**
- * 获取活动会话
+ * Get active session
  */
 export function useActiveSession(): ChatSession | null {
   return useChatSessionStore(state => {
@@ -439,7 +439,7 @@ export function useActiveSession(): ChatSession | null {
 }
 
 /**
- * 获取活动会话的消息
+ * Get messages for the active session
  */
 export function useSessionMessages(): ChatMessage[] {
   return useChatSessionStore(
@@ -452,7 +452,7 @@ export function useSessionMessages(): ChatMessage[] {
 }
 
 /**
- * 获取非归档会话列表
+ * Get non-archived session list
  */
 export function useActiveSessions(): ChatSession[] {
   return useChatSessionStore(
@@ -465,7 +465,7 @@ export function useActiveSessions(): ChatSession[] {
 }
 
 /**
- * 清除所有聊天会话（用于登出时）
+ * Clear all chat sessions (used on logout)
  */
 export function clearAllChatSessions(): void {
   useChatSessionStore.setState({

@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * SkillDetails - Skill 详情组件
+ * SkillDetails - Skill Details Component
  *
- * 视觉规范:
- * - 与 ChatPanel 保持一致的白色/浅色主题
- * - 移动端：全屏滚动视图
- * - 桌面端：侧边栏固定宽度
+ * Visual spec:
+ * - White/light theme consistent with ChatPanel
+ * - Mobile: Full-screen scrollable view
+ * - Desktop: Fixed-width sidebar
  */
 
 import { motion } from 'framer-motion';
@@ -43,7 +43,7 @@ export function SkillDetails({
 }: SkillDetailsProps) {
   const colors = categoryColors[skill.category] || categoryColors.general;
 
-  // 移动端全屏视图
+  // Mobile full-screen view
   if (isMobile) {
     return (
       <div className="flex-1 flex flex-col bg-white">
@@ -190,7 +190,7 @@ export function SkillDetails({
     );
   }
 
-  // 桌面端侧边栏
+  // Desktop sidebar
   return (
     <div className="w-80 h-full flex flex-col bg-white">
       {/* Header */}

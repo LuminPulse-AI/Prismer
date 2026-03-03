@@ -1,7 +1,7 @@
 /**
  * PDF Reader Services
  * 
- * 导出所有服务
+ * Export all services
  */
 
 export * from './paperContextProvider';

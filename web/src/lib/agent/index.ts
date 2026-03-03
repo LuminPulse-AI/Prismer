@@ -2,29 +2,29 @@
  * Agent Service Module
  *
  * @description
- * Phase 3: OpenClaw Agent 集成层
- * 提供统一的 Agent 服务抽象，支持 Demo 和 OpenClaw 后端
+ * Phase 3: OpenClaw Agent integration layer
+ * Provides a unified Agent service abstraction supporting Demo and OpenClaw backends
  *
  * @example
  * ```typescript
  * import { createAgentService, AgentServiceFactory } from '@/lib/agent';
  *
- * // 自动选择服务类型
+ * // Auto-select service type
  * const service = createAgentService('agent-123', 'ws://localhost:18900');
  *
- * // 启动会话
+ * // Start session
  * const state = await service.startSession({
  *   agentId: 'agent-123',
  *   userId: 'user-1',
  *   workspaceId: 'ws-1',
  * });
  *
- * // 订阅事件
+ * // Subscribe to events
  * const unsubscribe = service.subscribe(state.sessionId, (event) => {
  *   console.log('Event:', event);
  * });
  *
- * // 发送消息
+ * // Send message
  * await service.sendMessage(state.sessionId, 'Hello!');
  * ```
  */

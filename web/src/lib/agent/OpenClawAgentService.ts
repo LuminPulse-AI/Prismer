@@ -2,8 +2,8 @@
  * OpenClaw Agent Service
  *
  * @description
- * Phase 3B: OpenClaw Agent 服务实现
- * 通过 WebSocket 连接到 OpenClaw Gateway，处理真实 Agent 交互
+ * Phase 3B: OpenClaw Agent service implementation
+ * Connects to the OpenClaw Gateway via WebSocket and handles real Agent interactions
  */
 
 import type {
@@ -21,7 +21,7 @@ import type { SessionState } from '@/lib/sync/types';
 // ============================================================
 
 /**
- * OpenClaw Gateway 消息类型
+ * OpenClaw Gateway message types
  */
 type OpenClawMessageType =
   | 'connect'
@@ -35,7 +35,7 @@ type OpenClawMessageType =
   | 'pong';
 
 /**
- * OpenClaw Gateway 消息
+ * OpenClaw Gateway message
  */
 interface OpenClawMessage {
   type: OpenClawMessageType;
@@ -45,20 +45,20 @@ interface OpenClawMessage {
 }
 
 /**
- * OpenClaw 连接配置
+ * OpenClaw connection configuration
  */
 export interface OpenClawConfig {
   /** Gateway WebSocket URL */
   gatewayUrl: string;
-  /** 认证 Token */
+  /** Auth token */
   authToken?: string;
-  /** 超时时间 (ms) */
+  /** Timeout (ms) */
   timeout?: number;
-  /** 重试次数 */
+  /** Retry count */
   retryCount?: number;
-  /** 重试延迟 (ms) */
+  /** Retry delay (ms) */
   retryDelay?: number;
-  /** 心跳间隔 (ms) */
+  /** Heartbeat interval (ms) */
   heartbeatInterval?: number;
 }
 
@@ -160,7 +160,7 @@ export class OpenClawAgentService implements AgentService {
 
     try {
       await this.connect();
-      // 重新注册所有会话
+      // Re-register all sessions
       for (const [sessionId, session] of this.sessions) {
         await this.sendWsMessage({
           type: 'connect',
@@ -175,14 +175,14 @@ export class OpenClawAgentService implements AgentService {
   }
 
   private handleDisconnect(): void {
-    // 清理待处理的请求
+    // Clean up pending requests
     for (const [id, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
       request.reject(new Error('Connection closed'));
     }
     this.pendingRequests.clear();
 
-    // 尝试重连
+    // Attempt reconnection
     this.reconnect();
   }
 
@@ -248,12 +248,12 @@ export class OpenClawAgentService implements AgentService {
     try {
       const message: OpenClawMessage = JSON.parse(data);
 
-      // 处理心跳响应
+      // Handle heartbeat response
       if (message.type === 'pong') {
         return;
       }
 
-      // 处理请求响应
+      // Handle request response
       if (message.id && this.pendingRequests.has(message.id)) {
         const request = this.pendingRequests.get(message.id)!;
         clearTimeout(request.timeout);
@@ -267,7 +267,7 @@ export class OpenClawAgentService implements AgentService {
         return;
       }
 
-      // 处理推送消息
+      // Handle push message
       this.handlePushMessage(message);
     } catch (error) {
       console.error('[OpenClawAgentService] Failed to parse message:', error);
@@ -278,7 +278,7 @@ export class OpenClawAgentService implements AgentService {
     const event = this.mapOpenClawToAgentEvent(message);
     if (!event) return;
 
-    // 通知相关会话
+    // Notify relevant session
     const sessionId = (message.payload as any)?.sessionId;
     if (sessionId) {
       const session = this.sessions.get(sessionId);
@@ -467,7 +467,7 @@ export class OpenClawAgentService implements AgentService {
 
     this.sessions.delete(sessionId);
 
-    // 如果没有活跃会话，关闭连接
+    // If no active sessions remain, close the connection
     if (this.sessions.size === 0) {
       this.ws?.close();
       this.ws = null;
@@ -544,7 +544,7 @@ export class OpenClawAgentService implements AgentService {
       return session.state;
     }
 
-    // 从服务器获取
+    // Fetch from server
     try {
       const response = await this.sendRequest<{ state: SessionState }>({
         type: 'message',
@@ -564,7 +564,7 @@ export class OpenClawAgentService implements AgentService {
     let session = this.sessions.get(sessionId);
 
     if (!session) {
-      // 创建占位会话
+      // Create placeholder session
       session = {
         state: this.createInitialState(sessionId, {
           agentId: 'unknown',
@@ -662,19 +662,19 @@ export class OpenClawAgentService implements AgentService {
   dispose(): void {
     this.stopHeartbeat();
 
-    // 清理待处理请求
+    // Clean up pending requests
     for (const [id, request] of this.pendingRequests) {
       clearTimeout(request.timeout);
       request.reject(new Error('Service disposed'));
     }
     this.pendingRequests.clear();
 
-    // 关闭连接
+    // Close connection
     this.ws?.close();
     this.ws = null;
     this.isConnected = false;
 
-    // 清理会话
+    // Clean up sessions
     this.sessions.clear();
     this.messageQueue = [];
   }

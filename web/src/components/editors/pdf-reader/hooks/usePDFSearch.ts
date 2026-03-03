@@ -25,7 +25,7 @@ export const usePDFSearch = ({
   const pdfDocumentRef = useRef<any>(null);
   const pageTextCacheRef = useRef<Map<number, any>>(new Map());
 
-  // 加载PDF文档
+  // Load PDF document
   useEffect(() => {
     const loadPDFDocument = async () => {
       try {
@@ -42,11 +42,11 @@ export const usePDFSearch = ({
     }
   }, [pdfUrl]);
 
-  // 获取页面文本内容
+  // Get page text content
   const getPageTextContent = useCallback(async (pageNumber: number) => {
     if (!pdfDocumentRef.current) return null;
 
-    // 检查缓存
+    // Check cache
     if (pageTextCacheRef.current.has(pageNumber)) {
       return pageTextCacheRef.current.get(pageNumber);
     }
@@ -58,7 +58,7 @@ export const usePDFSearch = ({
         includeMarkup: false,
       });
 
-      // 缓存文本内容
+      // Cache text content
       pageTextCacheRef.current.set(pageNumber, textContent);
       return textContent;
     } catch (error) {
@@ -70,7 +70,7 @@ export const usePDFSearch = ({
     }
   }, []);
 
-  // 在页面中搜索文本
+  // Search for text within a page
   const searchInPage = useCallback(
     async (pageNumber: number, query: string): Promise<SearchResult[]> => {
       const textContent = await getPageTextContent(pageNumber);
@@ -79,7 +79,7 @@ export const usePDFSearch = ({
       const results: SearchResult[] = [];
       const queryLower = query.toLowerCase();
 
-      // 将所有文本项组合成一个完整的字符串，同时记录位置信息
+      // Combine all text items into a full string while recording position info
       let fullText = "";
       const textItems: Array<{
         str: string;
@@ -108,12 +108,12 @@ export const usePDFSearch = ({
         const foundIndex = fullTextLower.indexOf(queryLower, searchIndex);
         if (foundIndex === -1) break;
 
-        // 计算匹配文本在原始文本中的位置
+        // Calculate the position of the matched text in the original text
         let charCount = 0;
         let matchStartItem = -1;
         let matchEndItem = -1;
 
-        // 找到匹配开始的文本项
+        // Find the text item where the match starts
         for (let i = 0; i < textItems.length; i++) {
           const nextCharCount = charCount + textItems[i].str.length + 1; // +1 for space
           if (charCount <= foundIndex && foundIndex < nextCharCount) {
@@ -123,7 +123,7 @@ export const usePDFSearch = ({
           charCount = nextCharCount;
         }
 
-        // 找到匹配结束的文本项
+        // Find the text item where the match ends
         charCount = 0;
         for (let i = 0; i < textItems.length; i++) {
           const nextCharCount = charCount + textItems[i].str.length + 1;
@@ -141,7 +141,7 @@ export const usePDFSearch = ({
           const startItem = textItems[matchStartItem];
           const endItem = textItems[matchEndItem] || startItem;
 
-          // 计算位置（基于PDF坐标系）
+          // Calculate position (based on PDF coordinate system)
           const x = startItem.transform[4];
           const y = startItem.transform[5];
           const width = endItem.transform[4] + endItem.width - x;
@@ -165,7 +165,7 @@ export const usePDFSearch = ({
     [getPageTextContent]
   );
 
-  // 搜索整个PDF
+  // Search the entire PDF
   const searchPDF = useCallback(
     async (query: string) => {
       if (!pdfDocumentRef.current || !query.trim()) {
@@ -180,7 +180,7 @@ export const usePDFSearch = ({
       try {
         const numPages = pdfDocumentRef.current.numPages;
 
-        // 搜索所有页面
+        // Search all pages
         for (let pageNum = 1; pageNum <= numPages; pageNum++) {
           const pageResults = await searchInPage(pageNum, query);
           allResults.push(...pageResults);
@@ -189,7 +189,7 @@ export const usePDFSearch = ({
         setSearchResults(allResults);
         setCurrentResultIndex(0);
 
-        // 如果有结果，跳转到第一个结果
+        // If there are results, navigate to the first one
         if (allResults.length > 0) {
           onPageChange(allResults[0].pageNumber);
         }
@@ -203,7 +203,7 @@ export const usePDFSearch = ({
     [searchInPage, onPageChange]
   );
 
-  // 导航到搜索结果
+  // Navigate to search result
   const navigateResult = useCallback(
     (direction: "prev" | "next") => {
       if (searchResults.length === 0) return;
@@ -227,13 +227,13 @@ export const usePDFSearch = ({
     [searchResults, currentResultIndex, onPageChange]
   );
 
-  // 清除搜索
+  // Clear search
   const clearSearch = useCallback(() => {
     setSearchResults([]);
     setCurrentResultIndex(0);
   }, []);
 
-  // 切换搜索框可见性
+  // Toggle search bar visibility
   const toggleSearchVisibility = useCallback(() => {
     setIsSearchVisible((prev) => !prev);
     if (isSearchVisible) {
@@ -241,30 +241,30 @@ export const usePDFSearch = ({
     }
   }, [isSearchVisible, clearSearch]);
 
-  // 处理搜索快捷键
+  // Handle search shortcuts
   const handleSearchShortcut = useCallback(
     (e: KeyboardEvent) => {
-      // Ctrl+F 打开搜索
+      // Ctrl+F opens search
       if (e.ctrlKey && e.key === "f") {
         e.preventDefault();
         setIsSearchVisible(true);
         return;
       }
 
-      // 只有在搜索框可见且有搜索结果时才处理导航快捷键
+      // Only process navigation shortcuts when the search bar is visible and has results
       if (!isSearchVisible || searchResults.length === 0) return;
 
-      // [ 或 < 上一个结果
+      // [ or < previous result
       if (e.key === "[" || e.key === "<") {
         e.preventDefault();
         navigateResult("prev");
       }
-      // ] 或 > 下一个结果
+      // ] or > next result
       else if (e.key === "]" || e.key === ">") {
         e.preventDefault();
         navigateResult("next");
       }
-      // Escape 关闭搜索
+      // Escape closes search
       else if (e.key === "Escape") {
         e.preventDefault();
         setIsSearchVisible(false);
@@ -274,7 +274,7 @@ export const usePDFSearch = ({
     [isSearchVisible, searchResults.length, navigateResult, clearSearch]
   );
 
-  // 添加键盘事件监听
+  // Add keyboard event listener
   useEffect(() => {
     window.addEventListener("keydown", handleSearchShortcut);
     return () => {

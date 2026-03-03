@@ -1,7 +1,7 @@
 /**
  * AI Components
  * 
- * 导出所有 AI 相关组件
+ * Export all AI-related components
  */
 
 export { AIRightPanel } from './AIRightPanel';

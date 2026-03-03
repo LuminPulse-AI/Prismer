@@ -6,41 +6,41 @@
  */
 
 export const ABLATION_STUDY_HTML = `
-<h1>目标检测消融实验分析报告</h1>
+<h1>Object Detection Ablation Study Report</h1>
 
-<h2>1. 实验设置</h2>
+<h2>1. Experimental Setup</h2>
 
-<h3>1.1 基础配置</h3>
+<h3>1.1 Base Configuration</h3>
 <ul>
-  <li><strong>数据集</strong>: COCO 2017 (118K train / 5K val)</li>
-  <li><strong>评估指标</strong>: mAP, AP<sub>50</sub>, AP<sub>75</sub>, AP<sub>S</sub>, AP<sub>M</sub>, AP<sub>L</sub></li>
-  <li><strong>训练配置</strong>: SGD, lr=0.01, weight_decay=1e-4, batch_size=16</li>
-  <li><strong>训练轮次</strong>: 12 epochs (1x schedule)</li>
+  <li><strong>Dataset</strong>: COCO 2017 (118K train / 5K val)</li>
+  <li><strong>Evaluation Metrics</strong>: mAP, AP<sub>50</sub>, AP<sub>75</sub>, AP<sub>S</sub>, AP<sub>M</sub>, AP<sub>L</sub></li>
+  <li><strong>Training Config</strong>: SGD, lr=0.01, weight_decay=1e-4, batch_size=16</li>
+  <li><strong>Training Epochs</strong>: 12 epochs (1x schedule)</li>
   <li><strong>GPU</strong>: 8x NVIDIA A100 80GB</li>
 </ul>
 
-<h3>1.2 消融变量</h3>
+<h3>1.2 Ablation Variables</h3>
 <table>
   <thead>
     <tr>
-      <th>变量</th>
-      <th>选项</th>
-      <th>默认值</th>
+      <th>Variable</th>
+      <th>Options</th>
+      <th>Default</th>
     </tr>
   </thead>
   <tbody>
     <tr><td>Backbone</td><td>ResNet-50, ResNet-101, Swin-T, Swin-S</td><td>ResNet-50</td></tr>
     <tr><td>Neck</td><td>FPN, PAFPN, BiFPN, NAS-FPN</td><td>FPN</td></tr>
     <tr><td>Detection Head</td><td>Anchor-based, Anchor-free (FCOS), DETR</td><td>Anchor-based</td></tr>
-    <tr><td>数据增强</td><td>None, Mosaic, MixUp, CutOut, Combined</td><td>None</td></tr>
+    <tr><td>Data Augmentation</td><td>None, Mosaic, MixUp, CutOut, Combined</td><td>None</td></tr>
     <tr><td>Loss Function</td><td>Smooth L1, GIoU, DIoU, CIoU</td><td>Smooth L1</td></tr>
     <tr><td>NMS</td><td>Hard NMS, Soft-NMS, DIoU-NMS</td><td>Hard NMS</td></tr>
   </tbody>
 </table>
 
-<h2>2. 基线结果</h2>
+<h2>2. Baseline Results</h2>
 
-<p>基线模型: Faster R-CNN + ResNet-50 + FPN, 1x schedule</p>
+<p>Baseline model: Faster R-CNN + ResNet-50 + FPN, 1x schedule</p>
 
 <table>
   <thead>
@@ -60,10 +60,10 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<h2>3. 消融实验结果</h2>
+<h2>3. Ablation Study Results</h2>
 
-<h3>3.1 Backbone 消融</h3>
-<p>固定: FPN + Anchor-based Head + No Aug + Smooth L1 + Hard NMS</p>
+<h3>3.1 Backbone Ablation</h3>
+<p>Fixed: FPN + Anchor-based Head + No Aug + Smooth L1 + Hard NMS</p>
 
 <table>
   <thead>
@@ -85,10 +85,10 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<p><strong>分析</strong>: Swin Transformer backbone 带来显著提升 (+5.3~+7.1 mAP)。Swin-T 在参数量与 ResNet-50 相当的情况下，mAP 提升 5.3 个点。Swin-S 进一步提升但代价是增加 45% 的参数量。</p>
+<p><strong>Analysis</strong>: Swin Transformer backbone yields significant improvement (+5.3 to +7.1 mAP). Swin-T achieves a 5.3-point mAP gain with a parameter count comparable to ResNet-50. Swin-S provides further improvement at the cost of a 45% increase in parameters.</p>
 
-<h3>3.2 Neck 消融</h3>
-<p>固定: ResNet-50 + Anchor-based Head + No Aug + Smooth L1 + Hard NMS</p>
+<h3>3.2 Neck Ablation</h3>
+<p>Fixed: ResNet-50 + Anchor-based Head + No Aug + Smooth L1 + Hard NMS</p>
 
 <table>
   <thead>
@@ -109,10 +109,10 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<p><strong>分析</strong>: 特征金字塔升级带来的收益（+1.1~+2.1）小于 backbone 升级。BiFPN 和 NAS-FPN 在小目标检测 (AP<sub>S</sub>) 上有更明显提升。</p>
+<p><strong>Analysis</strong>: Feature pyramid upgrades yield smaller gains (+1.1 to +2.1) compared to backbone upgrades. BiFPN and NAS-FPN show more notable improvements in small object detection (AP<sub>S</sub>).</p>
 
-<h3>3.3 Detection Head 消融</h3>
-<p>固定: ResNet-50 + FPN + No Aug + 对应默认 Loss</p>
+<h3>3.3 Detection Head Ablation</h3>
+<p>Fixed: ResNet-50 + FPN + No Aug + corresponding default Loss</p>
 
 <table>
   <thead>
@@ -132,15 +132,15 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<p><strong>分析</strong>: DETR 检测精度最高 (+4.6 mAP)，但推理速度下降明显。FCOS 在保持高速度的同时略有提升。</p>
+<p><strong>Analysis</strong>: DETR achieves the highest detection accuracy (+4.6 mAP) but with a significant drop in inference speed. FCOS provides a slight improvement while maintaining high speed.</p>
 
-<h3>3.4 数据增强消融</h3>
-<p>固定: ResNet-50 + FPN + Anchor-based + Smooth L1 + Hard NMS</p>
+<h3>3.4 Data Augmentation Ablation</h3>
+<p>Fixed: ResNet-50 + FPN + Anchor-based + Smooth L1 + Hard NMS</p>
 
 <table>
   <thead>
     <tr>
-      <th>增强策略</th>
+      <th>Augmentation Strategy</th>
       <th>mAP</th>
       <th>AP<sub>50</sub></th>
       <th>AP<sub>75</sub></th>
@@ -156,10 +156,10 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<p><strong>分析</strong>: 组合数据增强效果最佳 (+2.9 mAP)。Mosaic 增强对目标检测最有效 (+1.7)，MixUp 次之。</p>
+<p><strong>Analysis</strong>: Combined data augmentation yields the best results (+2.9 mAP). Mosaic augmentation is the most effective for object detection (+1.7), followed by MixUp.</p>
 
-<h3>3.5 Loss Function 消融</h3>
-<p>固定: ResNet-50 + FPN + Anchor-based + No Aug + Hard NMS</p>
+<h3>3.5 Loss Function Ablation</h3>
+<p>Fixed: ResNet-50 + FPN + Anchor-based + No Aug + Hard NMS</p>
 
 <table>
   <thead>
@@ -178,16 +178,16 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<p><strong>分析</strong>: IoU 系列损失函数在高精度检测 (AP<sub>75</sub>) 上优势更明显。CIoU 综合考虑重叠面积、中心距离和长宽比，效果最佳。</p>
+<p><strong>Analysis</strong>: IoU-based loss functions show more prominent advantages in high-precision detection (AP<sub>75</sub>). CIoU, which considers overlap area, center distance, and aspect ratio, achieves the best results.</p>
 
-<h2>4. 最优组合</h2>
+<h2>4. Optimal Combination</h2>
 
-<p>基于消融实验结果，组合各维度最优配置：</p>
+<p>Based on ablation study results, combining the best configuration from each dimension:</p>
 
 <table>
   <thead>
     <tr>
-      <th>配置</th>
+      <th>Configuration</th>
       <th>mAP</th>
       <th>AP<sub>50</sub></th>
       <th>AP<sub>75</sub></th>
@@ -203,14 +203,14 @@ export const ABLATION_STUDY_HTML = `
   </tbody>
 </table>
 
-<h2>5. 结论</h2>
+<h2>5. Conclusions</h2>
 
 <ol>
-  <li><strong>Backbone 影响最大</strong>: Swin Transformer backbone 贡献了最大的性能提升 (+5.3~+7.1 mAP)，是最值得投资的升级方向</li>
-  <li><strong>数据增强成本效益最高</strong>: 组合增强策略 (+2.9 mAP) 零额外推理开销，应作为默认训练配置</li>
-  <li><strong>Neck 和 Loss 提升稳定</strong>: BiFPN (+1.8) 和 CIoU (+1.4) 均带来一致性提升</li>
-  <li><strong>DETR Head 精度最高但速度下降</strong>: 需根据部署场景权衡 accuracy vs latency</li>
-  <li><strong>各项改进近似正交</strong>: 最优组合 (48.7 mAP) 接近各项独立提升之和 (baseline 37.4 + 7.1 + 1.8 + 1.4 + 2.9 = 50.6)，实际有轻微正交损失</li>
+  <li><strong>Backbone has the largest impact</strong>: Swin Transformer backbone contributes the greatest performance gain (+5.3 to +7.1 mAP) and is the most worthwhile upgrade direction</li>
+  <li><strong>Data augmentation is the most cost-effective</strong>: Combined augmentation strategy (+2.9 mAP) incurs zero additional inference overhead and should be the default training configuration</li>
+  <li><strong>Neck and Loss provide consistent gains</strong>: BiFPN (+1.8) and CIoU (+1.4) both deliver consistent improvements</li>
+  <li><strong>DETR Head has highest accuracy but slower speed</strong>: The accuracy vs latency trade-off should be weighed based on deployment scenario</li>
+  <li><strong>Improvements are approximately orthogonal</strong>: The optimal combination (48.7 mAP) is close to the sum of individual improvements (baseline 37.4 + 7.1 + 1.8 + 1.4 + 2.9 = 50.6), with slight orthogonality loss in practice</li>
 </ol>
 
 <hr/>

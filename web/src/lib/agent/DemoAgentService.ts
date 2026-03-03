@@ -2,9 +2,9 @@
  * Demo Agent Service
  *
  * @description
- * Phase 3A: 演示用 Agent 服务实现
- * 模拟 Agent 行为，用于开发和测试
- * 向后兼容现有的 DemoFlowController
+ * Phase 3A: Demo Agent service implementation
+ * Simulates Agent behavior for development and testing
+ * Backward-compatible with the existing DemoFlowController
  */
 
 import type {
@@ -127,7 +127,7 @@ export class DemoAgentService implements AgentService {
       timer: null,
     });
 
-    // 发送会话开始事件
+    // Emit session start event
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
       type: 'session_start',
@@ -136,7 +136,7 @@ export class DemoAgentService implements AgentService {
       payload: { sessionId, agentId: config.agentId },
     });
 
-    // 如果启用演示流程，开始执行
+    // If demo flow is enabled, start execution
     if (this.config.enableDemoFlow) {
       this.scheduleNextStep(sessionId);
     }
@@ -148,12 +148,12 @@ export class DemoAgentService implements AgentService {
     const session = this.sessions.get(sessionId);
     if (!session) return;
 
-    // 清理定时器
+    // Clean up timer
     if (session.timer) {
       clearTimeout(session.timer);
     }
 
-    // 发送会话结束事件
+    // Emit session end event
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
       type: 'session_end',
@@ -185,7 +185,7 @@ export class DemoAgentService implements AgentService {
 
     const messageId = this.generateMessageId();
 
-    // 添加用户消息
+    // Add user message
     const userMessage = {
       id: messageId,
       senderId: 'user',
@@ -200,10 +200,10 @@ export class DemoAgentService implements AgentService {
     session.state.messages.push(userMessage);
     session.state.updatedAt = Date.now();
 
-    // 更新 Agent 状态为 thinking
+    // Update Agent state to thinking
     this.updateAgentState(sessionId, { status: 'running' });
 
-    // 模拟 Agent 响应
+    // Simulate Agent response
     setTimeout(() => {
       this.generateAgentResponse(sessionId, content);
     }, this.config.simulatedDelay);
@@ -215,7 +215,7 @@ export class DemoAgentService implements AgentService {
 
     const responseId = this.generateMessageId();
 
-    // 发送消息开始事件
+    // Emit message start event
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
       type: 'message_start',
@@ -224,7 +224,7 @@ export class DemoAgentService implements AgentService {
       payload: { messageId: responseId, senderId: 'agent', senderType: 'agent' },
     });
 
-    // 模拟流式响应
+    // Simulate streaming response
     const responseContent = this.generateResponseContent(userMessage);
     const chunks = this.splitIntoChunks(responseContent, 20);
 
@@ -246,7 +246,7 @@ export class DemoAgentService implements AgentService {
       });
     }
 
-    // 发送消息结束事件
+    // Emit message end event
     const agentMessage = {
       id: responseId,
       senderId: 'agent',
@@ -267,7 +267,7 @@ export class DemoAgentService implements AgentService {
       payload: { messageId: responseId, content: responseContent },
     });
 
-    // 恢复 idle 状态
+    // Restore idle state
     this.updateAgentState(sessionId, { status: 'idle' });
   }
 
@@ -283,7 +283,7 @@ export class DemoAgentService implements AgentService {
 
     const taskId = this.generateTaskId();
 
-    // 创建任务
+    // Create task
     const task = {
       id: taskId,
       title: config.title,
@@ -295,7 +295,7 @@ export class DemoAgentService implements AgentService {
 
     session.state.tasks.push(task);
 
-    // 发送任务创建事件
+    // Emit task created event
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
       type: 'task_created',
@@ -304,7 +304,7 @@ export class DemoAgentService implements AgentService {
       payload: { taskId, title: config.title, description: config.description },
     });
 
-    // 模拟任务执行
+    // Simulate task execution
     this.simulateTaskExecution(sessionId, taskId);
 
     return taskId;
@@ -319,7 +319,7 @@ export class DemoAgentService implements AgentService {
     ) as { id: string; status: string; progress: number } | undefined;
     if (!task) return;
 
-    // 更新任务状态
+    // Update task status
     task.status = 'running';
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
@@ -329,7 +329,7 @@ export class DemoAgentService implements AgentService {
       payload: { taskId, status: 'running', progress: 0 },
     });
 
-    // 模拟进度
+    // Simulate progress
     for (let progress = 20; progress <= 100; progress += 20) {
       await this.delay(500);
       if (session.isPaused) return;
@@ -344,7 +344,7 @@ export class DemoAgentService implements AgentService {
       });
     }
 
-    // 任务完成
+    // Task completed
     task.status = 'completed';
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
@@ -365,12 +365,12 @@ export class DemoAgentService implements AgentService {
       throw new Error(`Session not found: ${sessionId}`);
     }
 
-    // 记录已完成的交互
+    // Record completed interaction
     if (!session.state.completedInteractions.includes(interaction.componentId)) {
       session.state.completedInteractions.push(interaction.componentId);
     }
 
-    // 发送交互响应事件
+    // Emit interaction response event
     this.emitEvent(sessionId, {
       id: this.generateEventId(),
       type: 'interaction_response',
@@ -383,11 +383,11 @@ export class DemoAgentService implements AgentService {
       },
     });
 
-    // 如果 Agent 正在等待交互，继续执行
+    // If Agent is waiting for interaction, continue execution
     if (session.state.agentState.status === 'waiting_interaction') {
       this.updateAgentState(sessionId, { status: 'running' });
 
-      // 继续演示流程
+      // Continue demo flow
       if (this.config.enableDemoFlow) {
         this.scheduleNextStep(sessionId);
       }
@@ -418,7 +418,7 @@ export class DemoAgentService implements AgentService {
     session.isPaused = false;
     this.updateAgentState(sessionId, { status: 'running' });
 
-    // 继续演示流程
+    // Continue demo flow
     if (this.config.enableDemoFlow) {
       this.scheduleNextStep(sessionId);
     }
@@ -461,7 +461,7 @@ export class DemoAgentService implements AgentService {
     const step = DEFAULT_DEMO_FLOW[session.stepIndex];
 
     if (!step) {
-      // 演示流程结束
+      // Demo flow ended
       this.updateAgentState(sessionId, { status: 'idle' });
       return;
     }
@@ -545,7 +545,7 @@ export class DemoAgentService implements AgentService {
       }
     }
 
-    // 继续下一步
+    // Continue to next step
     this.scheduleNextStep(sessionId);
   }
 
@@ -557,7 +557,7 @@ export class DemoAgentService implements AgentService {
     const session = this.sessions.get(sessionId);
     if (!session) return;
 
-    // 记录到时间线
+    // Record to timeline
     session.state.timeline.push({
       id: event.id,
       timestamp: event.timestamp,
@@ -567,7 +567,7 @@ export class DemoAgentService implements AgentService {
 
     session.state.updatedAt = Date.now();
 
-    // 通知所有订阅者
+    // Notify all subscribers
     session.handlers.forEach(handler => {
       try {
         handler(event);
@@ -586,7 +586,7 @@ export class DemoAgentService implements AgentService {
       ...state,
     };
 
-    // 发送对应的状态事件
+    // Emit corresponding state event
     const statusEvent = this.mapStateToEvent(state);
     if (statusEvent) {
       this.emitEvent(sessionId, {
@@ -613,7 +613,7 @@ export class DemoAgentService implements AgentService {
   }
 
   private generateResponseContent(userMessage: string): string {
-    // 简单的响应生成逻辑
+    // Simple response generation logic
     const responses: Record<string, string> = {
       hello: "Hello! I'm ready to help you with your research. What would you like to explore?",
       search: "I can search through academic databases for papers. What topic are you interested in?",

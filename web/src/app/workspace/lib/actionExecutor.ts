@@ -1,8 +1,8 @@
 /**
  * Action Executor
  * 
- * 可等待的动作执行器 - 执行动作并等待完成事件
- * 支持超时、重试、验证
+ * Awaitable action executor - executes actions and waits for completion events.
+ * Supports timeout, retry, and validation.
  */
 
 import type { ComponentType } from '../types';

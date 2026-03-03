@@ -1,7 +1,7 @@
 /**
- * Prisma Client 单例
- * 
- * 在开发环境中避免创建多个 Prisma Client 实例
+ * Prisma Client singleton
+ *
+ * Prevents creating multiple Prisma Client instances in development
  * https://www.prisma.io/docs/guides/other/troubleshooting-orm/help-articles/nextjs-prisma-client-dev-practices
  */
 

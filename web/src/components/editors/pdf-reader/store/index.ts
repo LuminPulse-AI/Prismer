@@ -1,7 +1,7 @@
 /**
  * PDF Reader Stores
  * 
- * 导出所有 Zustand stores
+ * Export all Zustand stores
  */
 
 export * from './pdfStore';

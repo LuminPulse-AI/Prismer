@@ -2,42 +2,42 @@
 // LaTeX Templates Module - Main Export
 // ============================================================
 //
-// 这是 LaTeX 模板系统的统一入口文件。
-// 
-// 使用示例:
+// Unified entry point for the LaTeX template system.
+//
+// Usage example:
 // ```typescript
-// import { 
-//   templateService,      // 模板管理服务
-//   TemplateManager,      // 模板管理器组件
-//   useTemplates,         // 模板数据 Hook
+// import {
+//   templateService,      // Template management service
+//   TemplateManager,      // Template manager component
+//   useTemplates,         // Template data hook
 // } from "@/components/editors/previews/latex-templates";
 // ```
 //
-// 详细 API 文档请参阅: ./API.md
-// 设计文档请参阅: ./TEMPLATE_SYSTEM_DESIGN.md
+// For detailed API documentation, see: ./API.md
+// For design documentation, see: ./TEMPLATE_SYSTEM_DESIGN.md
 // ============================================================
 
-// Types - 类型定义
+// Types
 export * from "./types";
 
-// Services - 服务层
+// Services
 export { GitHubService, githubService } from "./services/GitHubService";
 export { TemplateService, templateService } from "./services/TemplateService";
 export { CacheService, cacheService } from "./services/CacheService";
 
-// Components - UI 组件
+// Components
 export {
-  // 基础组件
+  // Basic components
   TemplateCard,
   TemplateSearch,
   TemplateFilters,
-  
-  // 核心组件
+
+  // Core components
   TemplatePreview,
   GitHubImporter,
   TemplateManager,
-  
-  // 辅助组件
+
+  // Utility components
   DownloadProgress,
   useDownloadProgress,
   ToastProvider,
@@ -48,8 +48,8 @@ export {
 // Component Types
 export type { DownloadState, Toast, ToastType } from "./components";
 
-// Hooks - React Hooks
+// Hooks
 export { useTemplates } from "./hooks";
 
-// Data - 预置数据
+// Data - Preset catalog data
 export { default as catalogData } from "./data/catalog.json";

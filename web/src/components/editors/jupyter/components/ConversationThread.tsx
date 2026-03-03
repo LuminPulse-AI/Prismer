@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * ConversationThread - AI 对话线程组件
- * 
- * 功能：
- * - 显示 User Query 和 Agent Response 交替
- * - 支持针对特定 Cell 的上下文对话
- * - Markdown 渲染
+ * ConversationThread - AI Conversation Thread Component
+ *
+ * Features:
+ * - Displays alternating User Queries and Agent Responses
+ * - Supports context-aware conversation for specific cells
+ * - Markdown rendering
  */
 
 import React, { memo, useRef, useEffect } from 'react';
@@ -15,7 +15,7 @@ import { AgentCell } from './AgentCell';
 import type { AgentCell as AgentCellType } from '../types';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 interface ConversationMessage {
@@ -36,7 +36,7 @@ interface ConversationThreadProps {
 }
 
 // ============================================================
-// ConversationThread 组件
+// ConversationThread Component
 // ============================================================
 
 export const ConversationThread = memo(function ConversationThread({
@@ -49,14 +49,14 @@ export const ConversationThread = memo(function ConversationThread({
 }: ConversationThreadProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 自动滚动到底部
+  // Auto-scroll to bottom
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [messages, agentResponses]);
 
-  // 合并消息和 Agent 响应（按时间排序）
+  // Merge messages and Agent responses (sorted by time)
   const mergedItems = React.useMemo(() => {
     const items: Array<{
       type: 'message' | 'agent';
@@ -80,7 +80,7 @@ export const ConversationThread = memo(function ConversationThread({
       });
     });
 
-    // 按时间排序
+    // Sort by time
     items.sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
@@ -128,7 +128,7 @@ export const ConversationThread = memo(function ConversationThread({
 });
 
 // ============================================================
-// MessageBubble 组件
+// MessageBubble Component
 // ============================================================
 
 interface MessageBubbleProps {

@@ -1,8 +1,8 @@
 /**
  * Workspace Agent API
  *
- * GET    /api/workspace/[id]/agent - 获取绑定的 Agent
- * DELETE /api/workspace/[id]/agent - 解绑 Agent
+ * GET    /api/workspace/[id]/agent - Get the bound agent
+ * DELETE /api/workspace/[id]/agent - Unbind the agent
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -13,7 +13,7 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/workspace/[id]/agent - 获取绑定的 Agent
+// GET /api/workspace/[id]/agent - Get the bound agent
 export async function GET(request: NextRequest, { params }: Params) {
   try {
     const { id: workspaceId } = await params;
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE /api/workspace/[id]/agent - 解绑 Agent
+// DELETE /api/workspace/[id]/agent - Unbind the agent
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     const { id: workspaceId } = await params;
@@ -147,7 +147,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 如果容器在运行，先停止
+    // If the container is running, stop it first
     if (workspace.agentInstance.container?.status === 'running') {
       await prisma.container.update({
         where: { id: workspace.agentInstance.container.id },
@@ -155,7 +155,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       });
     }
 
-    // 删除 Agent（级联删除容器和部署记录）
+    // Delete Agent (cascade deletes container and deployment records)
     await prisma.agentInstance.delete({
       where: { id: workspace.agentInstance.id },
     });

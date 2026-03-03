@@ -2,9 +2,9 @@
 
 /**
  * DiffViewer
- * 
- * 差异查看器 - 用于显示内容变化 (类似 Git Diff)
- * 支持行级和字符级差异显示
+ *
+ * Diff Viewer - Displays content changes (similar to Git Diff)
+ * Supports line-level and character-level diff display
  */
 
 import React, { memo, useMemo } from 'react';
@@ -17,19 +17,19 @@ import type { DiffChange } from '../../types';
 // ============================================================
 
 export interface DiffViewerProps {
-  /** 差异变化列表 */
+  /** List of diff changes */
   changes: DiffChange[];
-  /** 文件名 */
+  /** File name */
   fileName?: string;
-  /** 是否显示行号 */
+  /** Whether to show line numbers */
   showLineNumbers?: boolean;
-  /** 语言 (用于语法高亮) */
+  /** Language (for syntax highlighting) */
   language?: string;
-  /** 显示模式 */
+  /** Display mode */
   mode?: 'inline' | 'side-by-side' | 'unified';
-  /** 关闭回调 */
+  /** Close callback */
   onClose?: () => void;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
 }
 
@@ -45,7 +45,7 @@ interface ParsedLine {
 // ============================================================
 
 /**
- * 解析差异变化为行
+ * Parse diff changes into lines
  */
 function parseChangesToLines(changes: DiffChange[]): ParsedLine[] {
   const lines: ParsedLine[] = [];
@@ -77,7 +77,7 @@ function parseChangesToLines(changes: DiffChange[]): ParsedLine[] {
         break;
 
       case 'modify':
-        // 修改：先显示删除的，再显示新增的
+        // Modify: show deleted lines first, then inserted lines
         if (change.oldContent) {
           change.oldContent.split('\n').forEach((line, idx) => {
             lines.push({
@@ -202,7 +202,7 @@ export const DiffViewer = memo(function DiffViewer({
         <div className="flex items-center gap-3">
           <FileText className="w-4 h-4 text-slate-500" />
           <span className="text-sm font-medium text-slate-700">
-            {fileName ?? '内容变化'}
+            {fileName ?? 'Content Changes'}
           </span>
           <div className="flex items-center gap-2 text-xs">
             <span className="flex items-center gap-1 text-green-600">
@@ -244,11 +244,11 @@ export const DiffViewer = memo(function DiffViewer({
       <div className="px-4 py-2 bg-slate-50 border-t border-slate-200">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>
-            {stats.inserted + stats.deleted} 行变化
+            {stats.inserted + stats.deleted} lines changed
           </span>
           <span className="flex items-center gap-1">
             <ArrowRight className="w-3 h-3" />
-            {mode === 'unified' ? '统一视图' : mode === 'side-by-side' ? '并排视图' : '内联视图'}
+            {mode === 'unified' ? 'Unified view' : mode === 'side-by-side' ? 'Side-by-side view' : 'Inline view'}
           </span>
         </div>
       </div>
@@ -261,33 +261,33 @@ export const DiffViewer = memo(function DiffViewer({
 // ============================================================
 
 export interface InlineDiffHighlightProps {
-  /** 旧内容 */
+  /** Old content */
   oldContent: string;
-  /** 新内容 */
+  /** New content */
   newContent: string;
-  /** 样式类名 */
+  /** Style class name */
   className?: string;
 }
 
 /**
- * 内联差异高亮组件 - 用于在文本中高亮显示变化部分
+ * Inline diff highlight component - Highlights changed portions within text
  */
 export const InlineDiffHighlight = memo(function InlineDiffHighlight({
   oldContent,
   newContent,
   className = '',
 }: InlineDiffHighlightProps) {
-  // 简单的字符级 diff 实现
+  // Simple character-level diff implementation
   const parts = useMemo(() => {
     const result: { type: 'same' | 'old' | 'new'; text: string }[] = [];
     
-    // 使用 LCS (最长公共子序列) 的简化版本
+    // Simplified version using LCS (Longest Common Subsequence)
     let i = 0;
     let j = 0;
     
     while (i < oldContent.length || j < newContent.length) {
       if (i < oldContent.length && j < newContent.length && oldContent[i] === newContent[j]) {
-        // 相同字符
+        // Same characters
         let sameStart = i;
         while (i < oldContent.length && j < newContent.length && oldContent[i] === newContent[j]) {
           i++;
@@ -295,16 +295,16 @@ export const InlineDiffHighlight = memo(function InlineDiffHighlight({
         }
         result.push({ type: 'same', text: oldContent.slice(sameStart, i) });
       } else {
-        // 找到下一个相同位置
+        // Find next matching position
         let foundMatch = false;
         for (let lookAhead = 1; lookAhead <= 10 && !foundMatch; lookAhead++) {
           if (i + lookAhead < oldContent.length && oldContent[i + lookAhead] === newContent[j]) {
-            // 删除的部分
+            // Deleted portion
             result.push({ type: 'old', text: oldContent.slice(i, i + lookAhead) });
             i += lookAhead;
             foundMatch = true;
           } else if (j + lookAhead < newContent.length && oldContent[i] === newContent[j + lookAhead]) {
-            // 新增的部分
+            // Inserted portion
             result.push({ type: 'new', text: newContent.slice(j, j + lookAhead) });
             j += lookAhead;
             foundMatch = true;
@@ -312,7 +312,7 @@ export const InlineDiffHighlight = memo(function InlineDiffHighlight({
         }
         
         if (!foundMatch) {
-          // 无法匹配，分别处理
+          // No match found, handle separately
           if (i < oldContent.length) {
             result.push({ type: 'old', text: oldContent[i] });
             i++;

@@ -1,13 +1,13 @@
 /**
- * useKeyboardShortcuts - 键盘快捷键 Hook
- * 
- * 提供 Jupyter Notebook 风格的快捷键支持
+ * useKeyboardShortcuts - Keyboard Shortcuts Hook
+ *
+ * Provides Jupyter Notebook-style keyboard shortcut support.
  */
 
 import { useEffect, useCallback, useRef } from 'react';
 
 // ============================================================
-// 类型定义
+// Type Definitions
 // ============================================================
 
 export interface KeyboardShortcut {
@@ -19,7 +19,7 @@ export interface KeyboardShortcut {
   action: () => void;
   description: string;
   category?: 'cell' | 'execution' | 'navigation' | 'edit' | 'misc';
-  mode?: 'command' | 'edit' | 'any';  // Jupyter 模式
+  mode?: 'command' | 'edit' | 'any';  // Jupyter mode
 }
 
 export interface UseKeyboardShortcutsOptions {
@@ -29,7 +29,7 @@ export interface UseKeyboardShortcutsOptions {
 }
 
 export interface NotebookActions {
-  // Cell 操作
+  // Cell operations
   addCellAbove?: () => void;
   addCellBelow?: () => void;
   deleteCell?: () => void;
@@ -39,37 +39,37 @@ export interface NotebookActions {
   moveUp?: () => void;
   moveDown?: () => void;
   
-  // 执行操作
+  // Execution operations
   runCell?: () => void;
   runCellAndAdvance?: () => void;
   runAllCells?: () => void;
   interruptKernel?: () => void;
   restartKernel?: () => void;
   
-  // 导航
+  // Navigation
   selectPrevCell?: () => void;
   selectNextCell?: () => void;
   
-  // 编辑
+  // Edit
   enterEditMode?: () => void;
   enterCommandMode?: () => void;
   undo?: () => void;
   redo?: () => void;
   
-  // 其他
+  // Misc
   save?: () => void;
   toggleLineNumbers?: () => void;
   showKeyboardShortcuts?: () => void;
 }
 
 // ============================================================
-// 默认快捷键配置
+// Default Shortcut Configuration
 // ============================================================
 
 function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
   const shortcuts: KeyboardShortcut[] = [];
 
-  // === Cell 操作 (Command Mode) ===
+  // === Cell Operations (Command Mode) ===
   if (actions.addCellAbove) {
     shortcuts.push({
       key: 'a',
@@ -94,7 +94,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
     shortcuts.push({
       key: 'd',
       action: () => {
-        // 需要按两次 d
+        // Requires pressing d twice
       },
       description: 'Delete cell (press twice)',
       category: 'cell',
@@ -161,7 +161,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
     });
   }
 
-  // === 执行操作 ===
+  // === Execution Operations ===
   if (actions.runCell) {
     shortcuts.push({
       key: 'Enter',
@@ -216,7 +216,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
     });
   }
 
-  // === 导航 ===
+  // === Navigation ===
   if (actions.selectPrevCell) {
     shortcuts.push({
       key: 'ArrowUp',
@@ -253,7 +253,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
     });
   }
 
-  // === 模式切换 ===
+  // === Mode Switching ===
   if (actions.enterEditMode) {
     shortcuts.push({
       key: 'Enter',
@@ -274,7 +274,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
     });
   }
 
-  // === 其他 ===
+  // === Misc ===
   if (actions.save) {
     shortcuts.push({
       key: 's',
@@ -319,7 +319,7 @@ function createDefaultShortcuts(actions: NotebookActions): KeyboardShortcut[] {
 }
 
 // ============================================================
-// Hook 实现
+// Hook Implementation
 // ============================================================
 
 export function useKeyboardShortcuts(
@@ -331,7 +331,7 @@ export function useKeyboardShortcuts(
   const modeRef = useRef(mode);
   const lastKeyRef = useRef<{ key: string; time: number } | null>(null);
   
-  // 更新 mode ref
+  // Update mode ref
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
@@ -341,27 +341,27 @@ export function useKeyboardShortcuts(
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!enabled) return;
 
-    // 忽略在输入框中的按键（除了特定快捷键）
+    // Ignore key presses in input fields (except specific shortcuts)
     const target = event.target as HTMLElement;
     const isInEditor = target.closest('.monaco-editor') !== null;
     const isInInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
     
-    // 如果在编辑器中，只处理 edit 模式和 any 模式的快捷键
+    // If in editor, only handle edit mode and any mode shortcuts
     const currentMode = (isInEditor || isInInput) ? 'edit' : modeRef.current;
 
-    // 查找匹配的快捷键
+    // Find matching shortcut
     const matchedShortcut = shortcuts.find(shortcut => {
-      // 检查模式
+      // Check mode
       if (shortcut.mode !== 'any' && shortcut.mode !== currentMode) {
         return false;
       }
 
-      // 检查按键
+      // Check key
       if (shortcut.key.toLowerCase() !== event.key.toLowerCase()) {
         return false;
       }
 
-      // 检查修饰键
+      // Check modifier keys
       if (!!shortcut.ctrl !== event.ctrlKey) return false;
       if (!!shortcut.shift !== event.shiftKey) return false;
       if (!!shortcut.alt !== event.altKey) return false;
@@ -371,7 +371,7 @@ export function useKeyboardShortcuts(
     });
 
     if (matchedShortcut) {
-      // 处理需要按两次的快捷键
+      // Handle shortcuts that require pressing twice
       const now = Date.now();
       if (matchedShortcut.description.includes('press twice')) {
         if (
@@ -392,7 +392,7 @@ export function useKeyboardShortcuts(
     }
   }, [enabled, shortcuts]);
 
-  // 注册事件监听
+  // Register event listener
   useEffect(() => {
     if (!enabled) return;
 
@@ -402,7 +402,7 @@ export function useKeyboardShortcuts(
     };
   }, [enabled, handleKeyDown]);
 
-  // 模式切换
+  // Mode switching
   const setMode = useCallback((newMode: 'command' | 'edit') => {
     modeRef.current = newMode;
     onModeChange?.(newMode);
@@ -416,7 +416,7 @@ export function useKeyboardShortcuts(
 }
 
 // ============================================================
-// 快捷键帮助组件数据
+// Keyboard Shortcuts Help Data
 // ============================================================
 
 export function getShortcutsByCategory(shortcuts: KeyboardShortcut[]) {

@@ -2,9 +2,9 @@
 
 /**
  * TaskBubble
- * 
- * 任务状态气泡组件
- * 显示当前任务名称、进度、状态
+ *
+ * Task status bubble component
+ * Displays the current task name, progress, and status
  */
 
 import React, { memo } from 'react';
@@ -70,15 +70,15 @@ export const TaskBubble = memo(function TaskBubble({
         focus:outline-none focus:ring-2 focus:ring-white/30
       `}
     >
-      {/* 状态图标 */}
+      {/* Status icon */}
       <span className="flex-shrink-0">{config.icon}</span>
 
-      {/* 任务信息 */}
+      {/* Task info */}
       <div className="flex-1 min-w-0 text-left">
         <div className="truncate font-medium">{task.title}</div>
         {task.status === 'running' && (
           <div className="flex items-center gap-2 mt-1">
-            {/* 进度条 */}
+            {/* Progress bar */}
             <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-white/80 rounded-full"

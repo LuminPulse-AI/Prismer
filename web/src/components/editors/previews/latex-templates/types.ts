@@ -6,16 +6,16 @@
  * Template category types
  */
 export type TemplateCategory =
-  | "conference"      // 会议论文
-  | "journal"         // 期刊论文
-  | "thesis"          // 学位论文
-  | "cv"              // 简历
-  | "presentation"    // 演示文稿 (Beamer)
-  | "report"          // 报告
-  | "book"            // 书籍
-  | "letter"          // 信件
-  | "poster"          // 海报
-  | "other";          // 其他
+  | "conference"      // Conference papers
+  | "journal"         // Journal articles
+  | "thesis"          // Theses & dissertations
+  | "cv"              // Resumes & CVs
+  | "presentation"    // Presentations (Beamer)
+  | "report"          // Reports
+  | "book"            // Books
+  | "letter"          // Letters
+  | "poster"          // Posters
+  | "other";          // Other
 
 /**
  * Template source type
@@ -28,18 +28,18 @@ export type TemplateSourceType = "builtin" | "github" | "overleaf" | "url" | "lo
 export interface GitHubSource {
   owner: string;
   repo: string;
-  branch?: string;           // 默认 main
-  path?: string;             // 仓库内路径，默认根目录
-  mainFile?: string;         // 主文件，默认 main.tex
+  branch?: string;           // Defaults to main
+  path?: string;             // Path within the repository, defaults to root
+  mainFile?: string;         // Main file, defaults to main.tex
 }
 
 /**
  * Overleaf source configuration
  */
 export interface OverleafSource {
-  templateId: string;        // 如 'rdtrwgypxxzb'
-  templateSlug: string;      // 如 'cvpr-2026-submission-template'
-  webUrl: string;            // 完整 URL
+  templateId: string;        // e.g. 'rdtrwgypxxzb'
+  templateSlug: string;      // e.g. 'cvpr-2026-submission-template'
+  webUrl: string;            // Full URL
 }
 
 /**
@@ -49,33 +49,33 @@ export interface TemplateSource {
   type: TemplateSourceType;
   github?: GitHubSource;
   overleaf?: OverleafSource;
-  url?: string;              // ZIP 文件 URL
+  url?: string;              // ZIP file URL
 }
 
 /**
  * Template metadata
  */
 export interface TemplateMetadata {
-  id: string;                    // 唯一标识符
-  name: string;                  // 模板名称
-  description: string;           // 模板描述
-  category: TemplateCategory;    // 分类
-  tags: string[];                // 标签
-  thumbnail?: string;            // 缩略图 URL
-  
-  // 来源信息
+  id: string;                    // Unique identifier
+  name: string;                  // Template name
+  description: string;           // Template description
+  category: TemplateCategory;    // Category
+  tags: string[];                // Tags
+  thumbnail?: string;            // Thumbnail URL
+
+  // Source information
   source: TemplateSource;
-  
-  // 版本信息
+
+  // Version information
   version?: string;
   lastUpdated?: string;
-  
-  // 元信息
+
+  // Metadata
   author?: string;
   license?: string;
-  documentClass?: string;        // article, report, book, beamer 等
-  
-  // 统计
+  documentClass?: string;        // article, report, book, beamer, etc.
+
+  // Statistics
   downloads?: number;
   stars?: number;
 }
@@ -89,20 +89,20 @@ export type TemplateFileType = "tex" | "bib" | "sty" | "cls" | "bst" | "image" |
  * Single template file
  */
 export interface TemplateFile {
-  path: string;                 // 相对路径
-  name: string;                 // 文件名
+  path: string;                 // Relative path
+  name: string;                 // Filename
   type: TemplateFileType;
-  content?: string;             // 文本内容（仅文本文件）
-  binaryUrl?: string;           // 二进制文件 URL（图片等）
-  size?: number;                // 文件大小
+  content?: string;             // Text content (text files only)
+  binaryUrl?: string;           // Binary file URL (images, etc.)
+  size?: number;                // File size
 }
 
 /**
  * Template files collection
  */
 export interface TemplateFiles {
-  mainFile: string;             // 主 .tex 文件名
-  files: TemplateFile[];        // 所有文件
+  mainFile: string;             // Main .tex filename
+  files: TemplateFile[];        // All files
 }
 
 /**
@@ -111,7 +111,7 @@ export interface TemplateFiles {
 export interface CategoryInfo {
   id: TemplateCategory;
   name: string;
-  nameZh: string;               // 中文名
+  nameZh: string;               // Chinese name
   icon: string;
   description: string;
   count?: number;
@@ -191,8 +191,8 @@ export interface GitHubImportOptions {
   path?: string;
   mainFile?: string;
   includeImages?: boolean;
-  maxFileSize?: number;         // 单文件最大大小 (bytes)
-  maxTotalSize?: number;        // 总最大大小 (bytes)
+  maxFileSize?: number;         // Max size per file (bytes)
+  maxTotalSize?: number;        // Max total size (bytes)
 }
 
 // ============================================================
@@ -240,70 +240,70 @@ export const CATEGORIES: CategoryInfo[] = [
   {
     id: "conference",
     name: "Conference Papers",
-    nameZh: "会议论文",
+    nameZh: "Conference Papers",
     icon: "🎯",
     description: "Templates for academic conference submissions",
   },
   {
     id: "journal",
     name: "Journal Articles",
-    nameZh: "期刊论文",
+    nameZh: "Journal Articles",
     icon: "📰",
     description: "Templates for journal paper submissions",
   },
   {
     id: "thesis",
     name: "Thesis & Dissertation",
-    nameZh: "学位论文",
+    nameZh: "Thesis & Dissertation",
     icon: "🎓",
     description: "Templates for bachelor, master, and PhD theses",
   },
   {
     id: "cv",
     name: "CV & Resume",
-    nameZh: "简历",
+    nameZh: "CV & Resume",
     icon: "📋",
     description: "Professional CV and resume templates",
   },
   {
     id: "presentation",
     name: "Presentations",
-    nameZh: "演示文稿",
+    nameZh: "Presentations",
     icon: "📊",
     description: "Beamer and other presentation templates",
   },
   {
     id: "report",
     name: "Reports",
-    nameZh: "报告",
+    nameZh: "Reports",
     icon: "📝",
     description: "Technical reports and project documentation",
   },
   {
     id: "book",
     name: "Books",
-    nameZh: "书籍",
+    nameZh: "Books",
     icon: "📚",
     description: "Book and textbook templates",
   },
   {
     id: "letter",
     name: "Letters",
-    nameZh: "信件",
+    nameZh: "Letters",
     icon: "✉️",
     description: "Formal and cover letter templates",
   },
   {
     id: "poster",
     name: "Posters",
-    nameZh: "海报",
+    nameZh: "Posters",
     icon: "🖼️",
     description: "Academic poster templates",
   },
   {
     id: "other",
     name: "Other",
-    nameZh: "其他",
+    nameZh: "Other",
     icon: "📄",
     description: "Miscellaneous LaTeX templates",
   },

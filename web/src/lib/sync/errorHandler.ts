@@ -1,7 +1,7 @@
 /**
  * Sync Error Handler
  *
- * 同步系统的错误处理、状态恢复、不一致检测
+ * Error handling, state recovery, and inconsistency detection for the sync system
  */
 
 import type { SessionState, StateDelta } from './types';
@@ -36,15 +36,15 @@ export interface SyncError {
 // ============================================================
 
 export interface ErrorHandlerConfig {
-  /** 最大错误历史记录 */
+  /** Maximum error history size */
   maxErrorHistory: number;
-  /** 错误通知回调 */
+  /** Error notification callback */
   onError?: (error: SyncError) => void;
-  /** 恢复成功回调 */
+  /** Recovery success callback */
   onRecovery?: (errorCode: SyncErrorCode) => void;
-  /** 是否启用自动恢复 */
+  /** Whether to enable auto-recovery */
   enableAutoRecovery: boolean;
-  /** 状态不一致阈值（百分比差异） */
+  /** State inconsistency threshold (percentage difference) */
   inconsistencyThreshold: number;
 }
 
@@ -66,7 +66,7 @@ export class SyncErrorHandler {
   // ==================== Error Handling ====================
 
   /**
-   * 处理错误
+   * Handle an error
    */
   handleError(
     code: SyncErrorCode,
@@ -81,13 +81,13 @@ export class SyncErrorHandler {
       details,
     };
 
-    // 记录错误
+    // Record error
     this.errorHistory.push(error);
     if (this.errorHistory.length > this.config.maxErrorHistory) {
       this.errorHistory.shift();
     }
 
-    // 通知
+    // Notify
     this.config.onError?.(error);
 
     console.error(`[SyncError] ${code}: ${message}`, details);
@@ -96,7 +96,7 @@ export class SyncErrorHandler {
   }
 
   /**
-   * 判断错误是否可恢复
+   * Determine if an error is recoverable
    */
   isRecoverable(code: SyncErrorCode): boolean {
     switch (code) {
@@ -119,7 +119,7 @@ export class SyncErrorHandler {
   // ==================== Recovery ====================
 
   /**
-   * 尝试恢复
+   * Attempt recovery
    */
   async attemptRecovery(
     code: SyncErrorCode,
@@ -155,7 +155,7 @@ export class SyncErrorHandler {
   }
 
   /**
-   * 重置恢复计数
+   * Reset recovery attempt count
    */
   resetRecoveryAttempts(code?: SyncErrorCode): void {
     if (code) {
@@ -168,7 +168,7 @@ export class SyncErrorHandler {
   // ==================== State Validation ====================
 
   /**
-   * 验证状态
+   * Validate state
    */
   validateState(state: unknown): SyncError | null {
     const result = validateSessionState(state);
@@ -185,7 +185,7 @@ export class SyncErrorHandler {
   }
 
   /**
-   * 检测状态不一致
+   * Detect state inconsistency
    */
   checkStateConsistency(
     localState: SessionState,
@@ -194,7 +194,7 @@ export class SyncErrorHandler {
     const result = detectStateInconsistency(localState, serverState);
 
     if (!result.consistent) {
-      // 计算差异百分比
+      // Calculate difference percentage
       const localCount = localState.messages?.length || 0;
       const serverCount = serverState.messages?.length || 0;
       const diff = Math.abs(localCount - serverCount);
@@ -219,14 +219,14 @@ export class SyncErrorHandler {
   // ==================== Error History ====================
 
   /**
-   * 获取错误历史
+   * Get error history
    */
   getErrorHistory(): SyncError[] {
     return [...this.errorHistory];
   }
 
   /**
-   * 获取特定类型的最近错误
+   * Get the most recent error of a specific type
    */
   getLastError(code?: SyncErrorCode): SyncError | undefined {
     if (code) {
@@ -236,14 +236,14 @@ export class SyncErrorHandler {
   }
 
   /**
-   * 清除错误历史
+   * Clear error history
    */
   clearErrorHistory(): void {
     this.errorHistory = [];
   }
 
   /**
-   * 获取错误统计
+   * Get error statistics
    */
   getErrorStats(): Record<SyncErrorCode, number> {
     const stats: Record<string, number> = {};
@@ -261,29 +261,29 @@ export class SyncErrorHandler {
 // ============================================================
 
 export interface RecoveryStrategy {
-  /** 策略名称 */
+  /** Strategy name */
   name: string;
-  /** 适用的错误类型 */
+  /** Applicable error types */
   applicableTo: SyncErrorCode[];
-  /** 执行恢复 */
+  /** Execute recovery */
   execute: (context: RecoveryContext) => Promise<boolean>;
 }
 
 export interface RecoveryContext {
-  /** 当前连接状态 */
+  /** Current connection status */
   isConnected: boolean;
-  /** 重新连接函数 */
+  /** Reconnect function */
   reconnect: () => void;
-  /** 请求完整状态函数 */
+  /** Request full state function */
   requestFullState: () => void;
-  /** 本地状态 */
+  /** Local state */
   localState: SessionState | null;
-  /** 错误处理器 */
+  /** Error handler */
   errorHandler: SyncErrorHandler;
 }
 
 /**
- * 重连策略
+ * Reconnect strategy
  */
 export const reconnectStrategy: RecoveryStrategy = {
   name: 'reconnect',
@@ -300,7 +300,7 @@ export const reconnectStrategy: RecoveryStrategy = {
     return new Promise((resolve) => {
       context.reconnect();
       
-      // 等待连接
+      // Wait for connection
       const checkInterval = setInterval(() => {
         if (context.isConnected) {
           clearInterval(checkInterval);
@@ -309,7 +309,7 @@ export const reconnectStrategy: RecoveryStrategy = {
         }
       }, 100);
 
-      // 超时
+      // Timeout
       const timeout = setTimeout(() => {
         clearInterval(checkInterval);
         resolve(false);
@@ -319,7 +319,7 @@ export const reconnectStrategy: RecoveryStrategy = {
 };
 
 /**
- * 状态重同步策略
+ * State resync strategy
  */
 export const resyncStrategy: RecoveryStrategy = {
   name: 'resync',
@@ -331,7 +331,7 @@ export const resyncStrategy: RecoveryStrategy = {
 
     context.requestFullState();
 
-    // 等待状态更新
+    // Wait for state update
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(true);
@@ -341,7 +341,7 @@ export const resyncStrategy: RecoveryStrategy = {
 };
 
 /**
- * 默认恢复策略列表
+ * Default recovery strategy list
  */
 export const defaultRecoveryStrategies: RecoveryStrategy[] = [
   reconnectStrategy,
@@ -353,7 +353,7 @@ export const defaultRecoveryStrategies: RecoveryStrategy[] = [
 // ============================================================
 
 /**
- * 创建带恢复功能的错误处理器
+ * Create an error handler with recovery capabilities
  */
 export function createSyncErrorHandler(
   config?: Partial<ErrorHandlerConfig>,
@@ -366,7 +366,7 @@ export function createSyncErrorHandler(
     strategies,
 
     /**
-     * 处理错误并尝试恢复
+     * Handle error and attempt recovery
      */
     async handleAndRecover(
       code: SyncErrorCode,
@@ -380,7 +380,7 @@ export function createSyncErrorHandler(
         return { error, recovered: false };
       }
 
-      // 查找适用的恢复策略
+      // Find applicable recovery strategy
       const strategy = strategies.find(s => s.applicableTo.includes(code));
       
       if (!strategy) {

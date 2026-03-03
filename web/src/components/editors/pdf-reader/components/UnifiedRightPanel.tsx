@@ -10,16 +10,16 @@ import { cn } from "@/lib/utils";
 import { X, Tag, FileText, Send } from "lucide-react";
 import { TagPanel, NotesPanel } from "./rightPanels";
 import { componentEventBus } from "@/lib/events";
-// import { ChatPanel } from './rightPanels'; // 临时关闭chat功能
+// import { ChatPanel } from './rightPanels'; // Chat feature temporarily disabled
 import { NotesPanelRef } from "./rightPanels/NotesPanel";
 import Image from "next/image";
 import { api } from "@/lib/api";
 import { Apis } from "@/constants/api";
 import { toast } from "sonner";
 
-type PanelType = "tags" | "notes"; // | 'chat'; // 临时关闭chat功能
+type PanelType = "tags" | "notes"; // | 'chat'; // Chat feature temporarily disabled
 
-// 笔记类型定义
+// Note type definition
 export interface NoteRecord {
   id: number;
   block_id: number;
@@ -49,7 +49,7 @@ interface UnifiedRightPanelProps {
   notesInitialValue?: string;
   onNotesChange?: (value: string) => void;
   paperId: number;
-  // ChatPanel props - 临时关闭chat功能
+  // ChatPanel props - chat feature temporarily disabled
   // pdfOutline?: any[];
   // pdfText?: string;
   // pdfUrl?: string;
@@ -89,7 +89,7 @@ export const UnifiedRightPanel = forwardRef<
       // NotesPanel props
       notesInitialValue = "",
       onNotesChange,
-      // ChatPanel props - 临时关闭chat功能
+      // ChatPanel props - chat feature temporarily disabled
       // pdfOutline,
       // pdfText,
       // pdfUrl,
@@ -103,7 +103,7 @@ export const UnifiedRightPanel = forwardRef<
     const panelRef = useRef<HTMLDivElement>(null);
     const notesPanelRef = useRef<NotesPanelRef>(null);
 
-    // 暴露给父组件的方法
+    // Methods exposed to the parent component
     useImperativeHandle(
       ref,
       () => ({
@@ -111,10 +111,10 @@ export const UnifiedRightPanel = forwardRef<
           content: string,
           type: "text" | "quote" = "text"
         ) => {
-          // 自动切换到笔记面板
+          // Automatically switch to the notes panel
           setActivePanel("notes");
 
-          // 等待面板切换完成后插入内容
+          // Wait for panel switch to complete before inserting content
           setTimeout(() => {
             if (notesPanelRef.current) {
               notesPanelRef.current.insertContent(content, type);
@@ -145,7 +145,7 @@ export const UnifiedRightPanel = forwardRef<
       }
     }, [isOpen, activePanel]);
 
-    // 保存新笔记
+    // Save new note
     const handleSaveNewNote = () => {
       api
         .post(Apis["pdf-notes"], {
@@ -194,7 +194,7 @@ export const UnifiedRightPanel = forwardRef<
     const panelTabs = [
       { id: "tags" as PanelType, label: "Tags", icon: Tag },
       { id: "notes" as PanelType, label: "Notes", icon: FileText },
-      // { id: 'chat' as PanelType, label: 'AI Assistant', icon: MessageSquare }, // 临时关闭chat功能
+      // { id: 'chat' as PanelType, label: 'AI Assistant', icon: MessageSquare }, // Chat feature temporarily disabled
     ];
 
     const renderPanelContent = () => {

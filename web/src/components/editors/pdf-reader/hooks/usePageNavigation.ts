@@ -1,15 +1,15 @@
 /**
- * usePageNavigation - 统一的页面导航 Hook
- * 
- * 解决的问题：
- * 1. 双页模式下键盘翻页需要点击两次的 bug
- * 2. 不同导航方式语义不一致的问题
- * 3. 页码状态在不同阅读模式下的规范化
- * 
- * 核心原则：
- * - 双页模式下 pageNumber 始终为奇数（左页页码）
- * - 所有导航方法都是模式感知的
- * - 提供统一的 API 给所有调用方
+ * usePageNavigation - Unified page navigation hook
+ *
+ * Problems solved:
+ * 1. Bug where keyboard page turns in double-page mode required two presses
+ * 2. Inconsistent semantics across different navigation methods
+ * 3. Page number normalization across different reading modes
+ *
+ * Core principles:
+ * - In double-page mode, pageNumber is always odd (left page number)
+ * - All navigation methods are mode-aware
+ * - Provides a unified API for all callers
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
@@ -17,18 +17,18 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 export type ReadingMode = 'single' | 'continuous' | 'double';
 
 export interface PageNavigationAPI {
-  // 状态
+  // State
   pageNumber: number;
   
-  // 核心导航方法
+  // Core navigation methods
   goToPage: (targetPage: number) => void;
   goToPrevPage: () => void;
   goToNextPage: () => void;
   
-  // 直接设置（兼容旧 API）
+  // Direct setter (backward compatible with old API)
   setPageNumber: (page: number) => void;
   
-  // 辅助方法
+  // Helper methods
   normalizePageNumber: (page: number) => number;
   getDisplayedPages: () => number[];
   canGoToPrev: boolean;
@@ -43,16 +43,16 @@ export function usePageNavigation(
   const [pageNumber, setPageNumberInternal] = useState(initialPage);
 
   /**
-   * 规范化页码
-   * - 确保在有效范围内 [1, numPages]
-   * - 双页模式下确保是奇数（左页）
+   * Normalize page number
+   * - Ensures it is within valid range [1, numPages]
+   * - In double-page mode, ensures it is odd (left page)
    */
   const normalizePageNumber = useCallback((page: number): number => {
-    // 边界检查
+    // Boundary check
     if (numPages <= 0) return 1;
     const clamped = Math.max(1, Math.min(page, numPages));
     
-    // 双页模式：确保是奇数（左页）
+    // Double-page mode: ensure it is odd (left page)
     if (readingMode === 'double' && clamped % 2 === 0 && clamped > 1) {
       return clamped - 1;
     }
@@ -61,8 +61,8 @@ export function usePageNavigation(
   }, [readingMode, numPages]);
 
   /**
-   * 跳转到指定页（自动规范化）
-   * 这是所有页面导航的统一入口
+   * Navigate to a specific page (auto-normalizes).
+   * This is the unified entry point for all page navigation.
    */
   const goToPage = useCallback((targetPage: number) => {
     const normalized = normalizePageNumber(targetPage);
@@ -70,9 +70,9 @@ export function usePageNavigation(
   }, [normalizePageNumber]);
 
   /**
-   * 上一页（模式感知）
-   * - 单页/连续模式：-1
-   * - 双页模式：-2
+   * Previous page (mode-aware)
+   * - Single/continuous mode: -1
+   * - Double-page mode: -2
    */
   const goToPrevPage = useCallback(() => {
     setPageNumberInternal(prev => {
@@ -83,9 +83,9 @@ export function usePageNavigation(
   }, [readingMode, normalizePageNumber]);
 
   /**
-   * 下一页（模式感知）
-   * - 单页/连续模式：+1
-   * - 双页模式：+2
+   * Next page (mode-aware)
+   * - Single/continuous mode: +1
+   * - Double-page mode: +2
    */
   const goToNextPage = useCallback(() => {
     setPageNumberInternal(prev => {
@@ -96,9 +96,9 @@ export function usePageNavigation(
   }, [readingMode, normalizePageNumber]);
 
   /**
-   * 获取当前显示的页面列表
-   * - 单页/连续模式：[pageNumber]
-   * - 双页模式：[leftPage, rightPage] 或 [leftPage]（如果是最后一页）
+   * Get the list of currently displayed pages
+   * - Single/continuous mode: [pageNumber]
+   * - Double-page mode: [leftPage, rightPage] or [leftPage] (if it's the last page)
    */
   const getDisplayedPages = useCallback((): number[] => {
     if (readingMode === 'double') {
@@ -113,26 +113,26 @@ export function usePageNavigation(
   }, [readingMode, pageNumber, numPages]);
 
   /**
-   * 是否可以向前翻页
+   * Whether it is possible to go to the previous page
    */
   const canGoToPrev = useMemo(() => {
     return pageNumber > 1;
   }, [pageNumber]);
 
   /**
-   * 是否可以向后翻页
+   * Whether it is possible to go to the next page
    */
   const canGoToNext = useMemo(() => {
     if (readingMode === 'double') {
-      // 双页模式：检查右页之后是否还有页面
+      // Double-page mode: check if there are pages after the right page
       return pageNumber + 2 <= numPages;
     }
     return pageNumber < numPages;
   }, [pageNumber, numPages, readingMode]);
 
   /**
-   * 当阅读模式变化时，规范化当前页码
-   * 例如：从单页模式切换到双页模式时，如果当前是偶数页，需要调整为奇数
+   * Normalize current page number when reading mode changes.
+   * For example: when switching from single to double-page mode, if the current page is even, adjust to odd.
    */
   useEffect(() => {
     const normalized = normalizePageNumber(pageNumber);
@@ -142,7 +142,7 @@ export function usePageNavigation(
   }, [readingMode, normalizePageNumber, pageNumber]);
 
   /**
-   * 当 numPages 变化时（例如 PDF 加载完成），确保页码有效
+   * When numPages changes (e.g., PDF finishes loading), ensure the page number is valid.
    */
   useEffect(() => {
     if (numPages > 0 && pageNumber > numPages) {
@@ -155,7 +155,7 @@ export function usePageNavigation(
     goToPage,
     goToPrevPage,
     goToNextPage,
-    setPageNumber: goToPage, // 兼容旧 API
+    setPageNumber: goToPage, // Backward compatible with old API
     normalizePageNumber,
     getDisplayedPages,
     canGoToPrev,

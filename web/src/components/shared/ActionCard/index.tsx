@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * ActionCard - 通用 Agent 行动卡片组件
- * 
- * 支持两种主题：
- * - dark: 深色背景 (用于 LaTeX Agent 等)
- * - light: 浅色背景 (用于 Workspace 等)
+ * ActionCard - Generic agent action card component
+ *
+ * Supports two themes:
+ * - dark: Dark background (for LaTeX Agent, etc.)
+ * - light: Light background (for Workspace, etc.)
  */
 
 import React, { useState, memo } from 'react';
@@ -128,7 +128,7 @@ const PaperItem = memo(function PaperItem({
   );
 });
 
-// 颜色配置
+// Color configuration
 const colorConfig: Record<AgentAction['type'], { icon: string; bgGradient: { dark: string; light: string }; border: { dark: string; light: string } }> = {
   search_papers: {
     icon: 'text-blue-500',

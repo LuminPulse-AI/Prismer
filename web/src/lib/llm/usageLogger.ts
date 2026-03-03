@@ -2,8 +2,8 @@
  * LLM Usage Logger
  *
  * @description
- * Phase 3E: LLM 使用量日志记录器
- * 记录所有 LLM API 调用的使用量和成本
+ * Phase 3E: LLM usage logger
+ * Records usage and cost of all LLM API calls
  */
 
 import { prisma } from '@/lib/prisma';
@@ -14,11 +14,11 @@ import { calculateCost, type LLMUsage, type LLMProvider } from './types';
 // ============================================================
 
 /**
- * 记录 LLM 使用量
+ * Log LLM usage
  */
 export async function logLLMUsage(usage: LLMUsage): Promise<void> {
   try {
-    // 如果没有 agentInstanceId，跳过数据库记录
+    // Skip database logging if no agentInstanceId is present
     if (!usage.agentInstanceId || !usage.userId) {
       console.log('[LLMUsageLogger] Skipping DB log (no agent/user):', {
         model: usage.model,
@@ -56,7 +56,7 @@ export async function logLLMUsage(usage: LLMUsage): Promise<void> {
 }
 
 /**
- * 从 OpenAI 格式响应提取使用量
+ * Extract usage from OpenAI-format response
  */
 export function extractUsageFromOpenAI(
   response: {
@@ -99,8 +99,8 @@ export function extractUsageFromOpenAI(
 }
 
 /**
- * 记录流式响应的使用量
- * 需要在流结束后调用
+ * Log streaming response usage
+ * Must be called after the stream ends
  */
 export async function logStreamingUsage(
   model: string,
@@ -114,7 +114,7 @@ export async function logStreamingUsage(
     latencyMs: number;
   }
 ): Promise<void> {
-  // 估算输出 tokens (粗略: 4 字符 = 1 token)
+  // Estimate output tokens (rough: 4 characters = 1 token)
   const estimatedOutputTokens = Math.ceil(outputContent.length / 4);
 
   const usage: LLMUsage = {
@@ -141,7 +141,7 @@ export async function logStreamingUsage(
 // ============================================================
 
 /**
- * 获取用户使用量统计
+ * Get user usage statistics
  */
 export async function getUserUsageStats(
   userId: string,
@@ -162,7 +162,7 @@ export async function getUserUsageStats(
 }
 
 /**
- * 获取 Agent 使用量统计
+ * Get Agent usage statistics
  */
 export async function getAgentUsageStats(
   agentInstanceId: string,
@@ -183,7 +183,7 @@ export async function getAgentUsageStats(
 }
 
 /**
- * 获取全局使用量统计
+ * Get global usage statistics
  */
 export async function getGlobalUsageStats(startDate: Date, endDate: Date) {
   const logs = await prisma.lLMUsageLog.findMany({
@@ -199,7 +199,7 @@ export async function getGlobalUsageStats(startDate: Date, endDate: Date) {
 }
 
 /**
- * 聚合使用量日志
+ * Aggregate usage logs
  */
 function aggregateUsageLogs(
   logs: Array<{
@@ -265,7 +265,7 @@ function aggregateUsageLogs(
 // ============================================================
 
 /**
- * 检查是否超过成本阈值
+ * Check if cost threshold is exceeded
  */
 export async function checkCostThreshold(
   userId: string,

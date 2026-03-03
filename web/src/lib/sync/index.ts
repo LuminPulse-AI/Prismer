@@ -1,7 +1,7 @@
 /**
  * Sync Control Matrix Module
  *
- * 同步控制矩阵模块导出
+ * Sync control matrix module exports
  *
  * @example
  * ```typescript
@@ -13,17 +13,17 @@
  *   DATA_TYPES,
  * } from '@/lib/sync';
  *
- * // 使用默认矩阵
+ * // Use the default matrix
  * const engine = createSyncMatrixEngine(defaultSyncMatrix);
  *
- * // 检查权限
+ * // Check permissions
  * if (engine.canAccess('messages', 'mobile', 'read')) {
- *   // 移动端可以读取消息
+ *   // Mobile can read messages
  * }
  *
- * // 动态添加规则
+ * // Dynamically add rules
  * engine.registerRule(
- *   rule('customData', '自定义数据')
+ *   rule('customData', 'Custom data')
  *     .serverOwned()
  *     .endpoint('desktop', 'readwrite')
  *     .persist('database', { table: 'custom_data' })
@@ -114,7 +114,7 @@ export {
 // Hooks (Client-side)
 // ============================================================
 
-// Low-level hook (无 Store 依赖)
+// Low-level hook (no Store dependency)
 export {
   useAgentConnection,
   useAgentEvent,
@@ -220,7 +220,7 @@ export type {
 
 export {
   researchNotesSyncRule,
-  // createResearchNotesRule 已从 defaultMatrix 导出
+  // createResearchNotesRule is already exported from defaultMatrix
   createResearchNotesSlice,
   createResearchNote,
   getAllTags,

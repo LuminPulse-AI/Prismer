@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * KeyboardShortcutsHelp - 快捷键帮助对话框
+ * KeyboardShortcutsHelp - Keyboard Shortcuts Help Dialog
  */
 
 import React, { memo } from 'react';

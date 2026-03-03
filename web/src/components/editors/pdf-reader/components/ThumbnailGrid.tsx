@@ -50,7 +50,7 @@ export const ThumbnailGrid: React.FC<ThumbnailGridProps> = ({
     const generateThumbnail = async (pdf: any, pageNumber: number) => {
       try {
         const page = await pdf.getPage(pageNumber);
-        const viewport = page.getViewport({ scale: 0.5 }); // 较小的scale用于缩略图
+        const viewport = page.getViewport({ scale: 0.5 }); // Smaller scale for thumbnails
         
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');

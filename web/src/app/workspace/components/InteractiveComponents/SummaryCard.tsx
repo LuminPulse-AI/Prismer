@@ -2,8 +2,8 @@
 
 /**
  * SummaryCard
- * 
- * 总结卡片交互组件 - 用于展示任务完成统计
+ *
+ * Summary card interactive component - Displays task completion statistics
  */
 
 import React, { memo } from 'react';
@@ -47,14 +47,14 @@ export const SummaryCard = memo(function SummaryCard({
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-violet-50 via-white to-purple-50 rounded-xl border border-violet-200/50 p-4 shadow-sm"
     >
-      {/* 标题 */}
+      {/* Title */}
       {config.title && (
         <h4 className="text-sm font-semibold text-slate-800 mb-4">
           {config.title}
         </h4>
       )}
 
-      {/* 统计网格 */}
+      {/* Statistics grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         {config.stats.map((stat, index) => (
           <motion.div
@@ -80,7 +80,7 @@ export const SummaryCard = memo(function SummaryCard({
         ))}
       </div>
 
-      {/* 操作按钮 */}
+      {/* Action buttons */}
       {config.actions && config.actions.length > 0 && (
         <div className="flex gap-2">
           {config.actions.map((action, index) => (

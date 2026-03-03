@@ -2,8 +2,8 @@
  * Agent Event to Sync Protocol Mapper
  *
  * @description
- * Phase 3A: 将 AgentEvent 映射到 Sync 协议消息
- * 统一处理 Agent 事件到客户端同步消息的转换
+ * Phase 3A: Maps AgentEvent to Sync protocol messages
+ * Handles conversion from Agent events to client sync messages
  */
 
 import type {
@@ -25,11 +25,11 @@ import type {
 // ============================================================
 
 /**
- * 将 AgentEvent 转换为 ServerToClientMessage
+ * Convert AgentEvent to ServerToClientMessage
  */
 export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessage | null {
   switch (event.type) {
-    // Agent 状态变更 → AGENT_STATUS
+    // Agent state change → AGENT_STATUS
     case 'agent_thinking':
       return {
         type: 'AGENT_STATUS',
@@ -79,7 +79,7 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
         },
       };
 
-    // 消息事件 → STATE_DELTA
+    // Message event → STATE_DELTA
     case 'message_end':
       return {
         type: 'STATE_DELTA',
@@ -98,7 +98,7 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
         },
       };
 
-    // 任务事件 → STATE_DELTA
+    // Task event → STATE_DELTA
     case 'task_created':
       return {
         type: 'STATE_DELTA',
@@ -150,14 +150,14 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
         },
       };
 
-    // UI 指令事件 → UI_DIRECTIVE
+    // UI directive event → UI_DIRECTIVE
     case 'ui_directive':
       return {
         type: 'UI_DIRECTIVE',
         payload: event.payload,
       };
 
-    // 组件状态更新 → STATE_DELTA
+    // Component state update → STATE_DELTA
     case 'component_state_update':
       return {
         type: 'STATE_DELTA',
@@ -168,7 +168,7 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
         },
       };
 
-    // 会话事件 → 特殊处理
+    // Session events → special handling
     case 'session_start':
     case 'session_end':
     case 'session_error':
@@ -180,7 +180,7 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
     case 'tool_error':
     case 'interaction_request':
     case 'interaction_response':
-      // 这些事件需要特殊处理或不直接映射
+      // These events require special handling or do not map directly
       return null;
 
     default:
@@ -193,8 +193,8 @@ export function agentEventToSyncMessage(event: AgentEvent): ServerToClientMessag
 // ============================================================
 
 /**
- * 消息流累积器
- * 用于将 message_delta 事件累积成完整消息
+ * Streaming message accumulator
+ * Accumulates message_delta events into complete messages
  */
 export class MessageAccumulator {
   private messages: Map<string, {
@@ -206,7 +206,7 @@ export class MessageAccumulator {
   }> = new Map();
 
   /**
-   * 开始新消息
+   * Start a new message
    */
   startMessage(messageId: string, senderId: string, senderType: 'agent' | 'user'): void {
     this.messages.set(messageId, {
@@ -219,12 +219,12 @@ export class MessageAccumulator {
   }
 
   /**
-   * 添加消息增量
+   * Add message delta
    */
   addDelta(delta: MessageDelta): string {
     const message = this.messages.get(delta.messageId);
     if (!message) {
-      // 如果没有开始消息，自动创建
+      // Auto-create if message was not started
       this.startMessage(delta.messageId, 'agent', 'agent');
       return this.addDelta(delta);
     }
@@ -235,7 +235,7 @@ export class MessageAccumulator {
   }
 
   /**
-   * 结束消息并获取完整内容
+   * End message and get full content
    */
   endMessage(messageId: string): { content: string; duration: number } | null {
     const message = this.messages.get(messageId);
@@ -251,14 +251,14 @@ export class MessageAccumulator {
   }
 
   /**
-   * 获取当前累积的内容
+   * Get current accumulated content
    */
   getCurrentContent(messageId: string): string | null {
     return this.messages.get(messageId)?.content ?? null;
   }
 
   /**
-   * 清理所有累积的消息
+   * Clear all accumulated messages
    */
   clear(): void {
     this.messages.clear();
@@ -270,21 +270,21 @@ export class MessageAccumulator {
 // ============================================================
 
 /**
- * 工具调用追踪器
- * 用于跟踪工具调用状态
+ * Tool call tracker
+ * Tracks tool call status
  */
 export class ToolCallTracker {
   private calls: Map<string, ToolCall> = new Map();
 
   /**
-   * 开始工具调用
+   * Start tool call
    */
   startCall(call: ToolCall): void {
     this.calls.set(call.id, { ...call, status: 'running' });
   }
 
   /**
-   * 更新进度
+   * Update progress
    */
   updateProgress(toolId: string, progress: number, status?: string): void {
     const call = this.calls.get(toolId);
@@ -297,7 +297,7 @@ export class ToolCallTracker {
   }
 
   /**
-   * 完成工具调用
+   * Complete tool call
    */
   completeCall(toolId: string, result: unknown): void {
     const call = this.calls.get(toolId);
@@ -309,7 +309,7 @@ export class ToolCallTracker {
   }
 
   /**
-   * 工具调用失败
+   * Tool call failed
    */
   failCall(toolId: string, error: string): void {
     const call = this.calls.get(toolId);
@@ -320,14 +320,14 @@ export class ToolCallTracker {
   }
 
   /**
-   * 获取工具调用状态
+   * Get tool call status
    */
   getCall(toolId: string): ToolCall | undefined {
     return this.calls.get(toolId);
   }
 
   /**
-   * 获取所有活跃的工具调用
+   * Get all active tool calls
    */
   getActiveCalls(): ToolCall[] {
     return Array.from(this.calls.values()).filter(
@@ -336,7 +336,7 @@ export class ToolCallTracker {
   }
 
   /**
-   * 清理已完成的调用
+   * Clear completed calls
    */
   clearCompleted(): void {
     for (const [id, call] of this.calls) {
@@ -352,8 +352,8 @@ export class ToolCallTracker {
 // ============================================================
 
 /**
- * Agent 事件流处理器
- * 将连续的 Agent 事件转换为 Sync 协议消息流
+ * Agent event stream handler
+ * Converts sequential Agent events into a Sync protocol message stream
  */
 export class AgentEventStreamHandler {
   private messageAccumulator = new MessageAccumulator();
@@ -370,10 +370,10 @@ export class AgentEventStreamHandler {
   }
 
   /**
-   * 处理 Agent 事件
+   * Handle Agent event
    */
   handleEvent(event: AgentEvent): void {
-    // 处理消息流式事件
+    // Handle streaming message events
     if (event.type === 'message_start') {
       this.messageAccumulator.startMessage(
         event.payload.messageId,
@@ -385,12 +385,12 @@ export class AgentEventStreamHandler {
 
     if (event.type === 'message_delta') {
       const content = this.messageAccumulator.addDelta(event.payload);
-      // 可选：发送实时增量更新
+      // Optional: send real-time delta updates
       // this.onSyncMessage({ type: 'STATE_DELTA', payload: { ... } });
       return;
     }
 
-    // 处理工具调用事件
+    // Handle tool call events
     if (event.type === 'tool_start') {
       this.toolCallTracker.startCall(event.payload);
     } else if (event.type === 'tool_progress') {
@@ -405,7 +405,7 @@ export class AgentEventStreamHandler {
       this.toolCallTracker.failCall(event.payload.toolId, event.payload.error);
     }
 
-    // 转换并发送其他事件
+    // Convert and send other events
     const syncMessage = agentEventToSyncMessage(event);
     if (syncMessage) {
       this.onSyncMessage(syncMessage);
@@ -413,14 +413,14 @@ export class AgentEventStreamHandler {
   }
 
   /**
-   * 批量处理事件
+   * Process events in batch
    */
   handleEvents(events: AgentEvent[]): void {
     events.forEach(event => this.handleEvent(event));
   }
 
   /**
-   * 获取当前状态摘要
+   * Get current state summary
    */
   getStateSummary(): {
     pendingMessages: number;
@@ -433,7 +433,7 @@ export class AgentEventStreamHandler {
   }
 
   /**
-   * 清理资源
+   * Clean up resources
    */
   dispose(): void {
     if (this.flushTimeout) {

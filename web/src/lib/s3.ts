@@ -1,10 +1,10 @@
 /**
- * AWS S3 客户端封装
- * 
- * 功能:
- * - S3 客户端单例
- * - 预签名 URL 生成
- * - CDN URL 生成
+ * AWS S3 Client Wrapper
+ *
+ * Features:
+ * - S3 client singleton
+ * - Presigned URL generation
+ * - CDN URL generation
  */
 
 import { 
@@ -17,7 +17,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // ============================================================
-// 动态配置
+// Dynamic Configuration
 // ============================================================
 
 function getBucket() {
@@ -36,13 +36,13 @@ function getCdnDomain() {
   return process.env.CDN_DOMAIN || process.env.NEXT_PUBLIC_CDN_DOMAIN || '';
 }
 
-// 导出配置 getter（向后兼容）
+// Export config getters (backward compatible)
 export const BUCKET = { toString: () => getBucket(), valueOf: () => getBucket() } as unknown as string;
 export const REGION = { toString: () => getRegion(), valueOf: () => getRegion() } as unknown as string;
 export const CDN_DOMAIN = { toString: () => getCdnDomain(), valueOf: () => getCdnDomain() } as unknown as string;
 
 // ============================================================
-// S3 客户端（懒加载，配置变化时重建）
+// S3 Client (lazy-loaded, rebuilt on config change)
 // ============================================================
 
 let _s3Client: S3Client | null = null;
@@ -55,7 +55,7 @@ function getS3ConfigKey() {
 function getS3Client(): S3Client {
   const configKey = getS3ConfigKey();
   
-  // 配置变化时重建客户端
+  // Rebuild client when config changes
   if (_s3Client && _s3ConfigKey !== configKey) {
     console.log('[S3] Config changed, recreating client');
     _s3Client.destroy();
@@ -79,7 +79,7 @@ function getS3Client(): S3Client {
   return _s3Client;
 }
 
-// 向后兼容导出
+// Backward compatible export
 export const s3Client = new Proxy({} as S3Client, {
   get(_, prop) {
     const client = getS3Client();
@@ -89,58 +89,58 @@ export const s3Client = new Proxy({} as S3Client, {
 });
 
 // ============================================================
-// 路径生成
+// Path Generation
 // ============================================================
 
 /**
- * S3 路径模板
+ * S3 path templates
  */
 export const S3_PATHS = {
-  /** 用户上传的 PDF */
+  /** User-uploaded PDF */
   upload: (userId: string, uploadId: string, fileName: string) =>
     `uploads/${userId}/${uploadId}/${fileName}`,
   
-  /** OCR 输出目录 */
+  /** OCR output directory */
   ocr: (docId: string) =>
     `ocr/v1/${docId}/`,
   
-  /** OCR 输出的 Markdown */
+  /** OCR output Markdown */
   ocrMarkdown: (docId: string) =>
     `ocr/v1/${docId}/output.md`,
   
-  /** OCR 输出的图片 */
+  /** OCR output images */
   ocrImage: (docId: string, imageName: string) =>
     `ocr/v1/${docId}/images/${imageName}`,
   
-  /** 导出文件 */
+  /** Export files */
   export: (userId: string, jobId: string, fileName: string) =>
     `exports/${userId}/${jobId}/${fileName}`,
   
-  /** 用户头像 */
+  /** User avatar */
   avatar: (userId: string, fileName: string) =>
     `avatars/${userId}/${fileName}`,
 };
 
 // ============================================================
-// URL 生成
+// URL Generation
 // ============================================================
 
 /**
- * 生成 CDN URL
+ * Generate CDN URL
  */
 export function getCdnUrl(s3Key: string): string {
   return `https://${getCdnDomain()}/${s3Key}`;
 }
 
 /**
- * 生成 S3 直接 URL
+ * Generate direct S3 URL
  */
 export function getS3Url(s3Key: string): string {
   return `https://${getBucket()}.s3.${getRegion()}.amazonaws.com/${s3Key}`;
 }
 
 /**
- * 生成上传预签名 URL
+ * Generate upload presigned URL
  */
 export async function getUploadUrl(
   s3Key: string,
@@ -157,7 +157,7 @@ export async function getUploadUrl(
 }
 
 /**
- * 生成下载预签名 URL
+ * Generate download presigned URL
  */
 export async function getDownloadUrl(
   s3Key: string,
@@ -172,11 +172,11 @@ export async function getDownloadUrl(
 }
 
 // ============================================================
-// 文件操作
+// File Operations
 // ============================================================
 
 /**
- * 列出目录内容
+ * List directory contents
  */
 export async function listObjects(prefix: string, maxKeys: number = 100) {
   const command = new ListObjectsV2Command({
@@ -190,7 +190,7 @@ export async function listObjects(prefix: string, maxKeys: number = 100) {
 }
 
 /**
- * 删除文件
+ * Delete file
  */
 export async function deleteObject(s3Key: string) {
   const command = new DeleteObjectCommand({
@@ -202,7 +202,7 @@ export async function deleteObject(s3Key: string) {
 }
 
 /**
- * 读取文件内容 (文本)
+ * Read file content (text)
  */
 export async function getObjectAsText(s3Key: string): Promise<string> {
   const command = new GetObjectCommand({
@@ -215,7 +215,7 @@ export async function getObjectAsText(s3Key: string): Promise<string> {
 }
 
 /**
- * 读取 JSON 文件
+ * Read JSON file
  */
 export async function getObjectAsJson<T = unknown>(s3Key: string): Promise<T> {
   const text = await getObjectAsText(s3Key);
@@ -223,7 +223,7 @@ export async function getObjectAsJson<T = unknown>(s3Key: string): Promise<T> {
 }
 
 // ============================================================
-// 额外导出
+// Additional Exports
 // ============================================================
 
 export { getSignedUrl };

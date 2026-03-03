@@ -36,7 +36,7 @@ interface OutlineItem {
   pageNumber?: number;
 }
 
-// 宽度范围 - 默认 15% 比例 (约 250px 在 1680px 屏幕上)
+// Width range - default 15% ratio (approx. 250px on a 1680px screen)
 const DEFAULT_WIDTH = 250;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 400;
@@ -50,13 +50,13 @@ interface IndexPanelProps {
   onPageChange: (pageNumber: number) => void;
   isOpen: boolean;
   onClose: () => void;
-  /** 添加 Insight 到 Notes 的回调 */
+  /** Callback for adding an Insight to Notes */
   onAddInsightToNotes?: (insight: PaperInsight) => void;
-  /** 论文上下文（用于引用面板） */
+  /** Paper context (for the references panel) */
   paperContext?: PaperContext | null;
-  /** 在阅读器中打开引用论文的回调 */
+  /** Callback to open a referenced paper in the reader */
   onOpenReferenceInReader?: (arxivId: string) => void;
-  /** 宽度变化回调 */
+  /** Width change callback */
   onWidthChange?: (width: number) => void;
 }
 
@@ -105,15 +105,15 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   }, [width, onWidthChange]);
 
-  // 处理添加 Insight 到 Notes
+  // Handle adding an Insight to Notes
   const handleAddInsightToNotes = useCallback((insight: PaperInsight) => {
     if (onAddInsightToNotes) {
       onAddInsightToNotes(insight);
     } else {
-      // 移除 [[detection_id]] 标签，保留纯 Markdown
+      // Remove [[detection_id]] tags, keep pure Markdown
       const cleanContent = insight.content.replace(/\[\[p\d+_\w+_\d+\]\]/g, '');
       
-      // 默认行为：添加到 extracts 并切换到 Notes tab
+      // Default behavior: add to extracts and switch to Notes tab
       addExtract({
         type: 'ai_insight',
         content: `## ${insight.type.replace('_', ' ').toUpperCase()}\n\n${cleanContent}`,
@@ -147,7 +147,7 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
             return undefined;
           };
 
-          // 处理每个大纲项，获取页码
+          // Process each outline item to get page numbers
           const processedOutline = await Promise.all(
             outline.map(async (item: OutlineItem) => {
               const pageNumber = await resolveDestToPage(item.dest);
@@ -168,7 +168,7 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
           );
           setOutline(processedOutline);
 
-          // 默认展开所有一级项
+          // Expand all top-level items by default
           const expanded = new Set<string>();
           processedOutline.forEach((item) => expanded.add(item.title));
           setExpandedItems(expanded);
@@ -270,7 +270,7 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
           )}
           style={{ width }}
         >
-          {/* 面板头部 */}
+          {/* Panel header */}
           <TooltipProvider>
             <div className="flex items-center justify-between p-4 border-b border-stone-200 bg-stone-50 rounded-t-xl">
               <div className="flex bg-stone-100 rounded-lg p-1 gap-0.5">
@@ -375,7 +375,7 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
             </div>
           </TooltipProvider>
 
-          {/* 面板内容 */}
+          {/* Panel content */}
           <div className="h-[calc(100%-60px)] overflow-y-auto">
             {view === "thumbnails" && (
               <div className="p-4 space-y-4 max-w-full overflow-hidden">
@@ -420,18 +420,18 @@ export const IndexPanel: React.FC<IndexPanelProps> = ({
             )}
           </div>
 
-          {/* Resize Handle - 统一浅灰色半透明样式 */}
+          {/* Resize Handle - unified light gray semi-transparent style */}
           <div
             className="absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize z-20 flex items-center justify-center group"
             onMouseDown={handleMouseDown}
           >
-            {/* 背景hover效果 */}
+            {/* Background hover effect */}
             <div className={cn(
               "absolute inset-0 bg-transparent transition-colors",
               "group-hover:bg-stone-300/40 group-active:bg-indigo-300/50",
               isResizing && "bg-indigo-300/50"
             )} />
-            {/* 拖拽指示条 */}
+            {/* Drag indicator bar */}
             <div className={cn(
               "relative w-1 h-16 rounded-full transition-colors",
               "bg-stone-300/60 group-hover:bg-stone-400 group-active:bg-indigo-500",

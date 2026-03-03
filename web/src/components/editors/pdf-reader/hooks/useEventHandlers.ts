@@ -5,7 +5,7 @@ interface EventHandlersParams {
   pageNumber: number;
   scale: number;
   numPages: number;
-  // 新的模式感知翻页函数
+  // Mode-aware page navigation functions
   goToPrevPage: () => void;
   goToNextPage: () => void;
   canGoToPrev: boolean;
@@ -34,17 +34,17 @@ export const useEventHandlers = ({
   } | null>(null);
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 辅助函数：从选择范围中找到页面号
+  // Helper function: find the page number from a selection range
   const findPageFromSelection = useCallback((range: Range): number | null => {
-    // 获取选择范围的公共祖先容器
+    // Get the common ancestor container of the selection range
     let container = range.commonAncestorContainer;
 
-    // 如果是文本节点，向上找到元素节点
+    // If it's a text node, traverse up to find an element node
     if (container.nodeType === Node.TEXT_NODE) {
       container = container.parentElement!;
     }
 
-    // 向上遍历DOM树，找到包含data-page-number的元素
+    // Traverse up the DOM tree to find an element with data-page-number
     let current = container as HTMLElement;
     while (current && current !== document.body) {
       if (current.hasAttribute && current.hasAttribute("data-page-number")) {
@@ -55,7 +55,7 @@ export const useEventHandlers = ({
         return pageNum > 0 ? pageNum : null;
       }
 
-      // 检查父元素中是否有页面容器
+      // Check if there is a page container in the parent elements
       const pageContainer = current.closest(
         "[data-page-number]"
       ) as HTMLElement;
@@ -70,7 +70,7 @@ export const useEventHandlers = ({
       current = current.parentElement!;
     }
 
-    // 如果找不到，尝试通过位置推算（适用于某些边缘情况）
+    // If not found, try to infer from position (handles certain edge cases)
     const rect = range.getBoundingClientRect();
     const elements = document.elementsFromPoint(
       rect.left + rect.width / 2,
@@ -93,16 +93,16 @@ export const useEventHandlers = ({
     return null;
   }, []);
 
-  // 处理文本选择
+  // Handle text selection
   const handleTextSelection = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
       const range = selection.getRangeAt(0);
 
-      // 检查选择的文本是否来自PDF内容区域
+      // Check if the selected text is from the PDF content area
       const pageNumber = findPageFromSelection(range);
       if (!pageNumber) {
-        // 如果选择的文本不在PDF区域内，清除选择状态
+        // If the selected text is not within the PDF area, clear the selection state
         setSelectedText(null);
         return;
       }
@@ -121,10 +121,10 @@ export const useEventHandlers = ({
     }
   }, [findPageFromSelection]);
 
-  // 处理键盘快捷键
+  // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // 如果用户正在输入，不处理快捷键
+      // If the user is typing in an input field, do not process shortcuts
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -132,9 +132,9 @@ export const useEventHandlers = ({
         return;
       }
 
-      // 如果是搜索相关的快捷键，让搜索hook处理
+      // If it's a search-related shortcut, let the search hook handle it
       if (e.ctrlKey && e.key === "f") {
-        return; // 让usePDFSearch处理
+        return; // Let usePDFSearch handle this
       }
       if (
         e.key === "[" ||
@@ -143,10 +143,10 @@ export const useEventHandlers = ({
         e.key === ">" ||
         e.key === "Escape"
       ) {
-        return; // 让usePDFSearch处理
+        return; // Let usePDFSearch handle this
       }
 
-      // 左右方向键翻页 - 使用模式感知的翻页函数
+      // Left/right arrow keys for page navigation - using mode-aware navigation functions
       if (e.key === "ArrowLeft" && canGoToPrev) {
         e.preventDefault();
         goToPrevPage();
@@ -155,15 +155,15 @@ export const useEventHandlers = ({
         goToNextPage();
       }
 
-      // Shift + + 放大，Shift + - 缩小
+      // Shift + + zoom in, Shift + - zoom out
       if (e.shiftKey) {
-        // 放大：处理 Shift + = (通常是 +)
+        // Zoom in: handle Shift + = (typically +)
         if (e.key === "+" || e.key === "=" || e.code === "Equal") {
           e.preventDefault();
           const newScale = Math.min(2.0, scale + 0.1);
           setScale(newScale);
         }
-        // 缩小：处理 Shift + - (或 _)
+        // Zoom out: handle Shift + - (or _)
         else if (e.key === "-" || e.key === "_" || e.code === "Minus") {
           e.preventDefault();
           const newScale = Math.max(0.5, scale - 0.1);
@@ -174,13 +174,13 @@ export const useEventHandlers = ({
     [scale, canGoToPrev, canGoToNext, goToPrevPage, goToNextPage, setScale]
   );
 
-  // 监听文本选择事件
+  // Listen for text selection events
   useEffect(() => {
     document.addEventListener("mouseup", handleTextSelection);
     return () => document.removeEventListener("mouseup", handleTextSelection);
   }, [handleTextSelection]);
 
-  // 添加和移除键盘事件监听器
+  // Add and remove keyboard event listeners
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => {

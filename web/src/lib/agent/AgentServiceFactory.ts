@@ -2,8 +2,8 @@
  * Agent Service Factory
  *
  * @description
- * Phase 3A: Agent 服务工厂
- * 根据配置创建适当的 Agent 服务实例
+ * Phase 3A: Agent Service Factory
+ * Creates the appropriate Agent service instance based on configuration
  */
 
 import type {
@@ -19,11 +19,11 @@ import { OpenClawAgentService, type OpenClawConfig } from './OpenClawAgentServic
 // ============================================================
 
 /**
- * Agent 服务工厂
+ * Agent Service Factory
  *
  * @description
- * 根据配置创建 DemoAgentService 或 OpenClawAgentService 实例。
- * 支持单例模式和按需创建。
+ * Creates DemoAgentService or OpenClawAgentService instances based on configuration.
+ * Supports singleton pattern and on-demand creation.
  */
 export class AgentServiceFactory {
   private static instance: AgentServiceFactory | null = null;
@@ -35,12 +35,12 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 获取工厂单例
+   * Get factory singleton
    */
   static getInstance(config?: AgentServiceFactoryConfig): AgentServiceFactory {
     if (!AgentServiceFactory.instance) {
       if (!config) {
-        // 默认配置
+        // Default configuration
         config = {
           defaultType: 'demo',
           demo: {
@@ -55,7 +55,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 重置工厂（用于测试）
+   * Reset factory (for testing)
    */
   static reset(): void {
     if (AgentServiceFactory.instance) {
@@ -65,26 +65,26 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 更新配置
+   * Update configuration
    */
   updateConfig(config: Partial<AgentServiceFactoryConfig>): void {
     this.config = { ...this.config, ...config };
   }
 
   /**
-   * 创建服务实例
+   * Create service instance
    */
   createService(options: CreateServiceOptions): AgentService {
     const serviceType = options.type ?? this.config.defaultType;
     const serviceKey = `${serviceType}-${options.agentId}`;
 
-    // 检查是否已有实例
+    // Check if an instance already exists
     const existing = this.services.get(serviceKey);
     if (existing) {
       return existing;
     }
 
-    // 创建新实例
+    // Create new instance
     let service: AgentService;
 
     if (serviceType === 'demo') {
@@ -110,7 +110,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 获取已有服务实例
+   * Get existing service instance
    */
   getService(agentId: string, type?: 'demo' | 'openclaw'): AgentService | null {
     const serviceType = type ?? this.config.defaultType;
@@ -118,7 +118,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 获取或创建服务实例
+   * Get or create service instance
    */
   getOrCreateService(options: CreateServiceOptions): AgentService {
     const existing = this.getService(options.agentId, options.type);
@@ -129,7 +129,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 移除服务实例
+   * Remove service instance
    */
   removeService(agentId: string, type?: 'demo' | 'openclaw'): void {
     const serviceType = type ?? this.config.defaultType;
@@ -144,7 +144,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 清理所有服务
+   * Dispose all services
    */
   disposeAll(): void {
     for (const service of this.services.values()) {
@@ -156,7 +156,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 获取所有活跃服务
+   * Get all active services
    */
   getActiveServices(): { agentId: string; type: string; service: AgentService }[] {
     const result: { agentId: string; type: string; service: AgentService }[] = [];
@@ -170,7 +170,7 @@ export class AgentServiceFactory {
   }
 
   /**
-   * 健康检查所有服务
+   * Health check all services
    */
   async healthCheckAll(): Promise<Map<string, boolean>> {
     const results = new Map<string, boolean>();
@@ -193,14 +193,14 @@ export class AgentServiceFactory {
 // ============================================================
 
 /**
- * 获取默认 Agent 服务
+ * Get default Agent service
  */
 export function getAgentService(options: CreateServiceOptions): AgentService {
   return AgentServiceFactory.getInstance().getOrCreateService(options);
 }
 
 /**
- * 创建 Demo Agent 服务
+ * Create Demo Agent service
  */
 export function createDemoService(
   agentId: string,
@@ -213,7 +213,7 @@ export function createDemoService(
 }
 
 /**
- * 创建 OpenClaw Agent 服务
+ * Create OpenClaw Agent service
  */
 export function createOpenClawService(
   agentId: string,
@@ -236,23 +236,23 @@ export function createOpenClawService(
 }
 
 /**
- * 根据环境自动选择服务类型
+ * Automatically select service type based on environment
  */
 export function createAgentService(
   agentId: string,
   gatewayUrl?: string
 ): AgentService {
-  // 如果提供了 Gateway URL，使用 OpenClaw
+  // If a Gateway URL is provided, use OpenClaw
   if (gatewayUrl) {
     return createOpenClawService(agentId, gatewayUrl);
   }
 
-  // 检查环境变量
+  // Check environment variables
   const envGatewayUrl = process.env.OPENCLAW_GATEWAY_URL;
   if (envGatewayUrl) {
     return createOpenClawService(agentId, envGatewayUrl);
   }
 
-  // 默认使用 Demo 服务
+  // Default to Demo service
   return createDemoService(agentId);
 }

@@ -3,7 +3,7 @@
 /**
  * ButtonGroup
  *
- * 按钮组交互组件 - 横向布局，可左右滑动
+ * Button group interactive component - Horizontal layout with horizontal scrolling
  */
 
 import React, { memo } from 'react';

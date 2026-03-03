@@ -41,14 +41,14 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     y: 0,
   });
 
-  // 处理鼠标点击
+  // Handle mouse click
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // 隐藏上下文菜单
+      // Hide context menu
       setShowContextMenu(false);
 
       onAreaClick?.(x, y);
@@ -56,7 +56,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     [onAreaClick]
   );
 
-  // 处理文本选择
+  // Handle text selection
   const handleTextSelection = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
@@ -65,10 +65,10 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     }
   }, [onTextSelect]);
 
-  // 处理鼠标按下（开始区域选择）
+  // Handle mouse down (start area selection)
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0) {
-      // 左键
+      // Left button
       const rect = e.currentTarget.getBoundingClientRect();
       const startX = e.clientX - rect.left;
       const startY = e.clientY - rect.top;
@@ -83,7 +83,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     }
   }, []);
 
-  // 处理鼠标移动（更新选择区域）
+  // Handle mouse move (update selection area)
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
       if (isSelecting && selectionArea) {
@@ -105,7 +105,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     [isSelecting, selectionArea]
   );
 
-  // 处理鼠标释放（完成区域选择）
+  // Handle mouse up (complete area selection)
   const handleMouseUp = useCallback(
     () => {
       if (isSelecting && selectionArea) {
@@ -114,7 +114,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
         const width = Math.abs(selectionArea.endX - selectionArea.startX);
         const height = Math.abs(selectionArea.endY - selectionArea.startY);
 
-        // 如果选择区域足够大，显示创建注释的上下文菜单
+        // If the selection area is large enough, show the annotation context menu
         if (width > minWidth && height > minHeight) {
           setContextMenuPosition({
             x: Math.max(selectionArea.startX, selectionArea.endX),
@@ -130,7 +130,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     [isSelecting, selectionArea, handleTextSelection]
   );
 
-  // 处理右键菜单
+  // Handle context menu
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -141,7 +141,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     setShowContextMenu(true);
   }, []);
 
-  // 创建高亮注释
+  // Create highlight annotation
   const createHighlightAnnotation = useCallback(() => {
     if (selectionArea && onAnnotationCreate) {
       const x = Math.min(selectionArea.startX, selectionArea.endX);
@@ -160,7 +160,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     setSelectionArea(null);
   }, [selectionArea, onAnnotationCreate]);
 
-  // 创建注释
+  // Create note annotation
   const createNoteAnnotation = useCallback(() => {
     if (selectionArea && onAnnotationCreate) {
       const content = prompt("Enter your note content:");
@@ -180,7 +180,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     setSelectionArea(null);
   }, [selectionArea, contextMenuPosition, onAnnotationCreate]);
 
-  // 点击外部关闭上下文菜单
+  // Close context menu on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (layerRef.current && !layerRef.current.contains(e.target as Node)) {
@@ -195,7 +195,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
     }
   }, [showContextMenu]);
 
-  // 键盘快捷键
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -217,7 +217,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
         width: pageWidth,
         height: pageHeight,
         zIndex: 10,
-        // 使用文本光标，与 TextLayer 保持一致，提升用户体验
+        // Use text cursor, consistent with TextLayer, for better UX
         cursor: 'text',
       }}
       data-layer="interaction"
@@ -227,7 +227,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
       onMouseUp={handleMouseUp}
       onContextMenu={handleContextMenu}
     >
-      {/* 选择区域指示器 */}
+      {/* Selection area indicator */}
       {isSelecting && selectionArea && (
         <div
           className="absolute border-2 border-blue-500 bg-blue-200 bg-opacity-20 pointer-events-none"
@@ -240,7 +240,7 @@ export const InteractionLayer: React.FC<InteractionLayerProps> = ({
         />
       )}
 
-      {/* 上下文菜单 */}
+      {/* Context menu */}
       {showContextMenu && (
         <div
           className="absolute bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"

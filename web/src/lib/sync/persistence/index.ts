@@ -2,8 +2,8 @@
  * Session Persistence Module
  *
  * @description
- * Phase 3D: 会话持久化模块
- * 提供会话数据的存储和恢复功能
+ * Phase 3D: Session persistence module
+ * Provides session data storage and restoration capabilities
  */
 
 // Types
@@ -33,7 +33,7 @@ import { PrismaSessionPersistence } from './PrismaSessionPersistence';
 let _defaultPersistence: SessionPersistence | null = null;
 
 /**
- * 创建持久化实例
+ * Create a persistence instance
  */
 export function createPersistence(config: PersistenceConfig): SessionPersistence {
   switch (config.type) {
@@ -47,11 +47,11 @@ export function createPersistence(config: PersistenceConfig): SessionPersistence
 }
 
 /**
- * 获取默认持久化实例
+ * Get the default persistence instance
  */
 export function getDefaultPersistence(): SessionPersistence {
   if (!_defaultPersistence) {
-    // 根据环境选择默认持久化
+    // Choose default persistence based on environment
     const useDatabase = process.env.NODE_ENV === 'production' ||
       process.env.SYNC_PERSISTENCE === 'prisma';
 
@@ -63,7 +63,7 @@ export function getDefaultPersistence(): SessionPersistence {
 }
 
 /**
- * 设置默认持久化实例
+ * Set the default persistence instance
  */
 export function setDefaultPersistence(persistence: SessionPersistence): void {
   _defaultPersistence = persistence;

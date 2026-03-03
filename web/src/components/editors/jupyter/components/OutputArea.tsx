@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * OutputArea - 渲染 Cell 输出
- * 支持多种输出类型：stream, execute_result, display_data, error
- * 
- * 富输出支持：
- * - 图片（PNG, JPEG, SVG）懒加载
- * - DataFrame（HTML 表格，可交互）
- * - Plotly 图表（动态加载）
- * - HTML（DOMPurify 安全过滤）
+ * OutputArea - Renders Cell Output
+ * Supports multiple output types: stream, execute_result, display_data, error
+ *
+ * Rich output support:
+ * - Images (PNG, JPEG, SVG) with lazy loading
+ * - DataFrames (interactive HTML tables)
+ * - Plotly charts (dynamically loaded)
+ * - HTML (sanitized with DOMPurify)
  */
 
 import React, { useMemo, useState, useCallback } from 'react';
@@ -17,7 +17,7 @@ import DOMPurify from 'dompurify';
 import { ChevronDown, ChevronUp, Maximize2, Download, Copy, Check } from 'lucide-react';
 import type { Output, StreamOutput, ExecuteResultOutput, DisplayDataOutput, ErrorOutput } from '../types';
 
-// 动态加载 Plotly 组件（避免 SSR 问题）
+// Dynamically load Plotly component (avoid SSR issues)
 const PlotlyRenderer = dynamic(() => import('./PlotlyRenderer'), {
   ssr: false,
   loading: () => (
@@ -32,16 +32,16 @@ interface OutputAreaProps {
   outputs: Output[];
   executionCount: number | null;
   isExecuting?: boolean;
-  collapseThreshold?: number; // 超过此高度自动折叠
+  collapseThreshold?: number; // Auto-collapse when exceeding this height
 }
 
 /**
- * OutputArea - 优化后的输出区域
- * 
- * 策略：
- * 1. 短输出（< 200px）：直接展示，无滚动
- * 2. 中等输出（200-800px）：直接展示，无内部滚动
- * 3. 长输出（> 800px）：默认折叠，展开后也无内部滚动（让外层滚动）
+ * OutputArea - Optimized Output Area
+ *
+ * Strategy:
+ * 1. Short output (< 200px): display directly, no scrolling
+ * 2. Medium output (200-800px): display directly, no internal scrolling
+ * 3. Long output (> 800px): collapsed by default, no internal scrolling when expanded (outer container scrolls)
  */
 export function OutputArea({ 
   outputs, 
@@ -54,12 +54,12 @@ export function OutputArea({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   
-  // 测量内容高度
+  // Measure content height
   React.useEffect(() => {
     if (contentRef.current && outputs.length > 0) {
       const height = contentRef.current.scrollHeight;
       setContentHeight(height);
-      // 超过阈值自动折叠
+      // Auto-collapse when exceeding threshold
       if (height > collapseThreshold && !isCollapsed) {
         setIsCollapsed(true);
       }
@@ -74,7 +74,7 @@ export function OutputArea({
     o.type === 'execute_result' || o.type === 'display_data'
   );
 
-  // 预览高度（折叠时显示）
+  // Preview height (shown when collapsed)
   const previewHeight = 200;
 
   return (
@@ -113,7 +113,7 @@ export function OutputArea({
         </div>
       )}
       
-      {/* Output Content - 无内部滚动 */}
+      {/* Output Content - no internal scrolling */}
       {isExpanded && (
         <div className="relative">
           {isExecuting && outputs.length === 0 && (
@@ -124,7 +124,7 @@ export function OutputArea({
           )}
           
           {isCollapsed ? (
-            // 折叠预览模式
+            // Collapsed preview mode
             <>
               <div 
                 className="overflow-hidden relative"
@@ -135,7 +135,7 @@ export function OutputArea({
                     <OutputRenderer key={index} output={output} />
                   ))}
                 </div>
-                {/* 渐变遮罩 */}
+                {/* Gradient overlay */}
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-stone-50 to-transparent pointer-events-none" />
               </div>
               <button
@@ -146,7 +146,7 @@ export function OutputArea({
               </button>
             </>
           ) : (
-            // 展开模式 - 无 overflow
+            // Expanded mode - no overflow
             <div ref={contentRef}>
               {outputs.map((output, index) => (
                 <OutputRenderer key={index} output={output} />
@@ -241,7 +241,7 @@ interface MimeBundleRendererProps {
 }
 
 function MimeBundleRenderer({ data, metadata }: MimeBundleRendererProps) {
-  // 按优先级选择最佳的 MIME 类型渲染
+  // Select the best MIME type renderer by priority
   const mimePreference = [
     'application/vnd.plotly.v1+json',
     'text/html',
@@ -260,7 +260,7 @@ function MimeBundleRenderer({ data, metadata }: MimeBundleRendererProps) {
     }
   }
 
-  // 回退到 text/plain
+  // Fallback to text/plain
   if (data['text/plain']) {
     return <MimeRenderer mime="text/plain" content={data['text/plain']} />;
   }
@@ -299,7 +299,7 @@ function MimeRenderer({ mime, content, metadata }: MimeRendererProps) {
 }
 
 // ============================================================
-// 具体渲染器组件
+// Specific Renderer Components
 // ============================================================
 
 function TextPlainRenderer({ content }: { content: unknown }) {
@@ -347,7 +347,7 @@ function HtmlRenderer({ content }: { content: unknown }) {
     });
   }, [content]);
 
-  // 检测是否是 DataFrame HTML（pandas 输出）
+  // Detect if this is DataFrame HTML (pandas output)
   const isDataFrame = typeof content === 'string' && content.includes('dataframe');
 
   return (
@@ -368,7 +368,7 @@ function ImageRenderer({ mime, content, metadata }: {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // 获取图片尺寸
+  // Get image dimensions
   const dimensions = metadata?.['image/png'] as { width?: number; height?: number } | undefined;
   
   const src = `data:${mime};base64,${content}`;
@@ -463,7 +463,7 @@ function JsonRenderer({ content }: { content: unknown }) {
 }
 
 function LatexRenderer({ content }: { content: unknown }) {
-  // 简单的 LaTeX 渲染，后续可用 KaTeX
+  // Simple LaTeX rendering, can be replaced with KaTeX later
   return (
     <div className="px-4 py-2 text-sm text-stone-700 font-mono">
       {String(content)}
@@ -472,7 +472,7 @@ function LatexRenderer({ content }: { content: unknown }) {
 }
 
 function MarkdownRenderer({ content }: { content: unknown }) {
-  // 简单的 markdown 显示，后续可用 react-markdown
+  // Simple markdown display, can be replaced with react-markdown later
   return (
     <div className="px-4 py-2 text-sm text-stone-700 prose prose-sm max-w-none">
       {String(content)}
@@ -481,12 +481,12 @@ function MarkdownRenderer({ content }: { content: unknown }) {
 }
 
 // ============================================================
-// 工具函数
+// Utility Functions
 // ============================================================
 
 /**
- * ANSI 转 HTML（用于错误输出和终端输出）
- * 支持基本的 ANSI 颜色代码
+ * ANSI to HTML (for error output and terminal output)
+ * Supports basic ANSI color codes
  */
 function ansiToHtml(text: string): string {
   const colorMap: Record<string, string> = {
@@ -506,7 +506,7 @@ function ansiToHtml(text: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // 处理 ANSI 转义序列
+  // Process ANSI escape sequences
   result = result.replace(/\x1b\[([0-9;]+)m/g, (_, codes) => {
     const styles = codes.split(';')
       .map((code: string) => colorMap[code])

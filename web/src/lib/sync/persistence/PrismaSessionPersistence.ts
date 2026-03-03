@@ -2,8 +2,8 @@
  * Prisma Session Persistence
  *
  * @description
- * Phase 3D: 基于 Prisma 的会话持久化实现
- * 将会话数据存储到 SQLite/MySQL 数据库
+ * Phase 3D: Prisma-based session persistence implementation
+ * Stores session data in SQLite/MySQL database
  */
 
 import { prisma } from '@/lib/prisma';
@@ -30,7 +30,7 @@ export class PrismaSessionPersistence implements SessionPersistence {
   // --------------------------------------------------------
 
   async saveSession(sessionId: string, state: SessionState): Promise<void> {
-    // 解析 workspace ID 从 session ID 或使用映射
+    // Resolve workspace ID from session ID or use mapping
     const workspaceId = await this.resolveWorkspaceId(sessionId);
 
     if (!workspaceId) {
@@ -38,28 +38,28 @@ export class PrismaSessionPersistence implements SessionPersistence {
       return;
     }
 
-    // 更新 workspace 的更新时间
+    // Update workspace's updatedAt timestamp
     await prisma.workspaceSession.update({
       where: { id: workspaceId },
       data: { updatedAt: new Date() },
     });
 
-    // 保存所有消息
+    // Save all messages
     if (state.messages.length > 0) {
       await this.saveMessages(sessionId, state.messages as SessionMessage[]);
     }
 
-    // 保存所有任务
+    // Save all tasks
     if (state.tasks.length > 0) {
       await this.saveTasks(sessionId, state.tasks as SessionTask[]);
     }
 
-    // 保存时间线
+    // Save timeline
     if (state.timeline.length > 0) {
       await this.saveTimelineEvents(sessionId, state.timeline as TimelineEvent[]);
     }
 
-    // 保存组件状态
+    // Save component states
     for (const [componentType, componentState] of Object.entries(state.componentStates)) {
       await this.saveComponentState(sessionId, componentType, componentState);
     }
@@ -98,7 +98,7 @@ export class PrismaSessionPersistence implements SessionPersistence {
         status: p.status,
         avatar: p.avatar,
       })),
-      completedInteractions: [], // 从时间线恢复
+      completedInteractions: [], // Restored from timeline
       timeline,
       stateSnapshots: snapshots,
       componentStates,
@@ -112,7 +112,7 @@ export class PrismaSessionPersistence implements SessionPersistence {
     const workspaceId = await this.resolveWorkspaceId(sessionId);
     if (!workspaceId) return;
 
-    // 级联删除会清理相关数据
+    // Cascade delete will clean up related data
     await prisma.workspaceSession.delete({
       where: { id: workspaceId },
     });
@@ -190,7 +190,7 @@ export class PrismaSessionPersistence implements SessionPersistence {
     const workspaceId = await this.resolveWorkspaceId(sessionId);
     if (!workspaceId) return;
 
-    // 使用事务批量保存
+    // Batch save using transaction
     await prisma.$transaction(
       messages.map(message =>
         prisma.workspaceMessage.upsert({

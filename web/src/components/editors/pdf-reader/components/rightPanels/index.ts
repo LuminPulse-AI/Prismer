@@ -1,3 +1,3 @@
 export { TagPanel } from './TagPanel';
 export { NotesPanel, type NotesPanelRef } from './NotesPanel';
-// export { ChatPanel } from './ChatPanel'; // 临时关闭chat功能 
+// export { ChatPanel } from './ChatPanel'; // Temporarily disabled chat feature

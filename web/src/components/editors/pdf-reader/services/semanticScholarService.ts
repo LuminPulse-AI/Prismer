@@ -1,8 +1,8 @@
 /**
  * Semantic Scholar API Service
  * 
- * 提供论文引用、被引用、搜索等功能
- * API 文档: https://api.semanticscholar.org/api-docs/
+ * Provides paper citations, cited-by, search, and other features.
+ * API docs: https://api.semanticscholar.org/api-docs/
  */
 
 // ============================================================================
@@ -81,7 +81,7 @@ export interface S2CitationsResult {
 
 const S2_API_BASE = "https://api.semanticscholar.org/graph/v1";
 
-// 默认请求的字段
+// Default requested fields
 const PAPER_FIELDS = [
   "title",
   "authors",
@@ -106,7 +106,7 @@ const REFERENCE_FIELDS = [
   "openAccessPdf",
 ].join(",");
 
-// 限流配置
+// Rate limit configuration
 const RATE_LIMIT_DELAY = 100; // 100ms between requests
 let lastRequestTime = 0;
 
@@ -127,13 +127,13 @@ async function rateLimitedFetch(url: string, options?: RequestInit): Promise<Res
 // ============================================================================
 
 /**
- * 构建 Semantic Scholar paper ID
- * 支持 arXiv ID, DOI, 或直接使用 S2 Paper ID
+ * Build Semantic Scholar paper ID
+ * Supports arXiv ID, DOI, or direct S2 Paper ID
  */
 export function buildPaperId(identifier: string, type: 'arxiv' | 'doi' | 's2' = 'arxiv'): string {
   switch (type) {
     case 'arxiv':
-      // 移除可能的 arXiv: 前缀和版本号
+      // Remove possible arXiv: prefix and version number
       const cleanArxiv = identifier.replace(/^arXiv:/i, '').replace(/v\d+$/, '');
       return `arXiv:${cleanArxiv}`;
     case 'doi':
@@ -150,7 +150,7 @@ export function buildPaperId(identifier: string, type: 'arxiv' | 'doi' | 's2' = 
 // ============================================================================
 
 /**
- * 获取论文详情
+ * Get paper details
  */
 export async function getPaper(paperId: string): Promise<S2Paper | null> {
   try {
@@ -174,7 +174,7 @@ export async function getPaper(paperId: string): Promise<S2Paper | null> {
 }
 
 /**
- * 获取论文的引用列表 (该论文引用了哪些文献)
+ * Get paper references (papers cited by this paper)
  */
 export async function getPaperReferences(
   paperId: string,
@@ -206,7 +206,7 @@ export async function getPaperReferences(
 }
 
 /**
- * 获取引用该论文的文献列表 (被引用)
+ * Get papers that cite this paper (cited-by)
  */
 export async function getPaperCitations(
   paperId: string,
@@ -238,7 +238,7 @@ export async function getPaperCitations(
 }
 
 /**
- * 搜索论文
+ * Search papers
  */
 export async function searchPapers(
   query: string,
@@ -267,7 +267,7 @@ export async function searchPapers(
 }
 
 /**
- * 论文自动完成
+ * Paper autocomplete
  */
 export async function autocompletePapers(query: string): Promise<S2Paper[]> {
   if (query.length < 3) return [];
@@ -294,12 +294,12 @@ export async function autocompletePapers(query: string): Promise<S2Paper[]> {
 // ============================================================================
 
 /**
- * 批量获取论文详情
+ * Batch get paper details
  */
 export async function batchGetPapers(paperIds: string[]): Promise<Map<string, S2Paper>> {
   const results = new Map<string, S2Paper>();
   
-  // S2 API 支持批量请求，但有限制，这里简单处理
+  // S2 API supports batch requests with limits; using simple sequential approach here
   for (const id of paperIds) {
     const paper = await getPaper(id);
     if (paper) {
@@ -315,29 +315,29 @@ export async function batchGetPapers(paperIds: string[]): Promise<Map<string, S2
 // ============================================================================
 
 /**
- * 从 S2Paper 提取 arXiv ID
+ * Extract arXiv ID from S2Paper
  */
 export function extractArxivId(paper: S2Paper): string | null {
   return paper.externalIds?.ArXiv || null;
 }
 
 /**
- * 从 S2Paper 提取 DOI
+ * Extract DOI from S2Paper
  */
 export function extractDoi(paper: S2Paper): string | null {
   return paper.externalIds?.DOI || null;
 }
 
 /**
- * 获取论文的 PDF URL
+ * Get paper PDF URL
  */
 export function getPdfUrl(paper: S2Paper): string | null {
-  // 优先使用 Open Access PDF
+  // Prefer Open Access PDF
   if (paper.openAccessPdf?.url) {
     return paper.openAccessPdf.url;
   }
   
-  // 尝试使用 arXiv PDF
+  // Try arXiv PDF
   const arxivId = extractArxivId(paper);
   if (arxivId) {
     return `https://arxiv.org/pdf/${arxivId}.pdf`;
@@ -347,7 +347,7 @@ export function getPdfUrl(paper: S2Paper): string | null {
 }
 
 /**
- * 格式化作者列表
+ * Format author list
  */
 export function formatAuthors(authors: S2Author[], maxCount = 3): string {
   if (!authors || authors.length === 0) return "Unknown Authors";

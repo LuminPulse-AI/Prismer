@@ -3,10 +3,11 @@
 /**
  * WindowViewer
  * 
- * 组件容器 - 包含标签栏、组件区域、时间线、Diff 显示
+ * Component container — includes tab bar, component area, timeline, and diff display.
  */
 
 import React, { memo, Suspense, lazy, useEffect, Component, ReactNode } from 'react';
+import DOMPurify from 'dompurify';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, AlertTriangle, RefreshCw, Server } from 'lucide-react';
 import { ComponentTabs } from './ComponentTabs';
@@ -16,7 +17,7 @@ import type { ComponentType, ExtendedTimelineEvent, DiffChange } from '../../typ
 import type { ConnectionStatus } from '../ConnectionIndicator';
 import { useComponentStore } from '../../stores/componentStore';
 
-// 组件懒加载映射
+// Lazy-loaded component map
 const componentLoaders: Record<ComponentType, () => Promise<{ default: React.ComponentType }>> = {
   'ai-editor': () => import('@/components/editors/previews/AiEditorPreview'),
   'pdf-reader': () => import('@/components/editors/previews/PDFReaderPreview'),
@@ -42,7 +43,7 @@ interface WindowViewerProps {
   onPlay: () => void;
   onPause: () => void;
   onTimelineEventClick?: (event: ExtendedTimelineEvent) => void;
-  // Diff 显示
+  // Diff display
   activeDiff?: {
     component: ComponentType;
     file?: string;
@@ -73,7 +74,7 @@ interface LoadingFallbackProps {
   latexCompiledPdfUrl?: string;
 }
 
-// 加载中占位
+// Loading placeholder
 function LoadingFallback({
   activeComponent,
   aiEditorHtml,
@@ -91,7 +92,7 @@ function LoadingFallback({
         <div className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl animate-pulse" />
         <Loader2 className="w-10 h-10 text-violet-500 animate-spin relative" />
       </div>
-      <span className="mt-4 text-sm text-slate-500">加载组件中...</span>
+      <span className="mt-4 text-sm text-slate-500">Loading component...</span>
 
       {hasLatexCompileSuccess && (
         <div
@@ -106,7 +107,7 @@ function LoadingFallback({
         <div className="mt-4 w-full max-w-3xl max-h-80 overflow-auto rounded-lg border border-slate-200 bg-white/80 p-4">
           <div
             className="prose prose-sm max-w-none text-slate-800"
-            dangerouslySetInnerHTML={{ __html: aiEditorHtml || '' }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(aiEditorHtml || '') }}
           />
         </div>
       )}
@@ -114,7 +115,7 @@ function LoadingFallback({
   );
 }
 
-// 错误边界
+// Error boundary
 interface ErrorBoundaryProps {
   children: ReactNode;
   onReset?: () => void;
@@ -149,10 +150,10 @@ class ComponentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundary
             <AlertTriangle className="w-8 h-8 text-amber-600" />
           </div>
           <h3 className="text-lg font-semibold text-slate-900 mb-2">
-            组件加载失败
+            Component failed to load
           </h3>
           <p className="text-sm text-slate-500 text-center max-w-md mb-4">
-            {this.props.componentName} 加载时出现错误。
+            {this.props.componentName} encountered an error while loading.
             {this.state.error?.message && (
               <span className="block mt-1 font-mono text-xs text-slate-400">
                 {this.state.error.message}
@@ -165,7 +166,7 @@ class ComponentErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundary
             className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            重新加载
+            Reload
           </button>
         </div>
       );
@@ -222,12 +223,12 @@ export const WindowViewer = memo(function WindowViewer({
     componentLoaders['latex-editor']().catch(() => {});
   }, []);
 
-  // 检查是否应该显示 Diff
+  // Check whether to show diff overlay
   const showDiff = activeDiff && activeDiff.component === activeComponent && activeDiff.changes.length > 0;
 
   return (
     <div className={`flex flex-col h-full px-2 gap-2 ${className}`} data-active-component={activeComponent}>
-      {/* 标签栏 — 独立圆角矩形 */}
+      {/* Tab bar */}
       <ComponentTabs
         activeComponent={activeComponent}
         onComponentChange={onComponentChange}
@@ -243,7 +244,7 @@ export const WindowViewer = memo(function WindowViewer({
         onOpenSettings={onOpenSettings}
       />
 
-      {/* 组件区域 — 独立圆角矩形 */}
+      {/* Component area */}
       <div className="flex-1 overflow-hidden relative rounded-xl bg-white border border-slate-200/60 shadow-sm">
         <AnimatePresence mode="wait">
           <motion.div
@@ -303,7 +304,7 @@ export const WindowViewer = memo(function WindowViewer({
         )}
       </div>
 
-      {/* 时间线 — 已是圆角矩形（移除自带 margin，由父级 gap 控制） */}
+      {/* Timeline */}
       <Timeline
         events={timeline}
         currentPosition={currentPosition}

@@ -35,7 +35,7 @@ interface PaperLibraryDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectPaper: (paper: PaperMeta) => void;
-  /** 已打开的论文 ID 列表 */
+  /** List of open paper IDs */
   openPaperIds?: string[];
 }
 
@@ -48,14 +48,14 @@ const PaperCard: React.FC<{
   isOpen: boolean;
   onSelect: () => void;
 }> = ({ paper, isOpen, onSelect }) => {
-  // 格式化作者列表
+  // Format author list
   const authorsText = useMemo(() => {
     if (!paper.authors.length) return "Unknown authors";
     if (paper.authors.length <= 3) return paper.authors.join(", ");
     return `${paper.authors.slice(0, 3).join(", ")} et al.`;
   }, [paper.authors]);
 
-  // 格式化日期
+  // Format date
   const dateText = useMemo(() => {
     if (!paper.published) return "";
     try {
@@ -84,7 +84,7 @@ const PaperCard: React.FC<{
       onClick={onSelect}
     >
       <div className="flex items-start gap-3">
-        {/* 图标 */}
+        {/* Icon */}
         <div
           className={cn(
             "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center",
@@ -96,14 +96,14 @@ const PaperCard: React.FC<{
           <FileText className="w-5 h-5" />
         </div>
 
-        {/* 内容 */}
+        {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* 标题 */}
+          {/* Title */}
           <h3 className="font-medium text-stone-900 line-clamp-2 leading-tight">
             {paper.title}
           </h3>
 
-          {/* 作者 + 日期 */}
+          {/* Authors + date */}
           <div className="flex items-center gap-2 mt-1.5 text-xs text-stone-500">
             <div className="flex items-center gap-1">
               <Users className="w-3 h-3" />
@@ -120,7 +120,7 @@ const PaperCard: React.FC<{
             )}
           </div>
 
-          {/* arXiv ID + OCR 状态 */}
+          {/* arXiv ID + OCR status */}
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs font-mono text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
               {paper.arxivId}
@@ -139,7 +139,7 @@ const PaperCard: React.FC<{
             )}
           </div>
 
-          {/* 摘要预览 */}
+          {/* Abstract preview */}
           {paper.abstract && (
             <p className="mt-2 text-xs text-stone-500 line-clamp-2">
               {paper.abstract}
@@ -166,7 +166,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 加载论文列表
+  // Load paper list
   const loadPapers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -185,14 +185,14 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
     }
   }, []);
 
-  // 当对话框打开时加载论文
+  // Load papers when the dialog opens
   useEffect(() => {
     if (isOpen) {
       loadPapers();
     }
   }, [isOpen, loadPapers]);
 
-  // 过滤论文
+  // Filter papers
   const filteredPapers = useMemo(() => {
     if (!searchQuery.trim()) return papers;
     const query = searchQuery.toLowerCase();
@@ -205,7 +205,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
     );
   }, [papers, searchQuery]);
 
-  // 处理选择论文
+  // Handle paper selection
   const handleSelect = useCallback(
     (paper: PaperMeta) => {
       onSelectPaper(paper);
@@ -214,7 +214,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
     [onSelectPaper, onClose]
   );
 
-  // ESC 键关闭
+  // Close on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -231,7 +231,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 背景遮罩 */}
+          {/* Background overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -240,7 +240,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
             onClick={onClose}
           />
 
-          {/* 对话框 */}
+          {/* Dialog */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -251,7 +251,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                        bg-white rounded-2xl shadow-2xl overflow-hidden
                        flex flex-col"
           >
-            {/* 头部 */}
+            {/* Header */}
             <div className="flex-shrink-0 px-6 py-4 border-b border-stone-200 bg-stone-50">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -273,7 +273,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                 </Button>
               </div>
 
-              {/* 搜索框 */}
+              {/* Search input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                 <input
@@ -289,7 +289,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
               </div>
             </div>
 
-            {/* 论文列表 */}
+            {/* Paper list */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
@@ -327,7 +327,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
               )}
             </div>
 
-            {/* 底部提示 */}
+            {/* Footer hint */}
             <div className="flex-shrink-0 px-6 py-3 border-t border-stone-200 bg-stone-50">
               <p className="text-xs text-stone-500 text-center">
                 Click a paper to open it in the reader • Papers with{" "}
