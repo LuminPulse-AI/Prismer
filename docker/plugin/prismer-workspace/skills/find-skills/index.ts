@@ -127,6 +127,21 @@ const BUILTIN_SKILLS: SkillManifest[] = [
     ],
     dependencies: [],
   },
+  {
+    id: 'arxiv-reader',
+    name: 'arXiv Reader',
+    version: '1.0.0',
+    description:
+      'Read and analyze arXiv papers. Fetch full LaTeX source, list sections, or extract abstracts.',
+    category: 'pdf',
+    author: 'Prismer Team',
+    tools: [
+      { name: 'arxiv_fetch', description: 'Fetch full flattened LaTeX source of an arXiv paper', parameters: {} },
+      { name: 'arxiv_sections', description: 'List all sections and subsections of an arXiv paper', parameters: {} },
+      { name: 'arxiv_abstract', description: 'Extract just the abstract from an arXiv paper', parameters: {} },
+    ],
+    dependencies: [],
+  },
 ];
 
 // Sample cloud skills for demo (in production, fetched from registry)

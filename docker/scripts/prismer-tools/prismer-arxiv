@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""
+prismer-arxiv — Read arXiv papers via the container arXiv service.
+
+Usage:
+  prismer-arxiv fetch <arxiv_id> [--no-comments] [--no-appendix] [--figure-paths]
+  prismer-arxiv sections <arxiv_id>
+  prismer-arxiv abstract <arxiv_id>
+
+The fetched content is displayed in the workspace PDF reader via directives.
+A directive is written to /workspace/.openclaw/directives/ for the Bridge.
+"""
+
+import sys
+import os
+import json
+import urllib.request
+import urllib.error
+from pathlib import Path
+from datetime import datetime
+
+ARXIV_SERVICE = os.environ.get("ARXIV_SERVICE_URL", "http://127.0.0.1:8082")
+DIRECTIVES_DIR = Path("/workspace/.openclaw/directives")
+
+
+def ensure_dirs():
+    DIRECTIVES_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def write_directive(directive):
+    """Write a UI directive for the Bridge to pick up."""
+    ensure_dirs()
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    path = DIRECTIVES_DIR / f"{ts}.json"
+    path.write_text(json.dumps(directive, ensure_ascii=False, indent=2))
+    return path
+
+
+def post_json(endpoint, body):
+    """POST JSON to the arXiv service and return parsed response."""
+    url = f"{ARXIV_SERVICE}{endpoint}"
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.URLError as e:
+        print(f"Error: arXiv service unavailable: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_fetch(arxiv_id, args):
+    """Fetch full flattened LaTeX source."""
+    body = {
+        "arxiv_id": arxiv_id,
+        "remove_comments": "--no-comments" not in args,
+        "remove_appendix": "--no-appendix" in args,
+        "figure_paths": "--figure-paths" in args,
+    }
+    result = post_json("/convert", body)
+
+    if "error" in result:
+        print(f"Error: {result['error']}", file=sys.stderr)
+        sys.exit(1)
+
+    content = result.get("content", "")
+    cached = result.get("cached", False)
+
+    # Write directives to show paper in workspace
+    write_directive({
+        "type": "switch_component",
+        "target": "pdf-reader",
+        "timestamp": datetime.now().isoformat(),
+    })
+    write_directive({
+        "type": "update_content",
+        "target": "pdf-reader",
+        "data": {
+            "content": content,
+            "arxiv_id": arxiv_id,
+            "source": "arxiv",
+        },
+        "timestamp": datetime.now().isoformat(),
+    })
+
+    print(f"Fetched arXiv paper {arxiv_id} ({len(content)} chars, cached={cached})")
+    print(content)
+
+
+def cmd_sections(arxiv_id):
+    """List paper sections."""
+    result = post_json("/sections", {"arxiv_id": arxiv_id})
+
+    if "error" in result:
+        print(f"Error: {result['error']}", file=sys.stderr)
+        sys.exit(1)
+
+    sections = result.get("sections", [])
+    print(f"Sections of {arxiv_id}:")
+    for i, section in enumerate(sections, 1):
+        print(f"  {i}. {section}")
+
+
+def cmd_abstract(arxiv_id):
+    """Extract paper abstract."""
+    result = post_json("/abstract", {"arxiv_id": arxiv_id})
+
+    if "error" in result:
+        print(f"Error: {result['error']}", file=sys.stderr)
+        sys.exit(1)
+
+    abstract = result.get("abstract", "")
+    print(f"Abstract of {arxiv_id}:")
+    print(abstract)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+
+    if cmd == "fetch" and len(sys.argv) >= 3:
+        cmd_fetch(sys.argv[2], sys.argv[3:])
+    elif cmd == "sections" and len(sys.argv) >= 3:
+        cmd_sections(sys.argv[2])
+    elif cmd == "abstract" and len(sys.argv) >= 3:
+        cmd_abstract(sys.argv[2])
+    else:
+        print(__doc__)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
