@@ -10,6 +10,13 @@ Official SDKs for the [Prismer Cloud](https://prismer.cloud) platform — Contex
 | Python | `prismer` | `pip install prismer` | [python/README.md](./python/README.md) |
 | Go | `github.com/prismer-io/prismer-sdk-go` | `go get github.com/prismer-io/prismer-sdk-go` | [golang/README.md](./golang/README.md) |
 
+## Integrations
+
+| Integration | Package | Install |
+|-------------|---------|---------|
+| MCP Server (Claude Code / Cursor / Windsurf) | `@prismer/mcp-server` | `npx -y @prismer/mcp-server` |
+| OpenClaw Channel Plugin | `@prismer/openclaw-channel` | `openclaw plugins install @prismer/openclaw-channel` |
+
 ## API Coverage
 
 All three SDKs provide full coverage of the Prismer Cloud API:
