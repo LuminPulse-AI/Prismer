@@ -142,6 +142,22 @@ const BUILTIN_SKILLS: SkillManifest[] = [
     ],
     dependencies: [],
   },
+  {
+    id: 'latex-compiler',
+    name: 'LaTeX Compiler',
+    version: '1.0.0',
+    description:
+      'Compile LaTeX documents to PDF using pdflatex, xelatex, or lualatex. Includes template browsing and PDF preview.',
+    category: 'latex',
+    author: 'Prismer Team',
+    tools: [
+      { name: 'latex_compile', description: 'Compile LaTeX source to PDF', parameters: {} },
+      { name: 'latex_preview', description: 'Compile LaTeX and return base64 PDF for preview', parameters: {} },
+      { name: 'latex_templates', description: 'List available LaTeX templates and engines', parameters: {} },
+      { name: 'latex_get_template', description: 'Get starter LaTeX template content', parameters: {} },
+    ],
+    dependencies: [],
+  },
 ];
 
 // Sample cloud skills for demo (in production, fetched from registry)
