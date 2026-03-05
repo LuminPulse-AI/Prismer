@@ -158,6 +158,23 @@ const BUILTIN_SKILLS: SkillManifest[] = [
     ],
     dependencies: [],
   },
+  {
+    id: 'formal-methods',
+    name: 'Formal Methods',
+    version: '1.0.0',
+    description:
+      'Formal verification with Lean 4, Coq, and Z3 SMT solver. Type-check proofs, compile theories, and solve satisfiability problems.',
+    category: 'general',
+    author: 'Prismer Team',
+    tools: [
+      { name: 'lean_check', description: 'Type-check Lean 4 code', parameters: {} },
+      { name: 'coq_check', description: 'Check a Coq proof for correctness', parameters: {} },
+      { name: 'coq_compile', description: 'Compile a Coq file to .vo', parameters: {} },
+      { name: 'z3_solve', description: 'Solve SMT satisfiability problem', parameters: {} },
+      { name: 'prover_status', description: 'Check available provers and versions', parameters: {} },
+    ],
+    dependencies: [],
+  },
 ];
 
 // Sample cloud skills for demo (in production, fetched from registry)
