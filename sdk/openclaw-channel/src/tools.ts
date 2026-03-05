@@ -51,6 +51,7 @@ export function createPrismerAgentTools(apiKey: string, baseUrl: string): Channe
                 type: "text" as const,
                 text: `Error: ${(result.error as Record<string, string>)?.message || "Load failed"}`,
               }],
+              details: {},
             };
           }
 
@@ -71,6 +72,7 @@ export function createPrismerAgentTools(apiKey: string, baseUrl: string): Channe
               type: "text" as const,
               text: `Failed: ${err instanceof Error ? err.message : String(err)}`,
             }],
+            details: {},
           };
         }
       },
@@ -106,6 +108,7 @@ export function createPrismerAgentTools(apiKey: string, baseUrl: string): Channe
                 type: "text" as const,
                 text: `Error: ${(result.error as Record<string, string>)?.message || "Parse failed"}`,
               }],
+              details: {},
             };
           }
 
@@ -121,6 +124,7 @@ export function createPrismerAgentTools(apiKey: string, baseUrl: string): Channe
               type: "text" as const,
               text: `Failed: ${err instanceof Error ? err.message : String(err)}`,
             }],
+            details: {},
           };
         }
       },

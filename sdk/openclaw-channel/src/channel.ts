@@ -105,7 +105,7 @@ export const prismerPlugin: ChannelPlugin<ResolvedPrismerAccount> = {
       });
       return {
         channel: "prismer",
-        messageId: result.messageId,
+        messageId: result.messageId ?? "",
         conversationId: result.conversationId,
       };
     },
@@ -117,7 +117,7 @@ export const prismerPlugin: ChannelPlugin<ResolvedPrismerAccount> = {
       });
       return {
         channel: "prismer",
-        messageId: result.messageId,
+        messageId: result.messageId ?? "",
         conversationId: result.conversationId,
       };
     },
