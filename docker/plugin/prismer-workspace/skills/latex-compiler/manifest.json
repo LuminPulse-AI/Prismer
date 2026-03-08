@@ -1,0 +1,47 @@
+{
+  "_source": "Canonical source: /skills/latex-compiler/manifest.json",
+  "id": "latex-compiler",
+  "name": "LaTeX Compiler",
+  "version": "1.0.0",
+  "description": "Compile LaTeX documents to PDF using pdflatex, xelatex, or lualatex. Includes template browsing and PDF preview.",
+  "category": "latex",
+  "author": "Prismer Team",
+  "repository": "https://github.com/Prismer-AI/Prismer",
+  "tools": [
+    {
+      "name": "latex_compile",
+      "description": "Compile LaTeX source to PDF",
+      "parameters": {
+        "content": { "type": "string", "description": "Full LaTeX source code", "required": true },
+        "filename": { "type": "string", "description": "Output filename stem", "required": false },
+        "engine": { "type": "string", "description": "pdflatex | xelatex | lualatex", "required": false },
+        "bibliography": { "type": "string", "description": "BibTeX content", "required": false },
+        "runs": { "type": "number", "description": "Compilation passes", "required": false }
+      }
+    },
+    {
+      "name": "latex_preview",
+      "description": "Compile LaTeX and return base64 PDF for preview",
+      "parameters": {
+        "content": { "type": "string", "description": "Full LaTeX source code", "required": true },
+        "filename": { "type": "string", "description": "Output filename stem", "required": false },
+        "engine": { "type": "string", "description": "pdflatex | xelatex | lualatex", "required": false },
+        "bibliography": { "type": "string", "description": "BibTeX content", "required": false }
+      }
+    },
+    {
+      "name": "latex_templates",
+      "description": "List available LaTeX templates and engines",
+      "parameters": {}
+    },
+    {
+      "name": "latex_get_template",
+      "description": "Get starter LaTeX template content",
+      "parameters": {
+        "name": { "type": "string", "description": "Template name", "required": true }
+      }
+    }
+  ],
+  "dependencies": [],
+  "builtin": true
+}

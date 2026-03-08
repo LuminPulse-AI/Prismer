@@ -67,6 +67,57 @@ export const BUILTIN_SKILLS: SkillManifest[] = [
     ],
     dependencies: [],
   },
+  {
+    id: 'arxiv-reader',
+    name: 'arXiv Reader',
+    version: '1.0.0',
+    description:
+      'Read and analyze arXiv papers. Fetch full LaTeX source, list sections, or extract abstracts.',
+    category: 'pdf',
+    author: 'Prismer Team',
+    builtin: true,
+    tools: [
+      { name: 'arxiv_fetch', description: 'Fetch full flattened LaTeX source of an arXiv paper', parameters: {} },
+      { name: 'arxiv_sections', description: 'List all sections and subsections of an arXiv paper', parameters: {} },
+      { name: 'arxiv_abstract', description: 'Extract just the abstract from an arXiv paper', parameters: {} },
+    ],
+    dependencies: [],
+  },
+  {
+    id: 'latex-compiler',
+    name: 'LaTeX Compiler',
+    version: '1.0.0',
+    description:
+      'Compile LaTeX documents to PDF using pdflatex, xelatex, or lualatex. Includes template browsing and PDF preview.',
+    category: 'latex',
+    author: 'Prismer Team',
+    builtin: true,
+    tools: [
+      { name: 'latex_compile', description: 'Compile LaTeX source to PDF', parameters: {} },
+      { name: 'latex_preview', description: 'Compile LaTeX and return base64 PDF for preview', parameters: {} },
+      { name: 'latex_templates', description: 'List available LaTeX templates and engines', parameters: {} },
+      { name: 'latex_get_template', description: 'Get starter LaTeX template content', parameters: {} },
+    ],
+    dependencies: [],
+  },
+  {
+    id: 'formal-methods',
+    name: 'Formal Methods',
+    version: '1.0.0',
+    description:
+      'Formal verification with Lean 4, Coq, and Z3 SMT solver. Type-check proofs, compile theories, and solve satisfiability problems.',
+    category: 'general',
+    author: 'Prismer Team',
+    builtin: true,
+    tools: [
+      { name: 'lean_check', description: 'Type-check Lean 4 code', parameters: {} },
+      { name: 'coq_check', description: 'Check a Coq proof for correctness', parameters: {} },
+      { name: 'coq_compile', description: 'Compile a Coq file to .vo', parameters: {} },
+      { name: 'z3_solve', description: 'Solve SMT satisfiability problem', parameters: {} },
+      { name: 'prover_status', description: 'Check available provers and versions', parameters: {} },
+    ],
+    dependencies: [],
+  },
 ];
 
 export const CLOUD_SKILLS_CATALOG: SkillManifest[] = [

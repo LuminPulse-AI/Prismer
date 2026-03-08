@@ -1,0 +1,64 @@
+{
+  "id": "arxiv-reader",
+  "name": "arXiv Reader",
+  "version": "1.0.0",
+  "description": "Read and analyze arXiv papers. Fetch full LaTeX source, list sections, or extract abstracts from any arXiv paper by ID.",
+  "category": "pdf",
+  "author": "Prismer Team",
+  "repository": "https://github.com/Prismer-AI/Prismer",
+  "tools": [
+    {
+      "name": "arxiv_fetch",
+      "description": "Fetch the full flattened LaTeX source of an arXiv paper, ready for LLM analysis",
+      "parameters": {
+        "arxiv_id": {
+          "type": "string",
+          "description": "arXiv paper ID (e.g. '2301.00001' or '2301.00001v2')",
+          "required": true
+        },
+        "remove_comments": {
+          "type": "boolean",
+          "description": "Strip LaTeX comments from source (default: true)",
+          "required": false,
+          "default": true
+        },
+        "remove_appendix": {
+          "type": "boolean",
+          "description": "Remove appendix sections (default: false)",
+          "required": false,
+          "default": false
+        },
+        "figure_paths": {
+          "type": "boolean",
+          "description": "Replace figure content with file paths only (default: false)",
+          "required": false,
+          "default": false
+        }
+      }
+    },
+    {
+      "name": "arxiv_sections",
+      "description": "List all sections and subsections of an arXiv paper",
+      "parameters": {
+        "arxiv_id": {
+          "type": "string",
+          "description": "arXiv paper ID (e.g. '2301.00001')",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "arxiv_abstract",
+      "description": "Extract just the abstract from an arXiv paper",
+      "parameters": {
+        "arxiv_id": {
+          "type": "string",
+          "description": "arXiv paper ID (e.g. '2301.00001')",
+          "required": true
+        }
+      }
+    }
+  ],
+  "dependencies": [],
+  "builtin": true
+}
