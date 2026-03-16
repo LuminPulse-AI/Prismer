@@ -5,7 +5,7 @@
   "description": "Read and analyze arXiv papers. Fetch full LaTeX source, list sections, or extract abstracts from any arXiv paper by ID.",
   "category": "pdf",
   "author": "Prismer Team",
-  "repository": "https://github.com/Prismer-AI/Prismer",
+  "repository": "https://github.com/LuminPulse-AI/Prismer",
   "tools": [
     {
       "name": "arxiv_fetch",

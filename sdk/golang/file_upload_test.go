@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	prismer "github.com/Prismer-AI/Prismer/sdk/golang"
+	prismer "github.com/LuminPulse-AI/Prismer/sdk/golang"
 )
 
 // standaloneTransport rewrites /api/im/* → /api/* for the standalone IM server.

@@ -1,6 +1,13 @@
 ---
 name: arxiv-reader
 description: Read and analyze arXiv papers by fetching LaTeX source, listing sections, or extracting abstracts
+metadata:
+  openclaw:
+    emoji: 📄
+    tags: [arxiv, research, academic, papers, latex]
+    requires:
+      bins: []
+      os: [darwin, linux, win32]
 ---
 
 # arxiv-reader

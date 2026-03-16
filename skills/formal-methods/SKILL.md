@@ -9,10 +9,7 @@ Formal verification tools for the academic workspace. Type-check Lean 4 proofs, 
 
 ## Description
 
-This skill wraps formal verification provers. It works in two modes:
-
-- **Standalone mode**: Runs locally installed provers (`lean`, `coqc`, `z3`) via subprocess. No Docker required.
-- **Container mode**: Delegates to the prover server (port 8081) if available, which supports all three provers.
+This skill wraps locally installed formal verification provers (`lean`, `coqc`, `z3`) via subprocess. No Docker or external services required.
 
 ## Usage Examples
 
@@ -72,23 +69,16 @@ Compile a Coq file to a `.vo` object file.
 
 ### z3_solve
 
-Solve a satisfiability problem using Z3.
+Solve a satisfiability problem using Z3 with SMT-LIB2 format.
 
 **Parameters:**
-- `formula` (string, optional): SMT-LIB2 formula (when format is `smt2`)
-- `code` (string, optional): Z3 Python code (when format is `python`)
-- `format` (string, optional): `smt2` or `python` (default: `smt2`)
+- `formula` (string, required): SMT-LIB2 formula
 
-**Returns:** `{ success, result, model }` (smt2) or `{ success, result }` (python)
+**Returns:** `{ success, result, model }`
 
-**Example (SMT-LIB2):**
+**Example:**
 ```json
 { "formula": "(declare-const x Int)\n(assert (> x 5))\n(check-sat)\n(get-model)" }
-```
-
-**Example (Python):**
-```json
-{ "code": "from z3 import *\nx = Int('x')\ns = Solver()\ns.add(x > 5)\nprint(s.check())\nprint(s.model())", "format": "python" }
 ```
 
 ### prover_status
@@ -101,7 +91,6 @@ Check which formal provers are available and their versions.
 
 ## Notes
 
-- Standalone mode requires provers installed locally (`lean`, `coqc`, `z3`)
-- Z3 Python format requires the container (Python z3 module)
+- Requires provers installed locally (`lean`, `coqc`, `z3`)
+- Z3 only accepts SMT-LIB2 format (declarative, no arbitrary code execution)
 - Execution timeout is 60 seconds per invocation
-- Container mode supports all features; standalone may have limited Z3 support

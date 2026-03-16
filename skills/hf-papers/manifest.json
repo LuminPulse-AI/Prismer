@@ -1,0 +1,65 @@
+{
+  "id": "hf-papers",
+  "name": "Hugging Face Papers",
+  "version": "1.0.0",
+  "description": "Browse trending papers, search by keyword, and get paper details from Hugging Face Papers.",
+  "category": "research",
+  "author": "Prismer Team",
+  "repository": "https://github.com/LuminPulse-AI/Prismer",
+  "tools": [
+    {
+      "name": "hf_daily_papers",
+      "description": "Get today's trending papers from Hugging Face",
+      "parameters": {
+        "limit": {
+          "type": "number",
+          "description": "Max papers to return (default: 20, max: 100)",
+          "required": false,
+          "default": 20
+        },
+        "sort": {
+          "type": "string",
+          "description": "Sort by 'upvotes' or 'date' (default: 'upvotes')",
+          "required": false,
+          "default": "upvotes",
+          "enum": ["upvotes", "date"]
+        }
+      }
+    },
+    {
+      "name": "hf_search_papers",
+      "description": "Search Hugging Face Papers by keyword",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "description": "Search query",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "hf_paper_detail",
+      "description": "Get detailed metadata for a specific paper",
+      "parameters": {
+        "paper_id": {
+          "type": "string",
+          "description": "Paper ID / arXiv ID (e.g. '2401.12345')",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "hf_paper_comments",
+      "description": "Get discussion comments for a paper",
+      "parameters": {
+        "paper_id": {
+          "type": "string",
+          "description": "Paper ID / arXiv ID (e.g. '2401.12345')",
+          "required": true
+        }
+      }
+    }
+  ],
+  "dependencies": [],
+  "builtin": true
+}
