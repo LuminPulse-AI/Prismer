@@ -1,6 +1,6 @@
 ---
 name: paper-search
-description: Search and discover academic papers from arXiv and web sources using arxiv_to_prompt and web search
+description: "Search and discover academic papers from arXiv and web sources using arxiv_to_prompt and web search. Use when the user asks to find research papers, search arXiv, look up scientific literature, do a literature review, or needs academic references."
 ---
 
 # Paper Search Skill
@@ -88,10 +88,31 @@ Would you like me to:
 - Export to BibTeX?
 ```
 
+## Tool Examples
+
+### Read an arXiv paper
+```
+arxiv_to_prompt arxiv_id="2303.08774"
+```
+
+### Get just the abstract
+```
+arxiv_to_prompt arxiv_id="2303.08774" abstract_only=true
+```
+
+### List paper sections before full read
+```
+arxiv_to_prompt arxiv_id="2303.08774" list_sections=true
+```
+
+### Load a PDF paper
+```
+load_pdf source="/workspace/papers/downloaded.pdf"
+```
+
 ## Best Practices
 
-1. **Query Refinement**: Start broad, then narrow down
-2. **Multiple Sources**: Cross-reference across databases
+1. **Start with abstracts**: Use `abstract_only=true` to quickly triage papers before committing to a full read
+2. **Multiple Sources**: Cross-reference across databases for comprehensive coverage
 3. **Citation Awareness**: Note highly-cited foundational works
-4. **Recency Balance**: Mix recent and seminal papers
-5. **Relevance Check**: Verify papers match research goals
+4. **Verify before reading**: Use `list_sections=true` to check a paper's structure before fetching full text

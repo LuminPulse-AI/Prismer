@@ -1,6 +1,6 @@
 ---
 name: formal-methods
-description: Formal verification with Lean 4, Coq, and Z3 SMT solver
+description: "Verify proofs, check theorem correctness, and solve satisfiability problems using Lean 4, Coq, and Z3 SMT solver. Use when the user asks to prove theorems, verify mathematical proofs, check logical satisfiability, or work with proof assistants."
 ---
 
 # formal-methods
@@ -23,7 +23,7 @@ This skill wraps locally installed formal verification provers (`lean`, `coqc`, 
 1. **Check availability** — Use `prover_status` to see which provers are installed
 2. **Write proof** — Draft your Lean/Coq code or SMT formula
 3. **Verify** — Use `lean_check`, `coq_check`, or `z3_solve` to verify
-4. **Iterate** — Fix errors based on output and re-check
+4. **Iterate** — Fix errors based on output and re-check. Common patterns: "type mismatch" in Lean means type annotations need fixing; "unsat" from Z3 means no satisfying assignment exists (formula is a tautology when negated); "unknown" means Z3 couldn't determine satisfiability within limits
 
 ## Tools
 

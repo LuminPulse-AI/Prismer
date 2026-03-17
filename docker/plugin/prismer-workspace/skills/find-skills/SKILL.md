@@ -1,6 +1,6 @@
 ---
 name: find-skills
-description: Discover, search, and manage skills that extend workspace capabilities
+description: "List installed skills, search the skill registry, install new skills, and manage workspace extensions. Use when the user asks to find, install, list, or configure skills, or mentions skill registry, extensions, or workspace capabilities."
 ---
 
 # find-skills

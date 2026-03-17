@@ -1,6 +1,6 @@
 ---
 name: data-analysis
-description: Load, analyze, and visualize datasets using pandas with AG Grid display
+description: "Load, analyze, and visualize datasets using pandas with AG Grid display. Use when the user asks to analyze CSV data, explore a dataframe, create charts, filter tabular data, or display spreadsheet-like results."
 ---
 
 # Data Analysis Skill

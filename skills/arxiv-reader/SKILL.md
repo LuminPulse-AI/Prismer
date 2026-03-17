@@ -1,6 +1,6 @@
 ---
 name: arxiv-reader
-description: Read and analyze arXiv papers by fetching LaTeX source, listing sections, or extracting abstracts
+description: "Read and analyze arXiv papers by fetching LaTeX source, listing sections, or extracting abstracts. Use when the user mentions arXiv, research papers, preprints, paper IDs like 2301.xxxxx, or wants to read academic publications."
 metadata:
   openclaw:
     emoji: 📄
@@ -16,12 +16,7 @@ Read and analyze arXiv papers directly from the workspace. Converts LaTeX source
 
 ## Description
 
-This skill fetches arXiv papers, flattens LaTeX includes, and returns clean text. It works in two modes:
-
-- **Standalone mode** (default): Downloads directly from arXiv using Node.js built-ins. No Docker or Python required.
-- **Container mode**: Delegates to the arXiv server (port 8082) if available, for faster processing.
-
-Results are cached locally (`~/.cache/arxiv-reader/` in standalone, `/workspace/.cache/arxiv/` in container) for fast repeat access.
+Fetches arXiv papers, flattens LaTeX includes, and returns clean text for LLM analysis. Works standalone (downloads directly from arXiv) or delegates to the container arXiv server when available. Results are cached locally for instant repeat access.
 
 ## Usage Examples
 
