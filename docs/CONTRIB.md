@@ -12,7 +12,7 @@
 
 ```bash
 # 1. Clone and enter web directory
-git clone https://github.com/LuminPulse-AI/Prismer.git
+git clone https://github.com/Prismer-AI/Prismer.git
 cd Prismer/web
 
 # 2. Install dependencies

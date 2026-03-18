@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "skills": {
+    "context7": {
+      "version": "1.0.3",
+      "installedAt": 1773646339984
+    },
+    "hf-papers": {
+      "version": "1.0.1",
+      "installedAt": 1773646412765
+    }
+  }
+}

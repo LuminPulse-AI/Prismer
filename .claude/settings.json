@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api repos/hesamsheikh/awesome-openclaw-usecases/pulls/53/comments --jq 'sort_by\\(.created_at\\) | .[-1] | \"\"=== \\\\\\(.user.login\\) on \\\\\\(.path\\):\\\\\\(.line // \"\"?\"\"\\) [\\\\\\(.created_at\\)] ===\\\\n\\\\\\(.body\\)\"\"')",
+      "Bash(gh api repos/hesamsheikh/awesome-openclaw-usecases/pulls/53/reviews --jq '[.[] | {author: .user.login, state: .state, time: .submitted_at}] | sort_by\\(.time\\)')",
+      "Bash(gh api repos/hesamsheikh/awesome-openclaw-usecases/issues/53/comments --jq '[.[] | select\\(.user.login != \"\"coderabbitai[bot]\"\"\\) | {author: .user.login, time: .created_at, body: .body[:300]}]')",
+      "Bash(gh api repos/hesamsheikh/awesome-openclaw-usecases/issues/53/comments --jq '.[] | select\\(.user.login | test\\(\"\"coderabbit\"\"\\) | not\\) | \"\"\\\\\\(.user.login\\) [\\\\\\(.created_at\\)]: \\\\\\(.body[:500]\\)\"\"')",
+      "Bash(gh api repos/hesamsheikh/awesome-openclaw-usecases/issues/53/comments --jq '.[] | \"\"\\\\\\(.user.login\\) [\\\\\\(.created_at\\)]: \\\\\\(.body[:200]\\)\"\"')"
+    ]
+  }
+}

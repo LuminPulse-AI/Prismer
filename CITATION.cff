@@ -5,7 +5,7 @@ type: software
 authors:
   - name: "Prismer.AI Team"
 license: Apache-2.0
-repository-code: "https://github.com/LuminPulse-AI/Prismer"
+repository-code: "https://github.com/Prismer-AI/Prismer"
 url: "https://prismer.ai"
 keywords:
   - academic research

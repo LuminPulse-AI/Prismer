@@ -48,7 +48,7 @@ dev = [
 [project.urls]
 Homepage = "https://prismer.io"
 Documentation = "https://docs.prismer.io"
-Repository = "https://github.com/LuminPulse-AI/Prismer/tree/main/sdk/python"
+Repository = "https://github.com/Prismer-AI/Prismer/tree/main/sdk/python"
 
 [tool.setuptools.packages.find]
 where = ["."]
