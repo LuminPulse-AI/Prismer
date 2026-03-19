@@ -1,6 +1,6 @@
 ---
 name: hf-papers
-description: Browse trending papers, search by keyword, and get paper details from Hugging Face Papers
+description: "Browse trending papers, search by keyword, and get paper details from Hugging Face Papers. Use when the user wants to find ML research, asks about recent AI papers, trending models, or mentions Hugging Face Papers."
 metadata:
   openclaw:
     emoji: 🤗

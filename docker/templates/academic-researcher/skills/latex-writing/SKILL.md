@@ -1,6 +1,6 @@
 ---
 name: latex-writing
-description: Create, edit, and compile LaTeX documents for academic papers using latex_compile, update_latex, and send_ui_directive tools
+description: "Create, edit, and compile LaTeX documents for academic papers using latex_compile, update_latex, and send_ui_directive tools. Use when the user mentions LaTeX, .tex files, academic writing, typesetting, or needs to compile documents with equations, theses, or journal submissions."
 ---
 
 # LaTeX Writing Skill
@@ -12,28 +12,6 @@ Create, edit, and compile LaTeX documents for academic papers, theses, and repor
 - `latex_compile` - Compile LaTeX to PDF (auto-switches to LaTeX editor)
 - `update_latex` - Update LaTeX editor content without compiling
 - `send_ui_directive` - Send raw UI directives for advanced control
-
-## Capabilities
-
-### Document Creation
-- Academic papers (IEEE, ACM, Springer formats)
-- Theses and dissertations
-- Technical reports
-- Presentations (Beamer)
-- Posters
-
-### Content Management
-- Section and subsection organization
-- Figure and table insertion
-- Mathematical equations
-- Algorithm pseudocode
-- Citation and bibliography (BibTeX)
-
-### Formatting
-- Custom styling and templates
-- Cross-references and labels
-- Index and glossary generation
-- Page layout configuration
 
 ## Usage Patterns
 
@@ -69,10 +47,10 @@ When user says: "Cite this paper: [reference]"
 
 ### Fix Compilation Errors
 When user says: "The LaTeX isn't compiling"
-1. Read error log
-2. Identify error location and type
-3. Suggest and apply fix
-4. Recompile and verify
+1. Read error log from `latex_compile` response's `errors` field
+2. Identify error location and type (line number, missing package, undefined command)
+3. Apply fix to the LaTeX source
+4. Recompile with `latex_compile` and verify `success: true`
 
 ## Common Templates
 

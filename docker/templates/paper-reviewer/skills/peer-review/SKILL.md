@@ -1,6 +1,6 @@
 ---
 name: peer-review
-description: Conduct thorough academic peer reviews with structured feedback using load_pdf and arxiv_to_prompt
+description: "Conduct thorough academic peer reviews with structured feedback using load_pdf and arxiv_to_prompt. Use when the user asks to review a paper, provide manuscript feedback, critique research, or write a referee report."
 ---
 
 # Peer Review Skill
@@ -118,10 +118,26 @@ The authors claim [X]. Could you clarify:
 Confidence: [1-5]
 ```
 
+## Tool Examples
+
+### Load and read an arXiv paper for review
+```
+arxiv_to_prompt arxiv_id="2303.08774"
+```
+
+### Load a PDF submission
+```
+load_pdf source="/workspace/papers/submission.pdf"
+```
+
+### Write the review report
+```
+update_notes content="<h1>Paper Review: [Title]</h1><h2>Summary</h2><p>...</p><h2>Strengths</h2><ol><li>...</li></ol><h2>Weaknesses</h2><h3>Major Issues</h3><ol><li>...</li></ol><h2>Recommendation</h2><p>Minor Revision — Confidence: 4/5</p>"
+```
+
 ## Best Practices
 
 1. **Be Constructive**: Focus on improvement, not criticism
 2. **Be Specific**: Point to exact locations and issues
 3. **Be Fair**: Acknowledge strengths before weaknesses
-4. **Be Thorough**: Cover all major aspects
-5. **Be Timely**: Complete reviews within deadlines
+4. **Verify completeness**: Before writing the final report, confirm you have reviewed all major sections and identified at least 3 strengths

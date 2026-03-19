@@ -1,6 +1,6 @@
 ---
 name: ml-experiment
-description: Design and run machine learning experiments with proper evaluation using jupyter_execute, including training, benchmarking, and ablation studies
+description: "Design and run machine learning experiments with proper evaluation using jupyter_execute, including training, benchmarking, and ablation studies. Use when the user wants to train models, compare algorithms, run ablation studies, evaluate ML performance, or reproduce paper results."
 ---
 
 # ML Experiment Skill
@@ -55,3 +55,33 @@ When user says: "Reproduce [paper title/arXiv ID]"
 3. Implement core algorithm
 4. Run experiments matching paper setup
 5. Compare results to reported numbers
+
+## Tool Examples
+
+### Train and evaluate a classifier
+```python
+# via jupyter_execute
+import torch
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# ... train model ...
+print(classification_report(y_test, predictions))
+```
+
+### Run ablation study
+```python
+# via jupyter_execute
+configs = [
+    {"name": "full", "use_augmentation": True, "use_dropout": True},
+    {"name": "no_aug", "use_augmentation": False, "use_dropout": True},
+    {"name": "no_dropout", "use_augmentation": True, "use_dropout": False},
+]
+results = {c["name"]: train_and_eval(**c) for c in configs}
+```
+
+### Validation checkpoints
+- Verify data shapes match expected dimensions before training
+- Check that loss is decreasing after the first few epochs
+- Confirm test set has no overlap with training data

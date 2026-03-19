@@ -1,6 +1,6 @@
 ---
 name: theorem-proving
-description: Construct and verify mathematical proofs using LaTeX typesetting and computational verification via jupyter_execute
+description: "Construct and verify mathematical proofs using LaTeX typesetting and computational verification via jupyter_execute. Use when the user asks to prove a theorem, verify a mathematical argument, construct a formal proof, or check proof correctness computationally."
 ---
 
 # Theorem Proving Skill
@@ -50,3 +50,15 @@ When user says: "Is it true that [conjecture]?"
 2. Search for counterexamples
 3. Attempt proof if examples support it
 4. Report findings with confidence level
+
+## Tool Examples
+
+### Typeset a theorem in LaTeX
+```
+update_latex content="\\documentclass{article}\n\\usepackage{amsthm,amsmath}\n\\newtheorem{theorem}{Theorem}\n\\begin{document}\n\\begin{theorem}\nFor all $n \\geq 1$, $\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}$.\n\\end{theorem}\n\\begin{proof}\nBy induction on $n$. Base case $n=1$: $1 = \\frac{1 \\cdot 2}{2}$. Inductive step: assume true for $n$, then $\\sum_{k=1}^{n+1} k = \\frac{n(n+1)}{2} + (n+1) = \\frac{(n+1)(n+2)}{2}$.\n\\end{proof}\n\\end{document}"
+```
+
+### Verify computationally with SymPy
+```
+jupyter_execute code="from sympy import symbols, summation, simplify\nk, n = symbols('k n', positive=True, integer=True)\nresult = simplify(summation(k, (k, 1, n)) - n*(n+1)/2)\nprint(f'Difference: {result}')  # Should be 0"
+```
