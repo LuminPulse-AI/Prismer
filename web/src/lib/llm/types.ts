@@ -191,9 +191,10 @@ export const MODEL_PRICING: Record<string, { input: number; output: number }> = 
   'o1-mini': { input: 3.0, output: 12.0 },
   'o3-mini': { input: 1.1, output: 4.4 },
   // Novita AI (OpenAI-compatible, https://api.novita.ai/openai)
-  'moonshotai/kimi-k2.5': { input: 1.0, output: 3.0 },
-  'deepseek/deepseek-v3.2': { input: 1.0, output: 3.0 },
-  'zai-org/glm-5': { input: 1.0, output: 3.0 },
+  'moonshotai/kimi-k2.5': { input: 0.6, output: 3.0 },
+  'deepseek/deepseek-v3.2': { input: 0.27, output: 0.4 },
+  'zai-org/glm-5': { input: 1.0, output: 3.2 },
+  'qwen/qwen3-embedding-0.6b': { input: 0.02, output: 0.0 },
   // Default fallback
   'default': { input: 1.0, output: 3.0 },
 };

@@ -2,9 +2,9 @@
  * POST /api/ai/chat
  *
  * Server-side proxy to the configured LLM provider.
- * Provider selection priority:
- *   1. Novita AI  (NOVITA_API_KEY)
- *   2. OpenAI / custom OpenAI-compatible  (OPENAI_API_KEY + optional OPENAI_API_BASE_URL)
+ * Provider selection:
+ *   1. Explicit LLM_PROVIDER env var (e.g. LLM_PROVIDER=openai)
+ *   2. Auto-detect: first provider whose API key is set (novita → openai)
  *
  * Accepts an OpenAI-compatible request body and proxies it verbatim.
  * Supports both streaming (SSE) and non-streaming responses.
@@ -18,21 +18,41 @@ import type { ProviderConfig } from '@/lib/llm/types';
 // Provider resolution
 // ----------------------------------------------------------------
 
-function resolveProvider(): ProviderConfig | null {
-  // 1. Novita AI
-  const novita = getNovitaProviderConfig();
-  if (novita) return novita;
-
-  // 2. OpenAI / custom OpenAI-compatible
+function getOpenAIProviderConfig(): ProviderConfig | null {
   const apiKey = process.env.OPENAI_API_KEY || process.env.OPENAI_APIKEY || process.env.AI_API_KEY;
-  if (apiKey) {
-    return {
-      provider: 'openai',
-      apiKey,
-      baseUrl: process.env.OPENAI_API_BASE_URL || 'https://api.openai.com/v1',
-      defaultModel: process.env.AGENT_DEFAULT_MODEL || 'gpt-4o',
-      enabled: true,
-    };
+  if (!apiKey) return null;
+  return {
+    provider: 'openai',
+    apiKey,
+    baseUrl: process.env.OPENAI_API_BASE_URL || 'https://api.openai.com/v1',
+    defaultModel: process.env.AGENT_DEFAULT_MODEL || 'gpt-4o',
+    enabled: true,
+  };
+}
+
+const PROVIDER_FACTORIES: Record<string, () => ProviderConfig | null> = {
+  novita: getNovitaProviderConfig,
+  openai: getOpenAIProviderConfig,
+};
+
+/**
+ * Resolve the active LLM provider.
+ *
+ * Selection order:
+ *   1. Explicit LLM_PROVIDER env var (e.g. LLM_PROVIDER=openai)
+ *   2. First provider whose API key is present (novita → openai)
+ */
+export function resolveProvider(): ProviderConfig | null {
+  // 1. Explicit choice via LLM_PROVIDER
+  const explicit = process.env.LLM_PROVIDER?.toLowerCase();
+  if (explicit && PROVIDER_FACTORIES[explicit]) {
+    return PROVIDER_FACTORIES[explicit]();
+  }
+
+  // 2. Auto-detect: first configured provider wins
+  for (const factory of Object.values(PROVIDER_FACTORIES)) {
+    const config = factory();
+    if (config) return config;
   }
 
   return null;
@@ -76,6 +96,7 @@ export async function POST(req: NextRequest) {
       'Authorization': `Bearer ${provider.apiKey}`,
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!upstreamRes.ok) {
