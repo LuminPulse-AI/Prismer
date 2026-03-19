@@ -41,8 +41,9 @@ export async function GET() {
       // AI configuration - Only return availability status, not API Key
       // Supports multiple naming formats
       aiEnabled: !!(
-        process.env.OPENAI_API_KEY 
-        || process.env.OPENAI_APIKEY 
+        process.env.NOVITA_API_KEY
+        || process.env.OPENAI_API_KEY
+        || process.env.OPENAI_APIKEY
         || process.env.AI_API_KEY
       ),
       
