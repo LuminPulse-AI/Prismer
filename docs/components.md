@@ -10,7 +10,7 @@ Prismer.AI is built on modular, reusable components. Each package can be used in
 
 | Product | URL | Status |
 |---------|-----|--------|
-| Paper Reading | [paper.prismer.ai/library](https://paper.prismer.ai/library) | ✅ Live |
+| OpenClaw | [luminpulse.ai](https://luminpulse.ai/) | ✅ Live |
 
 ---
 

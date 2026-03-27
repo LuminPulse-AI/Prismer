@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://learn.prismer.ai/">Learn</a> ·
-  <a href="https://paper.prismer.ai/library">Paper Reading</a> ·
+  <a href="https://luminpulse.ai/">Openclaw</a> ·
   <a href="https://docs.prismer.ai">Documentation</a> ·
   <a href="docs/roadmap.md">Roadmap</a> ·
   <a href="https://www.youtube.com/watch?v=si1LOrBRCIg">Demo Video</a>
@@ -51,21 +51,26 @@
 
 <table>
 <tr>
-<td align="center" width="50%">
+<td align="center" width="33%">
 <a href="https://learn.prismer.ai/">
 <img src="https://img.shields.io/badge/🎓_Learn-Try_Now-blue?style=for-the-badge&labelColor=black" alt="Learn">
 </a>
 <br/>
 <sub>Courses and learning resources for using Prismer effectively</sub>
 </td>
-</tr>
-<tr>
-<td align="center" width="50%">
-<a href="https://paper.prismer.ai/library">
-<img src="https://img.shields.io/badge/📖_Paper_Reading-Try_Now-blue?style=for-the-badge&labelColor=black" alt="Paper Reading">
+<td align="center" width="33%">
+<a href="https://luminpulse.ai/">
+<img src="https://img.shields.io/badge/📖_OpenClaw-Try_Now-blue?style=for-the-badge&labelColor=black" alt="OpenClaw">
 </a>
 <br/>
-<sub>AI-native PDF reader with citation graphs</sub>
+<sub>One minute to deploy your openclaw</sub>
+</td>
+<td align="center" width="33%">
+<a href="https://prismer.cloud/">
+<img src="https://img.shields.io/badge/☁️_Prismer_Cloud-Try_Now-blue?style=for-the-badge&labelColor=black" alt="Prismer Cloud">
+</a>
+<br/>
+<sub>Cloud-hosted knowledge infrastructure for agents</sub>
 </td>
 </tr>
 </table>
@@ -115,24 +120,6 @@ Unlike tools that only handle writing (Overleaf) or note-taking (Notion), Prisme
 
 ---
 
-## ✨ Key Features
-
-### 📖 Paper Reader
-
-AI-native PDF reader for research papers with:
-- Multi-document view with synchronized scrolling
-- Bi-directional citation graph
-- AI chat with paper context
-- Figure/table extraction
-- OCR data integration
-
-### ✍️ LaTeX Editor
-
-Modern LaTeX editor with:
-- Real-time KaTeX preview
-- Multi-file project support
-- Template library (IEEE, ACM, Nature, arXiv)
-- Smart error recovery with auto-fix
 
 ### 🔍 Citation Verification
 
@@ -140,20 +127,12 @@ LLMs fabricate citations. Prismer.AI solves this with a **Reviewer Agent** that 
 
 ---
 
-## 📦 Open Source Components
+## 🔗 Related Repositories
 
-Component extraction is in progress. The `@prismer/*` entries below represent target packages being extracted from the monorepo:
-
-| Package | Version | Language | Description |
-|---------|---------|----------|-------------|
-| `@prismer/paper-reader` | | TypeScript | PDF reader with AI chat |
-| `@prismer/latex-editor` | | TypeScript | LaTeX editor with live preview |
-| `@prismer/academic-tools` | | TypeScript | arXiv, Semantic Scholar APIs |
-| `@prismer/jupyter-kernel` | | TypeScript | Browser-native notebooks |
-| `@prismer/code-sandbox` | | TypeScript | WebContainer code execution |
-| `@prismer/agent-protocol` | | TypeScript | Multi-agent orchestration |
-
-👉 See [Component Documentation](docs/components.md) for usage examples.
+| Repository | Description |
+|------------|-------------|
+| [Prismer-AI/luminclaw](https://github.com/Prismer-AI/luminclaw) | Open-source agent core |
+| [Prismer-AI/PrismerCloud](https://github.com/Prismer-AI/PrismerCloud) | Open-source cloud harness infrastructure |
 
 ---
 

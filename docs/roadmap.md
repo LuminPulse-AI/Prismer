@@ -4,7 +4,7 @@
 
 ### ✅ Completed & Live
 
-- **Paper Reader** — AI-native PDF reader → [paper.prismer.ai/library](https://paper.prismer.ai/library) 🚀
+- **Paper Reader** — AI-native PDF reader → [luminpulse.ai](https://luminpulse.ai/) 🚀
 - LaTeX Editor with live preview
 - Jupyter Notebook integration
 - Code Playground (WebContainer)

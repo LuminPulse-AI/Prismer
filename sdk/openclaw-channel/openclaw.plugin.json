@@ -1,9 +1,0 @@
-{
-  "id": "prismer",
-  "channels": ["prismer"],
-  "configSchema": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {}
-  }
-}

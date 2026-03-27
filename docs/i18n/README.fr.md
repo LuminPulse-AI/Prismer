@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://learn.prismer.ai/">Learn</a> ·
-  <a href="https://paper.prismer.ai/library">Lecture de Papers</a> ·
+  <a href="https://luminpulse.ai/">Lecture de Papers</a> ·
   <a href="https://docs.prismer.ai">Documentation</a> ·
   <a href="../roadmap.md">Feuille de Route</a>
 </p>
@@ -47,7 +47,7 @@
 </tr>
 <tr>
 <td align="center">
-<a href="https://paper.prismer.ai/library">
+<a href="https://luminpulse.ai/">
 <img src="https://img.shields.io/badge/📖_Lecture_Papers-Essayer-blue?style=for-the-badge&labelColor=black" alt="Paper Reading">
 </a>
 <br/>

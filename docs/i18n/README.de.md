@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://learn.prismer.ai/">Learn</a> ·
-  <a href="https://paper.prismer.ai/library">Paper-Leser</a> ·
+  <a href="https://luminpulse.ai/">Paper-Leser</a> ·
   <a href="https://docs.prismer.ai">Dokumentation</a> ·
   <a href="../roadmap.md">Roadmap</a>
 </p>
@@ -47,7 +47,7 @@
 </tr>
 <tr>
 <td align="center">
-<a href="https://paper.prismer.ai/library">
+<a href="https://luminpulse.ai/">
 <img src="https://img.shields.io/badge/📖_Paper_Leser-Jetzt_testen-blue?style=for-the-badge&labelColor=black" alt="Paper Reading">
 </a>
 <br/>
