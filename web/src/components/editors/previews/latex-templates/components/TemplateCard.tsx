@@ -1,7 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { Star, Download, Github, ExternalLink, FileText } from "lucide-react";
+import { Star, Download, ExternalLink, FileText } from "lucide-react";
+import { GithubIcon as Github } from "./icons";
 import type { TemplateMetadata, TemplateCategory } from "../types";
 
 // ============================================================

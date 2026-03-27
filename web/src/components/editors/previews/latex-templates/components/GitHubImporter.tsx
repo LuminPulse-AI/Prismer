@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Github, Link, ArrowRight, Loader2, AlertCircle, Check, X } from "lucide-react";
+import { Link, ArrowRight, Loader2, AlertCircle, Check, X } from "lucide-react";
+import { GithubIcon as Github } from "./icons";
 import { GitHubService } from "../services/GitHubService";
 
 // ============================================================

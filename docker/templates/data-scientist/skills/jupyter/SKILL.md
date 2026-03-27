@@ -1,6 +1,6 @@
 ---
 name: jupyter
-description: Create and execute Jupyter notebooks for interactive data analysis using jupyter_execute and jupyter_notebook tools
+description: "Create and execute Jupyter notebooks for interactive data analysis using jupyter_execute and jupyter_notebook tools. Use when the user asks to run Python code interactively, create notebooks, analyze data in cells, or mentions .ipynb files."
 ---
 
 # Jupyter Notebook Skill
@@ -50,10 +50,27 @@ When user says: "Add explanation for this step"
 2. Explain methodology
 3. Note assumptions and limitations
 
+## Tool Examples
+
+### Execute Python code
+```
+jupyter_execute code="import pandas as pd\ndf = pd.read_csv('/workspace/data/results.csv')\nprint(df.describe())"
+```
+
+### Create a notebook with cells
+```
+update_notebook cells=[{"type": "markdown", "source": "# Analysis"}, {"type": "code", "source": "import pandas as pd\nimport matplotlib.pyplot as plt"}] execute=false
+```
+
+### Display generated plots
+```
+update_gallery images=[{"url": "/workspace/data/plot.png", "title": "Analysis Results"}]
+```
+
 ## Best Practices
 
 1. **Cell Independence**: Each cell should run independently when possible
 2. **Import First**: All imports at notebook start
-3. **Clear Outputs**: Clean outputs before sharing
+3. **Check output before proceeding**: Verify execution output is correct before running dependent cells
 4. **Markdown Structure**: Use headers for navigation
 5. **Save Often**: Checkpoint regularly

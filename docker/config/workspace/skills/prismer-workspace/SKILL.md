@@ -1,6 +1,6 @@
 ---
 name: prismer-workspace
-description: Core academic workspace tools: LaTeX compilation, Jupyter execution, PDF loading, UI control, content updates, and arXiv paper conversion
+description: "Core academic workspace tools: LaTeX compilation, Jupyter execution, PDF loading, UI control, content updates, and arXiv paper conversion. Use when the user asks to compile LaTeX, run Python code, load PDFs, display data, or control workspace editors."
 ---
 
 # Prismer Workspace Skill

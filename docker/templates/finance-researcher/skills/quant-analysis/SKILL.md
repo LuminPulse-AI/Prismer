@@ -1,6 +1,6 @@
 ---
 name: quant-analysis
-description: Quantitative finance analysis including portfolio optimization, risk modeling, and time series econometrics using jupyter_execute
+description: "Quantitative finance analysis including portfolio optimization, risk modeling, and time series econometrics using jupyter_execute. Use when the user asks about portfolio analysis, stock returns, financial risk, investment optimization, or volatility modeling."
 ---
 
 # Quantitative Analysis Skill
@@ -53,3 +53,22 @@ When user says: "Build a [pricing/risk/factor] model"
 3. Estimate model parameters
 4. Validate with out-of-sample testing
 5. Report results with diagnostics
+
+## Tool Examples
+
+### Load and analyze stock returns
+```python
+# via jupyter_execute
+import yfinance as yf
+import pandas as pd
+import numpy as np
+
+data = yf.download("AAPL", start="2023-01-01", end="2024-01-01")
+returns = data["Close"].pct_change().dropna()
+print(f"Mean: {returns.mean():.4f}, Vol: {returns.std():.4f}, Sharpe: {returns.mean()/returns.std()*np.sqrt(252):.2f}")
+```
+
+### Validation checkpoints
+- Verify data has no missing values or extreme outliers before modeling
+- Check model residuals for autocorrelation after estimation
+- Confirm out-of-sample period has no look-ahead bias

@@ -3,13 +3,13 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   X,
-  Github,
   RefreshCw,
   Loader2,
   LayoutGrid,
   List,
   Upload,
 } from "lucide-react";
+import { GithubIcon as Github } from "./icons";
 import { TemplateCard } from "./TemplateCard";
 import { TemplateSearch } from "./TemplateSearch";
 import { TemplateFilters } from "./TemplateFilters";

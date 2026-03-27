@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   X,
   Download,
-  Github,
   ExternalLink,
   FileText,
   Star,
@@ -18,6 +17,7 @@ import {
   FileCode,
   Package,
 } from "lucide-react";
+import { GithubIcon as Github } from "./icons";
 import type { TemplateMetadata, TemplateFiles, TemplateFile } from "../types";
 
 // ============================================================
