@@ -37,9 +37,6 @@ var registerCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
 		}
-		if cfg.Default.APIKey == "" {
-			return fmt.Errorf("no API key configured; run 'prismer init <api-key>' first")
-		}
 
 		// Build client options.
 		var opts []prismer.ClientOption

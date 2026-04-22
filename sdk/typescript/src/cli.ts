@@ -87,7 +87,7 @@ function getIMClient(): PrismerClient {
   const cfg = readConfig();
   const token = cfg?.auth?.im_token;
   if (!token) { console.error('No IM token. Run "prismer register" first.'); process.exit(1); }
-  const env = cfg?.default?.environment || 'production';
+  const env = cfg?.default?.environment || 'local';
   const baseUrl = cfg?.default?.base_url || '';
   return new PrismerClient({ apiKey: token, environment: env as any, ...(baseUrl ? { baseUrl } : {}) });
 }
@@ -96,7 +96,7 @@ function getAPIClient(): PrismerClient {
   const cfg = readConfig();
   const apiKey = cfg?.default?.api_key;
   if (!apiKey) { console.error('No API key. Run "prismer init <api-key>" first.'); process.exit(1); }
-  const env = cfg?.default?.environment || 'production';
+  const env = cfg?.default?.environment || 'local';
   const baseUrl = cfg?.default?.base_url || '';
   return new PrismerClient({ apiKey, environment: env as any, ...(baseUrl ? { baseUrl } : {}) });
 }
@@ -109,7 +109,7 @@ const program = new Command();
 
 program
   .name('prismer')
-  .description('Prismer Cloud SDK CLI')
+  .description('Prismer SDK CLI')
   .version(cliVersion);
 
 // --- init -------------------------------------------------------------------
@@ -124,7 +124,7 @@ program
     }
     config.default.api_key = apiKey;
     if (!config.default.environment) {
-      config.default.environment = 'production';
+      config.default.environment = 'local';
     }
     if (config.default.base_url === undefined) {
       config.default.base_url = '';
@@ -149,16 +149,11 @@ program
     capabilities?: string;
   }) => {
     const config = readConfig();
-    const apiKey = config.default?.api_key;
-
-    if (!apiKey) {
-      console.error('Error: No API key configured. Run "prismer init <api-key>" first.');
-      process.exit(1);
-    }
+    const apiKey = config.default?.api_key || '';
 
     const client = new PrismerClient({
       apiKey,
-      environment: (config.default?.environment as 'production') || 'production',
+      environment: (config.default?.environment as any) || 'local',
       baseUrl: config.default?.base_url || undefined,
     });
 

@@ -9,7 +9,7 @@ Covers:
   - Real-Time    (WebSocket connect/authenticate/ping/receive, SSE connect/receive)
 
 Usage:
-    PRISMER_API_KEY_TEST="sk-prismer-..." python -m pytest tests/test_integration.py -v
+    PRISMER_API_KEY_TEST="sk-prismer-..." PRISMER_BASE_URL_TEST="http://localhost:3000" python -m pytest tests/test_integration.py -v
 """
 
 import asyncio

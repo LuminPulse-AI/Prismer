@@ -20,9 +20,9 @@ registerSendMessage(server);
 
 async function main() {
   if (!getApiKey()) {
-    console.error('[Prismer MCP] PRISMER_API_KEY environment variable is required.');
-    console.error('[Prismer MCP] Get your key at https://prismer.cloud/dashboard');
-    process.exit(1);
+    console.error(
+      '[Prismer MCP] PRISMER_API_KEY is not set; starting in unauthenticated mode for local/self-host deployments.',
+    );
   }
 
   const transport = new StdioServerTransport();

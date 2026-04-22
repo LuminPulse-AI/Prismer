@@ -11,12 +11,6 @@ export async function startPrismerGateway(
 ): Promise<{ stop: () => void }> {
   const account = ctx.account;
 
-  if (!account.apiKey) {
-    throw new Error(
-      `Prismer is not configured for account "${account.accountId}" (need apiKey in channels.prismer).`,
-    );
-  }
-
   ctx.log?.info(
     `[${account.accountId}] registering agent on Prismer IM (${account.baseUrl})`,
   );

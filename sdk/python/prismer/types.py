@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 # ============================================================================
 
 ENVIRONMENTS: Dict[str, str] = {
+    "local": "http://localhost:3000",
     "production": "https://prismer.cloud",
 }
 

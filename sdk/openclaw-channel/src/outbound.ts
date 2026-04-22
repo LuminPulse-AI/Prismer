@@ -15,7 +15,6 @@ export async function sendPrismerMessage(
   if (!cfg) throw new Error("Prismer: config required");
 
   const account = resolvePrismerAccount({ cfg, accountId: options?.accountId });
-  if (!account.apiKey) throw new Error("Prismer: apiKey not configured");
 
   const body: Record<string, unknown> = { content: text };
   if (options?.replyTo) body.replyTo = options.replyTo;

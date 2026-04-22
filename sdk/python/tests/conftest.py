@@ -13,7 +13,7 @@ from prismer import PrismerClient
 API_KEY = os.environ.get("PRISMER_API_KEY_TEST")
 if not API_KEY:
     raise RuntimeError("PRISMER_API_KEY_TEST environment variable is required")
-BASE_URL = os.environ.get("PRISMER_BASE_URL_TEST", "https://prismer.cloud")
+BASE_URL = os.environ.get("PRISMER_BASE_URL_TEST", "http://localhost:3000")
 
 # Unique run id to avoid username collisions across test runs
 RUN_ID = uuid.uuid4().hex[:8]

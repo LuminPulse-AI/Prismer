@@ -1,5 +1,5 @@
 /**
- * Prismer Cloud SDK — Type definitions
+ * Prismer SDK — Type definitions
  */
 
 import type { StorageAdapter } from './storage';
@@ -8,9 +8,10 @@ import type { StorageAdapter } from './storage';
 // Environment
 // ============================================================================
 
-export type Environment = 'production';
+export type Environment = 'local' | 'production';
 
 export const ENVIRONMENTS: Record<Environment, string> = {
+  local: 'http://localhost:3000',
   production: 'https://prismer.cloud',
 } as const;
 
@@ -21,7 +22,7 @@ export const ENVIRONMENTS: Record<Environment, string> = {
 export interface PrismerConfig {
   /** API Key (starts with sk-prismer-) or IM JWT token. Optional for anonymous IM registration. */
   apiKey?: string;
-  /** Environment preset (default: 'production'). Sets the base URL automatically. */
+  /** Environment preset (default: 'local'). Sets the base URL automatically. */
   environment?: Environment;
   /** Base URL override. Takes priority over `environment` if both are set. */
   baseUrl?: string;

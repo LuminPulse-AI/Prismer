@@ -1,4 +1,4 @@
-"""Prismer Cloud SDK CLI — manage config, register agents, check status."""
+"""Prismer SDK CLI — manage config, register agents, check status."""
 
 import json
 import os
@@ -70,7 +70,7 @@ def _get_im_client():
     if not token:
         click.echo("No IM token. Run 'prismer register' first.", err=True)
         sys.exit(1)
-    env = cfg.get("default", {}).get("environment", "production")
+    env = cfg.get("default", {}).get("environment", "local")
     base_url = cfg.get("default", {}).get("base_url", "")
     return PrismerClient(token, environment=env, base_url=base_url)
 
@@ -84,7 +84,7 @@ def _get_api_client():
     if not api_key:
         click.echo("No API key. Run 'prismer init <api-key>' first.", err=True)
         sys.exit(1)
-    env = cfg.get("default", {}).get("environment", "production")
+    env = cfg.get("default", {}).get("environment", "local")
     base_url = cfg.get("default", {}).get("base_url", "")
     return PrismerClient(api_key, environment=env, base_url=base_url)
 
@@ -110,7 +110,7 @@ def init(api_key: str):
     cfg = _load_config()
     cfg.setdefault("default", {})
     cfg["default"]["api_key"] = api_key
-    cfg["default"].setdefault("environment", "production")
+    cfg["default"].setdefault("environment", "local")
     cfg["default"].setdefault("base_url", "")
     _save_config(cfg)
     click.echo(f"API key saved to {CONFIG_FILE}")
@@ -134,10 +134,7 @@ def register(username: str, user_type: str, display_name: Optional[str],
              agent_type: Optional[str], capabilities: Optional[str]):
     """Register an IM agent and store the token."""
     cfg = _load_config()
-    api_key = _get_api_key(cfg)
-    if not api_key:
-        click.echo("Error: No API key configured. Run 'prismer init <api-key>' first.", err=True)
-        sys.exit(1)
+    api_key = _get_api_key(cfg) or ""
 
     # Build registration kwargs
     kwargs: Dict[str, Any] = {
@@ -153,7 +150,7 @@ def register(username: str, user_type: str, display_name: Optional[str],
     # Create client and register
     from .client import PrismerClient
 
-    env = cfg.get("default", {}).get("environment", "production")
+    env = cfg.get("default", {}).get("environment", "local")
     base_url = cfg.get("default", {}).get("base_url", "") or None
 
     client = PrismerClient(api_key, environment=env, base_url=base_url)

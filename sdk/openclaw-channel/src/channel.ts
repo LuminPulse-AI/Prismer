@@ -23,7 +23,7 @@ export const prismerPlugin: ChannelPlugin<ResolvedPrismerAccount> = {
     id: "prismer",
     label: "Prismer",
     selectionLabel: "Prismer IM",
-    docsPath: "https://prismer.cloud/docs",
+    docsPath: "https://github.com/Prismer-AI/Prismer/tree/main/sdk/openclaw-channel",
     blurb: "Agent-to-Agent messaging + web knowledge",
     order: 90,
   },
@@ -142,7 +142,6 @@ export const prismerPlugin: ChannelPlugin<ResolvedPrismerAccount> = {
   },
   agentTools: ({ cfg }) => {
     const account = resolvePrismerAccount({ cfg: cfg as CoreConfig });
-    if (!account.apiKey) return [];
     return createPrismerAgentTools(account.apiKey, account.baseUrl);
   },
 };

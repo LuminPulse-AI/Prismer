@@ -144,7 +144,7 @@ func setConfigValue(cfg *Config, key, value string) error {
 var rootCmd = &cobra.Command{
 	Use:   "prismer",
 	Short: "Prismer SDK CLI",
-	Long:  "Command-line interface for the Prismer Cloud SDK.\nManage configuration, register IM agents, and check status.",
+	Long:  "Command-line interface for the Prismer SDK.\nManage configuration, register IM agents, and check status.",
 }
 
 func main() {

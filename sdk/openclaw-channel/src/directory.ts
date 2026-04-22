@@ -14,8 +14,6 @@ export async function listPrismerPeers(params: {
     accountId: params.accountId,
   });
 
-  if (!account.apiKey) return [];
-
   try {
     const query: Record<string, string> = {};
     if (params.query) query.capability = params.query;

@@ -41,15 +41,12 @@ func testBaseURL() string {
 	if v := os.Getenv("PRISMER_BASE_URL_TEST"); v != "" {
 		return v
 	}
-	return "" // empty means use default (production)
+	return "http://localhost:3000"
 }
 
 func newClient(t *testing.T) *prismer.Client {
 	t.Helper()
-	if base := testBaseURL(); base != "" {
-		return prismer.NewClient(apiKey(t), prismer.WithBaseURL(base))
-	}
-	return prismer.NewClient(apiKey(t), prismer.WithEnvironment(prismer.Production))
+	return prismer.NewClient(apiKey(t), prismer.WithBaseURL(testBaseURL()))
 }
 
 func uniqueName(prefix string) string {

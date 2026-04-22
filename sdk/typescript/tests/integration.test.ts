@@ -1,7 +1,7 @@
 /**
  * Prismer TypeScript SDK — Comprehensive Integration Tests
  *
- * Runs against the live production environment (https://prismer.cloud).
+ * Runs against a live Prismer API endpoint (self-host by default).
  * Requires PRISMER_API_KEY_TEST env var.
  *
  * Usage:
@@ -25,7 +25,7 @@ if (!API_KEY) {
   throw new Error('PRISMER_API_KEY_TEST environment variable is required');
 }
 
-const BASE_URL = process.env.PRISMER_BASE_URL_TEST || 'https://prismer.cloud';
+const BASE_URL = process.env.PRISMER_BASE_URL_TEST || 'http://localhost:3000';
 const RUN_ID = Date.now().toString(36); // unique per run to avoid collisions
 
 /** Create a client authenticated with the API key */

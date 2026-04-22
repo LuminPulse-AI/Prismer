@@ -25,7 +25,7 @@ var initCmd = &cobra.Command{
 
 		cfg.Default.APIKey = apiKey
 		if cfg.Default.Environment == "" {
-			cfg.Default.Environment = "production"
+			cfg.Default.Environment = "local"
 		}
 
 		if err := saveConfig(cfg); err != nil {

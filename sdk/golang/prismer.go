@@ -1,4 +1,4 @@
-// Package prismer provides the official Go SDK for Prismer Cloud API.
+// Package prismer provides the official Go SDK for the Prismer API.
 //
 // Covers Context API, Parse API, and IM API with sub-module access pattern.
 //
@@ -42,15 +42,17 @@ import (
 type Environment string
 
 const (
+	Local      Environment = "local"
 	Production Environment = "production"
 )
 
 var environments = map[Environment]string{
+	Local:      "http://localhost:3000",
 	Production: "https://prismer.cloud",
 }
 
 const (
-	DefaultBaseURL = "https://prismer.cloud"
+	DefaultBaseURL = "http://localhost:3000"
 	DefaultTimeout = 30 * time.Second
 )
 

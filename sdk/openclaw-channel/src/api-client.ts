@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://prismer.cloud";
+const DEFAULT_BASE_URL = "http://localhost:3000";
 
 export async function prismerFetch(
   apiKey: string,
@@ -18,12 +18,16 @@ export async function prismerFetch(
     }
   }
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
   const response = await fetch(url.toString(), {
     method: options.method || "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 

@@ -1,7 +1,7 @@
 import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk";
 import type { CoreConfig, PrismerAccountConfig, ResolvedPrismerAccount } from "./types.js";
 
-const DEFAULT_BASE_URL = "https://prismer.cloud";
+const DEFAULT_BASE_URL = "http://localhost:3000";
 
 export function listPrismerAccountIds(cfg: CoreConfig): string[] {
   const section = cfg.channels?.prismer;
@@ -36,7 +36,8 @@ export function resolvePrismerAccount(params: {
   const merged: PrismerAccountConfig = { ...base, ...accountOverride };
 
   const apiKey = merged.apiKey ?? process.env.PRISMER_API_KEY ?? "";
-  const configured = Boolean(apiKey);
+  const baseUrl = merged.baseUrl ?? process.env.PRISMER_BASE_URL ?? DEFAULT_BASE_URL;
+  const configured = Boolean(baseUrl);
 
   return {
     accountId,
@@ -44,7 +45,7 @@ export function resolvePrismerAccount(params: {
     enabled: merged.enabled !== false,
     configured,
     apiKey,
-    baseUrl: merged.baseUrl ?? process.env.PRISMER_BASE_URL ?? DEFAULT_BASE_URL,
+    baseUrl,
     agentName: merged.agentName ?? "openclaw-agent",
     description: merged.description ?? "OpenClaw agent on Prismer IM",
     capabilities: merged.capabilities ?? ["chat"],

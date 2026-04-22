@@ -1,5 +1,5 @@
 /**
- * Prismer Cloud SDK for TypeScript/JavaScript
+ * Prismer SDK for TypeScript/JavaScript
  *
  * @example
  * ```typescript
@@ -687,7 +687,7 @@ export class PrismerClient {
     }
 
     this.apiKey = config.apiKey || '';
-    const envUrl = ENVIRONMENTS[config.environment || 'production'];
+    const envUrl = ENVIRONMENTS[config.environment || 'local'];
     this.baseUrl = (config.baseUrl || envUrl).replace(/\/$/, '');
     this.timeout = config.timeout || 30000;
     this.fetchFn = config.fetch || fetch;

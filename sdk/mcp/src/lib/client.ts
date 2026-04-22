@@ -1,4 +1,4 @@
-const BASE_URL = process.env.PRISMER_BASE_URL || 'https://prismer.cloud';
+const BASE_URL = process.env.PRISMER_BASE_URL || 'http://localhost:3000';
 const API_KEY = process.env.PRISMER_API_KEY || '';
 
 export function getApiKey(): string {
@@ -9,10 +9,6 @@ export async function prismerFetch(
   path: string,
   options: { method?: string; body?: unknown; query?: Record<string, string> } = {}
 ): Promise<unknown> {
-  if (!API_KEY) {
-    throw new Error('PRISMER_API_KEY environment variable is required');
-  }
-
   const url = new URL(path, BASE_URL);
   if (options.query) {
     for (const [key, value] of Object.entries(options.query)) {
@@ -20,12 +16,16 @@ export async function prismerFetch(
     }
   }
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (API_KEY) {
+    headers.Authorization = `Bearer ${API_KEY}`;
+  }
+
   const response = await fetch(url.toString(), {
     method: options.method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 

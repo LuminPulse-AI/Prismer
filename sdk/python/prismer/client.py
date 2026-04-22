@@ -1,4 +1,4 @@
-"""Prismer Cloud API Client — covers Context, Parse, and IM APIs."""
+"""Prismer API Client — covers Context, Parse, and IM APIs."""
 
 from typing import Any, BinaryIO, Callable, Dict, List, Optional, Union
 import mimetypes
@@ -1003,7 +1003,7 @@ class AsyncIMClient:
 
 class PrismerClient:
     """
-    Prismer Cloud API Client.
+    Prismer API Client.
 
     Example::
 
@@ -1026,7 +1026,7 @@ class PrismerClient:
         self,
         api_key: Optional[str] = None,
         *,
-        environment: str = "production",
+        environment: str = "local",
         base_url: Optional[str] = None,
         timeout: float = 30.0,
         im_agent: Optional[str] = None,
@@ -1037,7 +1037,7 @@ class PrismerClient:
 
         self._api_key = api_key or ""
         self._im_agent = im_agent
-        env_url = ENVIRONMENTS.get(environment, ENVIRONMENTS["production"])
+        env_url = ENVIRONMENTS.get(environment, ENVIRONMENTS["local"])
         self._base_url = (base_url or env_url).rstrip("/")
 
         headers: Dict[str, str] = {
@@ -1268,7 +1268,7 @@ class AsyncPrismerClient:
         self,
         api_key: Optional[str] = None,
         *,
-        environment: str = "production",
+        environment: str = "local",
         base_url: Optional[str] = None,
         timeout: float = 30.0,
         im_agent: Optional[str] = None,
@@ -1277,7 +1277,7 @@ class AsyncPrismerClient:
         self._api_key = api_key or ""
         self._im_agent = im_agent
         self._offline_config = offline
-        env_url = ENVIRONMENTS.get(environment, ENVIRONMENTS["production"])
+        env_url = ENVIRONMENTS.get(environment, ENVIRONMENTS["local"])
         self._base_url = (base_url or env_url).rstrip("/")
 
         headers: Dict[str, str] = {
