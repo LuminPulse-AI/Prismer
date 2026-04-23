@@ -20,6 +20,7 @@ import { OpenDocument } from "./components/DocumentTabs";
 import { AssetBrowser, type AssetItem } from "@/components/shared/AssetBrowser";
 import { FileText } from "lucide-react";
 import { StorageProvider } from "@/lib/storage/provider";
+import { useWorkspaceId } from "@/app/workspace/components/WorkspaceContext";
 
 // ============================================================================
 // Types
@@ -40,6 +41,8 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
   initialSource,
   onClose,
 }) => {
+  const contextWorkspaceId = useWorkspaceId();
+  const workspaceId = contextWorkspaceId && contextWorkspaceId !== 'default' ? contextWorkspaceId : null;
   // Multi-document store
   const {
     documents,
@@ -193,6 +196,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
           isOpen={isPaperLibraryOpen}
           onClose={() => setIsPaperLibraryOpen(false)}
           onSelectPaper={handleSelectPaper}
+          workspaceId={workspaceId}
           openPaperIds={tabOrder}
         />
       </div>
@@ -246,6 +250,7 @@ export const PDFReaderWrapper: React.FC<PDFReaderWrapperProps> = ({
         isOpen={isPaperLibraryOpen}
         onClose={() => setIsPaperLibraryOpen(false)}
         onSelectPaper={handleSelectPaper}
+        workspaceId={workspaceId}
         openPaperIds={tabOrder}
       />
 
@@ -275,4 +280,3 @@ const PDFReaderWrapperWithStorage: React.FC<PDFReaderWrapperProps> = (props) => 
 };
 
 export default PDFReaderWrapperWithStorage;
-

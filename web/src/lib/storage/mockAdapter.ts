@@ -15,12 +15,13 @@ import type {
   ReferenceMetadata,
 } from './types';
 import type { PaperMetadata, PageDetection, PaperInsight } from '@/types/paperContext';
+import { normalizeDetectionsPayload } from '@/lib/ocr/normalize';
 
 // ============================================================
 // Constants
 // ============================================================
 
-const BASE_PATH = '/data/output';
+const BASE_PATH = '/api/ocr';
 
 // LocalStorage keys
 const STORAGE_KEYS = {
@@ -81,28 +82,9 @@ function setToStorage<T>(key: string, data: T): void {
  * Get list of processed papers
  * Fetches papers from the public/data/output directory via API
  */
-async function fetchPaperIndex(): Promise<string[]> {
-  // First try to get the paper list from ocr_statistics.json
-  const stats = await fetchJSON<{
-    total_papers: number;
-    papers: Array<{ arxiv_id: string }>;
-  }>(`${BASE_PATH}/ocr_statistics.json`);
-  
-  if (stats?.papers) {
-    return stats.papers.map(p => p.arxiv_id);
-  }
-  
-  // Fallback: hardcoded list of known papers
-  // In production, there should be an API endpoint listing all papers
-  return [
-    '2601.02346v1',  // Falcon-H1R
-    '2512.24968v1',
-    '2601.00097v1',
-    '2601.00105v1',
-    '2601.00121v1',
-    '2601.02121v1',
-    '2601.02204v1',
-  ];
+async function fetchPaperIndex(): Promise<PaperMeta[]> {
+  const result = await fetchJSON<{ data?: { papers?: PaperMeta[] } }>('/api/papers');
+  return result?.data?.papers || [];
 }
 
 // ============================================================
@@ -110,57 +92,18 @@ async function fetchPaperIndex(): Promise<string[]> {
 // ============================================================
 
 export class MockStorageAdapter implements StorageAdapter {
-  private paperIndexCache: string[] | null = null;
+  private paperIndexCache: PaperMeta[] | null = null;
   
   // ==========================================
   // Paper Data
   // ==========================================
   
   async listPapers(): Promise<PaperMeta[]> {
-    // Get paper index
     if (!this.paperIndexCache) {
       this.paperIndexCache = await fetchPaperIndex();
     }
-    
-    const papers: PaperMeta[] = [];
-    
-    // Load all paper metadata in parallel
-    const metadataPromises = this.paperIndexCache.map(async (paperId) => {
-      const metadata = await fetchJSON<PaperMetadata>(
-        `${BASE_PATH}/${paperId}/metadata.json`
-      );
-      
-      if (metadata) {
-        return {
-          id: paperId,
-          title: metadata.title || paperId,
-          authors: metadata.authors || [],
-          arxivId: metadata.arxiv_id,
-          published: metadata.published,
-          abstract: metadata.abstract,
-          hasOCRData: true,
-          totalPages: metadata.total_pages,
-          categories: metadata.categories,
-        } as PaperMeta;
-      }
-      return null;
-    });
-    
-    const results = await Promise.all(metadataPromises);
-    
-    for (const paper of results) {
-      if (paper) {
-        papers.push(paper);
-      }
-    }
-    
-    // Sort by publication date (newest first)
-    papers.sort((a, b) => {
-      if (!a.published || !b.published) return 0;
-      return new Date(b.published).getTime() - new Date(a.published).getTime();
-    });
-    
-    return papers;
+
+    return this.paperIndexCache;
   }
   
   async getPaper(paperId: string): Promise<PaperData | null> {
@@ -168,7 +111,7 @@ export class MockStorageAdapter implements StorageAdapter {
       // Load all data in parallel
       const [metadata, detectionsData, ocrResult, markdown] = await Promise.all([
         fetchJSON<PaperMetadata>(`${BASE_PATH}/${paperId}/metadata.json`),
-        fetchJSON<{ pages: PageDetection[] }>(`${BASE_PATH}/${paperId}/detections.json`),
+        fetchJSON<unknown>(`${BASE_PATH}/${paperId}/detections.json`),
         fetchJSON<OCRResult>(`${BASE_PATH}/${paperId}/ocr_result.json`),
         fetchText(`${BASE_PATH}/${paperId}/paper.md`),
       ]);
@@ -192,7 +135,7 @@ export class MockStorageAdapter implements StorageAdapter {
         },
         metadata,
         markdown: markdown || '',
-        detections: detectionsData?.pages || [],
+        detections: normalizeDetectionsPayload(detectionsData),
         ocrResult: ocrResult || {
           success: false,
           total_pages: 0,

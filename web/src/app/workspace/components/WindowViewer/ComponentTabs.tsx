@@ -202,6 +202,7 @@ export const ComponentTabs = memo(function ComponentTabs({
                 key={type}
                 type="button"
                 onClick={() => onComponentChange(type)}
+                data-testid={`component-tab-${type}`}
                 className={`
                   relative flex items-center gap-2 px-3 py-2 rounded-xl
                   text-sm font-medium whitespace-nowrap

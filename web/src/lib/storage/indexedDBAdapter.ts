@@ -7,6 +7,7 @@
 
 import { StorageAdapter, ChatSession, Notebook, PaperMeta, PaperData, ReferenceMetadata } from "./types";
 import { PaperInsight } from "@/types/paperContext";
+import { normalizeDetectionsPayload } from "@/lib/ocr/normalize";
 
 // ============================================================================
 // Database Configuration
@@ -285,7 +286,7 @@ export class IndexedDBAdapter implements StorageAdapter {
       const response = await fetch("/api/papers");
       if (!response.ok) throw new Error("Failed to fetch papers");
       const data = await response.json();
-      return data.papers || [];
+      return data?.data?.papers || data?.papers || [];
     } catch (error) {
       console.error("[IndexedDB] Failed to list papers:", error);
       return [];
@@ -304,7 +305,7 @@ export class IndexedDBAdapter implements StorageAdapter {
       if (!metadataRes.ok) return null;
 
       const metadata = await metadataRes.json();
-      const detections = detectionsRes.ok ? await detectionsRes.json() : [];
+      const detections = detectionsRes.ok ? normalizeDetectionsPayload(await detectionsRes.json()) : [];
       const markdown = markdownRes.ok ? await markdownRes.text() : "";
       const ocrResult = ocrRes.ok ? await ocrRes.json() : { success: false, total_pages: 0, pages: [] };
 
@@ -377,7 +378,7 @@ export class IndexedDBAdapter implements StorageAdapter {
       ]);
 
       const metadata = metadataRes.ok ? await metadataRes.json() : null;
-      const detections = detectionsRes.ok ? await detectionsRes.json() : [];
+      const detections = detectionsRes.ok ? normalizeDetectionsPayload(await detectionsRes.json()) : [];
       const markdown = markdownRes.ok ? await markdownRes.text() : "";
 
       return {

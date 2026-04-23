@@ -24,7 +24,10 @@ export function useNotesAutoSave(): void {
   const assetIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!workspaceId || workspaceId === 'default') return;
+    lastSavedRef.current = null;
+    assetIdRef.current = null;
+
+    if (!workspaceId) return;
 
     const interval = setInterval(async () => {
       const editorState = useComponentStore.getState().componentStates['ai-editor'];

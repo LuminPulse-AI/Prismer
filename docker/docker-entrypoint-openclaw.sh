@@ -98,8 +98,8 @@ init_workspace() {
   fi
 
   local model_api_key="${OPENAI_API_KEY:-}"
-  local model_base_url="${OPENAI_API_BASE_URL:-http://34.60.178.0:3000/v1}"
-  local default_model="${AGENT_DEFAULT_MODEL:-us-kimi-k2.5}"
+  local model_base_url="${OPENAI_API_BASE_URL:-https://api.openai.com/v1}"
+  local default_model="${AGENT_DEFAULT_MODEL:-gpt-4o}"
   local im_server_url="${PRISMER_IM_SERVER_URL:-}"
   local agent_token="${PRISMER_AGENT_TOKEN:-}"
   local conversation_id="${PRISMER_CONVERSATION_ID:-workspace-default}"
@@ -124,9 +124,8 @@ init_workspace() {
         "apiKey": "${model_api_key}",
         "api": "openai-completions",
         "models": [
-          {"id": "us-kimi-k2.5", "name": "Kimi K2.5"},
-          {"id": "us-kimi-k2-turbo-preview", "name": "Kimi K2 Turbo"},
-          {"id": "claude-sonnet-4-20250514", "name": "Claude Sonnet 4"}
+          {"id": "gpt-4o", "name": "GPT-4o"},
+          {"id": "gpt-4o-mini", "name": "GPT-4o Mini"}
         ]
       }
     }
@@ -147,7 +146,7 @@ init_workspace() {
       "workspace": "/workspace",
       "model": {
         "primary": "prismer-gateway/${default_model}",
-        "fallbacks": ["prismer-gateway/claude-sonnet-4-20250514"]
+        "fallbacks": ["prismer-gateway/gpt-4o-mini"]
       },
       "thinkingDefault": "low",
       "timeoutSeconds": 600,

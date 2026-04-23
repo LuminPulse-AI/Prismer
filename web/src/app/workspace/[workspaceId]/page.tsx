@@ -2,7 +2,7 @@
  * Workspace Page - Dynamic Route
  *
  * /workspace/[workspaceId]
- * Renders the workspace view for a specific workspace session
+ * Renders the workspace view for a specific workspace session.
  */
 
 import { redirect } from 'next/navigation';
@@ -36,12 +36,17 @@ async function getCurrentUserId(): Promise<string> {
 export default async function WorkspaceIdPage({ params }: PageProps) {
   const { workspaceId } = await params;
   const ownerId = await getCurrentUserId();
+  const workspace = await workspaceService.getById(workspaceId, ownerId);
 
-  // Single-workspace mode: always route to the user's default workspace.
-  const defaultWorkspace = await workspaceService.getOrCreateDefault(ownerId);
-  if (workspaceId !== defaultWorkspace.id) {
-    redirect(`/workspace/${defaultWorkspace.id}`);
+  if (!workspace) {
+    redirect('/workspace');
   }
 
-  return <WorkspaceView workspaceId={defaultWorkspace.id} />;
+  return (
+    <WorkspaceView
+      key={workspace.id}
+      workspaceId={workspace.id}
+      workspaceName={workspace.name}
+    />
+  );
 }

@@ -1,8 +1,8 @@
 /**
  * Workspace Page
  *
- * Workspace entry page
- * Redirects to the most recent workspace or creates a default one
+ * Workspace entry page.
+ * Redirects to the most recent workspace or creates an initial one.
  */
 
 import { redirect } from 'next/navigation';
@@ -32,10 +32,6 @@ async function getCurrentUserId(): Promise<string> {
 
 export default async function WorkspacePage() {
   const ownerId = await getCurrentUserId();
-
-  // Get or create default workspace
   const workspace = await workspaceService.getOrCreateDefault(ownerId);
-
-  // Redirect to the workspace
   redirect(`/workspace/${workspace.id}`);
 }

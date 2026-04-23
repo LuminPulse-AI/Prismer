@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -12,6 +12,7 @@ import {
   Loader2,
   BookOpen,
   Sparkles,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,13 +29,14 @@ export interface PaperMeta {
   published?: string;
   abstract?: string;
   hasOCRData: boolean;
-  pdfPath: string;
+  pdfPath?: string;
 }
 
 interface PaperLibraryDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectPaper: (paper: PaperMeta) => void;
+  workspaceId?: string | null;
   /** List of open paper IDs */
   openPaperIds?: string[];
 }
@@ -47,7 +49,8 @@ const PaperCard: React.FC<{
   paper: PaperMeta;
   isOpen: boolean;
   onSelect: () => void;
-}> = ({ paper, isOpen, onSelect }) => {
+  testId?: string;
+}> = ({ paper, isOpen, onSelect, testId }) => {
   // Format author list
   const authorsText = useMemo(() => {
     if (!paper.authors.length) return "Unknown authors";
@@ -75,6 +78,7 @@ const PaperCard: React.FC<{
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
+      data-testid={testId}
       className={cn(
         "group p-4 rounded-xl border transition-all cursor-pointer",
         isOpen
@@ -159,12 +163,15 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
   isOpen,
   onClose,
   onSelectPaper,
+  workspaceId,
   openPaperIds = [],
 }) => {
   const [papers, setPapers] = useState<PaperMeta[]>([]);
   const [loading, setLoading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load paper list
   const loadPapers = useCallback(async () => {
@@ -175,8 +182,8 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
       if (!response.ok) {
         throw new Error("Failed to fetch papers");
       }
-      const data = await response.json();
-      setPapers(data.papers || []);
+      const payload = await response.json();
+      setPapers(payload?.data?.papers || payload?.papers || []);
     } catch (e) {
       console.error("Failed to load papers:", e);
       setError("Failed to load paper library");
@@ -214,6 +221,54 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
     [onSelectPaper, onClose]
   );
 
+  const handleImportClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      event.target.value = "";
+
+      if (!selectedFile) return;
+
+      setImporting(true);
+      setError(null);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("processOcr", "true");
+        if (workspaceId) {
+          formData.append("workspaceId", workspaceId);
+        }
+
+        const response = await fetch("/api/papers/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const payload = await response.json();
+        if (!response.ok || !payload?.success) {
+          throw new Error(payload?.error || "Failed to import PDF");
+        }
+
+        const importedPaper = payload?.data?.paper as PaperMeta | undefined;
+        await loadPapers();
+
+        if (importedPaper) {
+          handleSelect(importedPaper);
+        }
+      } catch (e) {
+        console.error("Failed to import PDF:", e);
+        setError(e instanceof Error ? e.message : "Failed to import PDF");
+      } finally {
+        setImporting(false);
+      }
+    },
+    [handleSelect, loadPapers, workspaceId]
+  );
+
   // Close on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -246,6 +301,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.3 }}
+            data-testid="paper-library-dialog"
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50
                        w-[90vw] max-w-2xl max-h-[80vh] 
                        bg-white rounded-2xl shadow-2xl overflow-hidden
@@ -263,14 +319,39 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                     ({papers.length} papers)
                   </span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  className="h-8 w-8 text-stone-500 hover:text-stone-700"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    data-testid="paper-library-file-input"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImportClick}
+                    disabled={importing}
+                    className="gap-2"
+                    data-testid="paper-library-import-button"
+                  >
+                    {importing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4" />
+                    )}
+                    Import PDF
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    className="h-8 w-8 text-stone-500 hover:text-stone-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Search input */}
@@ -287,6 +368,12 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                   autoFocus
                 />
               </div>
+
+              {error && (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
             </div>
 
             {/* Paper list */}
@@ -295,23 +382,18 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
                 </div>
-              ) : error ? (
-                <div className="flex flex-col items-center justify-center py-12 text-stone-500">
-                  <p>{error}</p>
-                  <Button
-                    variant="outline"
-                    onClick={loadPapers}
-                    className="mt-4"
-                  >
-                    Retry
-                  </Button>
-                </div>
               ) : filteredPapers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-stone-500">
                   <FileText className="w-12 h-12 mb-2 text-stone-300" />
                   <p>
                     {searchQuery ? "No papers match your search" : "No papers available"}
                   </p>
+                  {!searchQuery && (
+                    <Button variant="outline" onClick={handleImportClick} className="mt-4 gap-2">
+                      <Upload className="w-4 h-4" />
+                      Import your first PDF
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
@@ -321,6 +403,7 @@ export const PaperLibraryDialog: React.FC<PaperLibraryDialogProps> = ({
                       paper={paper}
                       isOpen={openPaperIds.includes(paper.id)}
                       onSelect={() => handleSelect(paper)}
+                      testId={`paper-library-item-${paper.id}`}
                     />
                   ))}
                 </AnimatePresence>

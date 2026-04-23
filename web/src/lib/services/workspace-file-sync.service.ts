@@ -1,16 +1,15 @@
 /**
  * Workspace File Sync Service
  *
- * Downloads files from the container (via proxy) and uploads to S3,
- * then creates an asset in remote MySQL and links it to the
- * workspace collection.
+ * Downloads files from the container and stores them in the local
+ * asset library, then links them to the workspace collection.
  *
  * Triggered asynchronously by the directive receiver when a directive
  * contains file references (e.g., LATEX_COMPILE_COMPLETE with pdfUrl).
  */
 
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { proxyToContainer } from '@/lib/container/client';
+import { storeLocalAssetBuffer } from '@/lib/assets/storage';
 import { createLogger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
 
@@ -19,7 +18,7 @@ const log = createLogger('WorkspaceFileSync');
 interface FileSyncResult {
   success: boolean;
   assetId?: number;
-  s3Key?: string;
+  storageKey?: string;
   error?: string;
 }
 
@@ -31,7 +30,7 @@ interface FileSyncOptions {
 }
 
 /**
- * Download a file from the container and sync it to S3 + collection.
+ * Download a file from the container and sync it to the local asset store.
  *
  * @param agentId - Agent instance ID (for container proxy routing)
  * @param service - Container service ('latex' | 'jupyter')
@@ -61,35 +60,24 @@ export async function syncFileFromContainer(
       throw new Error(`Container returned ${result.status}: ${result.statusText}`);
     }
 
-    // Step 2: Upload to S3
+    // Step 2: Persist locally
     const filename = containerPath.split('/').pop() || 'file';
-    const s3Key = `workspace/${options.workspaceId}/${service}/${Date.now()}-${filename}`;
-
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_S3_BUCKET) {
-      throw new Error('[WorkspaceFileSync] AWS credentials and bucket must be configured');
-    }
-    const s3Client = new S3Client({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
 
     const bodyBuffer = result.body instanceof ArrayBuffer
       ? Buffer.from(result.body)
       : Buffer.from(result.body as string, 'binary');
 
-    await s3Client.send(new PutObjectCommand({
-      Bucket: process.env.AWS_S3_BUCKET!,
-      Key: s3Key,
-      Body: bodyBuffer,
-      ContentType: options.contentType || result.contentType || 'application/octet-stream',
-    }));
+    const storedFile = await storeLocalAssetBuffer({
+      buffer: bodyBuffer,
+      fileName: filename,
+      mimeType: options.contentType || result.contentType || 'application/octet-stream',
+      workspaceId: options.workspaceId,
+      category: service,
+    });
 
-    log.info('File uploaded to S3', { s3Key, size: bodyBuffer.length });
+    log.info('File stored locally', { storageKey: storedFile.storageKey, size: bodyBuffer.length });
 
-    // Step 3: Create asset in remote MySQL
+    // Step 3: Create asset record
     const { assetService } = await import('./asset.service');
     const { getRemoteUserId } = await import('./workspace.service');
     const userId = getRemoteUserId();
@@ -98,7 +86,10 @@ export async function syncFileFromContainer(
       assetType: options.assetType,
       title: options.title,
       source: 'upload',
-      pdfS3Key: s3Key,
+      storageProvider: 'local',
+      storageKey: storedFile.storageKey,
+      fileName: storedFile.fileName,
+      mimeType: storedFile.mimeType,
       metadata: {
         sourceId: `workspace:${options.workspaceId}`,
         fileName: filename,
@@ -123,8 +114,8 @@ export async function syncFileFromContainer(
       }
     }
 
-    log.info('File sync complete', { agentId, s3Key, assetId: asset.id });
-    return { success: true, assetId: asset.id, s3Key };
+    log.info('File sync complete', { agentId, storageKey: storedFile.storageKey, assetId: asset.id });
+    return { success: true, assetId: asset.id, storageKey: storedFile.storageKey };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     log.error('File sync failed', {

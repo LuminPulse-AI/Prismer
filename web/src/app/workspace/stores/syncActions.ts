@@ -56,7 +56,7 @@ async function apiCall<T>(url: string, options?: RequestInit): Promise<T | null>
 /** Fire-and-forget save of compiled PDF data URL to WorkspaceFile */
 function persistCompiledPdf(pdfDataUrl: string): void {
   const wsId = useAgentInstanceStore.getState().workspaceId;
-  if (!wsId || wsId === 'default') return;
+  if (!wsId) return;
   fetch(`/api/workspace/${wsId}/files/output/compiled.pdf.b64`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -869,8 +869,8 @@ export async function initializeWorkspace(workspaceId: string): Promise<void> {
   }
   await Promise.all(rehydrations);
 
-  // Step 4: Load fresh data from API (skip for demo/default workspace)
-  if (workspaceId !== 'default') {
+  // Step 4: Load fresh data from API for the active workspace
+  if (workspaceId) {
     await loadWorkspace(workspaceId);
   }
 }

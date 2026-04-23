@@ -4,8 +4,7 @@
  * GET /api/workspace/:id/collection
  *
  * Retrieves the collection bound to this workspace.
- * The collectionId is stored in workspace settings JSON,
- * and the collection itself lives in remote MySQL.
+ * The collectionId is stored in workspace settings JSON.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -42,17 +41,14 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Fetch collection details from remote MySQL
-    try {
-      const { collectionService } = await import('@/lib/services/collection.service');
-      const collection = await collectionService.getById(collectionId, 1);
-      return NextResponse.json({ success: true, data: collection });
-    } catch {
-      return NextResponse.json({
-        success: true,
-        data: { id: collectionId, name: workspace.name, status: 'remote_unavailable' },
-      });
-    }
+    const { collectionService } = await import('@/lib/services/collection.service');
+    const { getRemoteUserId } = await import('@/lib/services/workspace.service');
+    const collection = await collectionService.getById(collectionId, getRemoteUserId());
+
+    return NextResponse.json({
+      success: true,
+      data: collection ?? { id: collectionId, name: workspace.name, status: 'missing' },
+    });
   } catch (error) {
     return NextResponse.json(
       {

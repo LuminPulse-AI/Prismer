@@ -10,13 +10,12 @@
   "models": {
     "providers": {
       "prismer-gateway": {
-        "baseUrl": "http://34.60.178.0:3000/v1",
+        "baseUrl": "https://api.openai.com/v1",
         "apiKey": "sk-placeholder",
         "api": "openai-completions",
         "models": [
-          {"id": "us-kimi-k2.5", "name": "Kimi K2.5"},
-          {"id": "us-kimi-k2-turbo-preview", "name": "Kimi K2 Turbo"},
-          {"id": "claude-sonnet-4-20250514", "name": "Claude Sonnet 4"}
+          {"id": "gpt-4o", "name": "GPT-4o"},
+          {"id": "gpt-4o-mini", "name": "GPT-4o Mini"}
         ]
       }
     }
@@ -38,8 +37,8 @@
     "defaults": {
       "workspace": "/workspace",
       "model": {
-        "primary": "prismer-gateway/us-kimi-k2.5",
-        "fallbacks": ["prismer-gateway/claude-sonnet-4-20250514"]
+        "primary": "prismer-gateway/gpt-4o",
+        "fallbacks": ["prismer-gateway/gpt-4o-mini"]
       },
       "thinkingDefault": "low",
       "timeoutSeconds": 600,

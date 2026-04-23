@@ -89,6 +89,7 @@ const DocumentTab: React.FC<DocumentTabProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
+            data-testid={`pdf-document-tab-${document.id}`}
             className={cn(
               "group relative flex items-center gap-2.5 px-4 py-2 rounded-lg",
               "cursor-pointer transition-all duration-200 max-w-[280px] min-w-[140px]",
@@ -123,6 +124,7 @@ const DocumentTab: React.FC<DocumentTabProps> = ({
             {/* Close Button */}
             <button
               onClick={handleClose}
+              data-testid={`pdf-document-close-${document.id}`}
               className={cn(
                 "flex-shrink-0 w-5 h-5 rounded flex items-center justify-center",
                 "transition-all duration-150",
@@ -211,6 +213,7 @@ export const DocumentTabs: React.FC<DocumentTabsProps> = ({
                   "text-indigo-600 hover:text-indigo-700",
                   "border-2 border-dashed border-indigo-300 hover:border-indigo-400"
                 )}
+                data-testid="pdf-reader-add-document"
               >
                 <Plus className="w-5 h-5" />
               </motion.button>
@@ -226,6 +229,7 @@ export const DocumentTabs: React.FC<DocumentTabsProps> = ({
           <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-50 py-1">
             <button
               onClick={() => { setIsMenuOpen(false); onAddDocument(); }}
+              data-testid="pdf-reader-add-from-library"
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             >
               <Library className="w-4 h-4 text-indigo-500" />
@@ -233,6 +237,7 @@ export const DocumentTabs: React.FC<DocumentTabsProps> = ({
             </button>
             <button
               onClick={() => { setIsMenuOpen(false); onAddFromAssets(); }}
+              data-testid="pdf-reader-add-from-assets"
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             >
               <FolderOpen className="w-4 h-4 text-amber-500" />

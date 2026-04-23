@@ -46,7 +46,7 @@ const stats = {
     completion_tokens: 0,
     total_tokens: 0,
     // Per-model breakdown
-    models: {},  // { "us-kimi-k2.5": { prompt: N, completion: N, total: N, requests: N } }
+    models: {},  // { "gpt-4o": { prompt: N, completion: N, total: N, requests: N } }
   },
   // WebSocket connections
   ws: {

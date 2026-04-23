@@ -213,10 +213,10 @@ export interface AsyncOperation {
 // ============================================================
 
 // Components disabled for the current release.
-// Only ai-editor (Notes) and latex-editor are active.
+// PDF Reader is enabled in self-host mode; the remaining editors stay hidden
+// until their backing runtime paths are fully restored.
 // Re-enable by removing entries as each component reaches production readiness.
 const DISABLED_COMPONENT_LIST = [
-  'pdf-reader',
   'code-playground',
   'bento-gallery',
   'three-viewer',

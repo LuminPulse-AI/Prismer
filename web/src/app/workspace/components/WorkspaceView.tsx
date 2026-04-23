@@ -14,7 +14,7 @@
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentTask, useActiveDiff } from '../stores';
 import { useTaskStore } from '../stores/taskStore';
 import { useChatStore } from '../stores/chatStore';
@@ -44,18 +44,28 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { SkillManagerDialog } from './SkillManager';
 import { AgentControlPanel } from './AgentControlPanel';
 
 const log = createLogger('WorkspaceView');
 
 interface WorkspaceViewProps {
-  /** Workspace ID - if not provided, uses 'default' for demo mode */
-  workspaceId?: string;
+  workspaceId: string;
+  workspaceName?: string;
 }
 
-export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceViewProps) {
+interface WorkspaceSummary {
+  id: string;
+  name: string;
+  description?: string;
+  updatedAt?: string;
+  status: 'active' | 'archived';
+}
+
+export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceViewProps) {
+  const router = useRouter();
   // Read query parameters
   const searchParams = useSearchParams();
   const documentIdFromUrl = searchParams.get('documentId');
@@ -98,9 +108,21 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
   const prevWorkspaceIdRef = useRef(workspaceId);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'skills' | 'config' | 'logs'>('skills');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'skills' | 'config' | 'logs' | 'workspaces'>('skills');
   const [agentLogs, setAgentLogs] = useState('');
   const [logsLoading, setLogsLoading] = useState(false);
+  const [workspaceItems, setWorkspaceItems] = useState<WorkspaceSummary[]>([]);
+  const [workspacesLoading, setWorkspacesLoading] = useState(false);
+  const [workspacesError, setWorkspacesError] = useState<string | null>(null);
+  const [newWorkspaceName, setNewWorkspaceName] = useState('');
+  const [newWorkspaceDescription, setNewWorkspaceDescription] = useState('');
+  const [createWorkspaceLoading, setCreateWorkspaceLoading] = useState(false);
+  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState<string | null>(null);
+  const [currentWorkspaceName, setCurrentWorkspaceName] = useState(workspaceName || workspaceId);
+
+  useEffect(() => {
+    setCurrentWorkspaceName(workspaceName || workspaceId);
+  }, [workspaceId, workspaceName]);
 
   useEffect(() => {
     if (!hasInitRef.current && workspaceId) {
@@ -117,8 +139,9 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
   // Handle workspace switch (soft navigation between workspaces)
   useEffect(() => {
     if (prevWorkspaceIdRef.current !== workspaceId && hasInitRef.current) {
+      const previousWorkspaceId = prevWorkspaceIdRef.current;
       prevWorkspaceIdRef.current = workspaceId;
-      log.info('Workspace switched', { from: prevWorkspaceIdRef.current, to: workspaceId });
+      log.info('Workspace switched', { from: previousWorkspaceId, to: workspaceId });
       setIsInitializing(true);
       initializeWorkspace(workspaceId).then(() => {
         setIsInitializing(false);
@@ -130,7 +153,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
   useEffect(() => {
     // Wire component events to be forwarded to agent server via Bridge API
     setComponentEventForwarder((component, eventType, data) => {
-      if (workspaceId && workspaceId !== 'default') {
+      if (workspaceId) {
         log.debug('Forwarding component event', { component, eventType });
         fetch(`/api/v2/im/bridge/${workspaceId}`, {
           method: 'POST',
@@ -149,7 +172,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
 
   // ==================== Component DB Persistence ====================
   useEffect(() => {
-    if (workspaceId && workspaceId !== 'default') {
+    if (workspaceId) {
       const cleanup = initComponentDbPersistence(workspaceId);
       return cleanup;
     }
@@ -166,7 +189,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
 
   // Fetch agent binding on mount
   useEffect(() => {
-    if (workspaceId && workspaceId !== 'default') {
+    if (workspaceId) {
       fetchAgentBinding(workspaceId);
     }
   }, [workspaceId, fetchAgentBinding]);
@@ -175,7 +198,6 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
   useEffect(() => {
     if (
       workspaceId &&
-      workspaceId !== 'default' &&
       !agentLoading &&
       !agentInstanceId &&
       agentInstanceStatus === 'idle'
@@ -208,15 +230,111 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
     }
   }, [agentInstanceStatus]);
 
-  // Universal readiness gate: show whenever workspace isn't ready (unless user dismissed or demo mode)
-  const showReadinessGate = !isReady && !gateDismissed && workspaceId !== 'default';
+  // Universal readiness gate: show whenever workspace isn't ready unless dismissed
+  const showReadinessGate = !isReady && !gateDismissed;
 
-  // Whether editors/chat should be disabled (agent not ready, non-demo workspace)
-  const workspaceDisabled = !isReady && workspaceId !== 'default';
+  // Whether editors/chat should be disabled while agent is not ready
+  const workspaceDisabled = !isReady && !gateDismissed;
 
   const handleDismissGate = useCallback(() => {
     setGateDismissed(true);
   }, []);
+
+  const loadWorkspaces = useCallback(async () => {
+    setWorkspacesLoading(true);
+    setWorkspacesError(null);
+    try {
+      const response = await fetch('/api/workspace?limit=100');
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to load workspaces');
+      }
+
+      const items = Array.isArray(result.data) ? result.data as WorkspaceSummary[] : [];
+      setWorkspaceItems(items);
+    } catch (error) {
+      setWorkspacesError(error instanceof Error ? error.message : 'Failed to load workspaces');
+    } finally {
+      setWorkspacesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isSettingsOpen && activeSettingsTab === 'workspaces') {
+      loadWorkspaces();
+    }
+  }, [activeSettingsTab, isSettingsOpen, loadWorkspaces]);
+
+  const handleCreateWorkspace = useCallback(async () => {
+    const name = newWorkspaceName.trim();
+    if (!name) return;
+
+    setCreateWorkspaceLoading(true);
+    setWorkspacesError(null);
+    try {
+      const response = await fetch('/api/workspace', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          description: newWorkspaceDescription.trim() || undefined,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success || !result.data?.id) {
+        throw new Error(result.error || 'Failed to create workspace');
+      }
+
+      setNewWorkspaceName('');
+      setNewWorkspaceDescription('');
+      setIsSettingsOpen(false);
+      router.push(`/workspace/${result.data.id}`);
+      router.refresh();
+    } catch (error) {
+      setWorkspacesError(error instanceof Error ? error.message : 'Failed to create workspace');
+    } finally {
+      setCreateWorkspaceLoading(false);
+    }
+  }, [newWorkspaceDescription, newWorkspaceName, router]);
+
+  const handleOpenWorkspace = useCallback((id: string) => {
+    if (!id || id === workspaceId) return;
+    setIsSettingsOpen(false);
+    router.push(`/workspace/${id}`);
+    router.refresh();
+  }, [router, workspaceId]);
+
+  const handleDeleteWorkspace = useCallback(async (id: string) => {
+    if (!id) return;
+    const target = workspaceItems.find((item) => item.id === id);
+    const confirmed = window.confirm(`Delete workspace "${target?.name || id}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingWorkspaceId(id);
+    setWorkspacesError(null);
+    try {
+      const response = await fetch(`/api/workspace/${id}`, { method: 'DELETE' });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete workspace');
+      }
+
+      if (id === workspaceId) {
+        const nextWorkspaceId = result.data?.nextWorkspaceId as string | null | undefined;
+        setIsSettingsOpen(false);
+        router.push(nextWorkspaceId ? `/workspace/${nextWorkspaceId}` : '/workspace');
+        router.refresh();
+        return;
+      }
+
+      await loadWorkspaces();
+    } catch (error) {
+      setWorkspacesError(error instanceof Error ? error.message : 'Failed to delete workspace');
+    } finally {
+      setDeletingWorkspaceId(null);
+    }
+  }, [loadWorkspaces, router, workspaceId, workspaceItems]);
 
   // ==================== Container Chat (sole communication path) ====================
   const {
@@ -619,7 +737,7 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
           chatExpanded={chatExpanded}
           onChatToggle={toggleChat}
           connectionStatus={connectionStatus}
-          workspaceName={workspaceId === 'default' ? 'Default Workspace' : workspaceId}
+          workspaceName={currentWorkspaceName}
           connectedAt={connectedAt}
           onReconnect={checkContainerStatus}
           onDisconnect={undefined}
@@ -670,6 +788,14 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
             >
               Logs
             </Button>
+            <Button
+              type="button"
+              variant={activeSettingsTab === 'workspaces' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveSettingsTab('workspaces')}
+            >
+              Workspaces
+            </Button>
           </div>
 
           <div className="flex-1 min-h-0 overflow-auto p-6">
@@ -701,6 +827,133 @@ export default function WorkspaceView({ workspaceId = 'default' }: WorkspaceView
                 <pre className="bg-slate-950 text-slate-200 text-xs rounded-lg p-4 overflow-auto min-h-[360px] whitespace-pre-wrap">
                   {logsLoading ? 'Loading logs...' : (agentLogs || 'No logs loaded yet.')}
                 </pre>
+              </div>
+            )}
+
+            {activeSettingsTab === 'workspaces' && (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-900">Create Workspace</h3>
+                    <p className="text-sm text-slate-600">
+                      Each workspace keeps its own agent state, files, notes, and assets.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto]">
+                    <Input
+                      value={newWorkspaceName}
+                      onChange={(event) => setNewWorkspaceName(event.target.value)}
+                      placeholder="Workspace name"
+                      maxLength={80}
+                    />
+                    <Input
+                      value={newWorkspaceDescription}
+                      onChange={(event) => setNewWorkspaceDescription(event.target.value)}
+                      placeholder="Description (optional)"
+                      maxLength={160}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleCreateWorkspace}
+                      disabled={createWorkspaceLoading || !newWorkspaceName.trim()}
+                    >
+                      {createWorkspaceLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="mr-2 h-4 w-4" />
+                      )}
+                      Create
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-900">Your Workspaces</h3>
+                      <p className="text-sm text-slate-600">
+                        Open another workspace or delete one you no longer need.
+                      </p>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={loadWorkspaces} disabled={workspacesLoading}>
+                      {workspacesLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+                    </Button>
+                  </div>
+
+                  {workspacesError && (
+                    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      {workspacesError}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {workspaceItems.map((item) => {
+                      const isCurrent = item.id === workspaceId;
+                      const isDeleting = deletingWorkspaceId === item.id;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
+                            isCurrent ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <div className="truncate text-sm font-medium text-slate-900">
+                                {item.name}
+                              </div>
+                              {isCurrent && (
+                                <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-medium text-white">
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            {item.description && (
+                              <div className="truncate text-sm text-slate-600">{item.description}</div>
+                            )}
+                            {item.updatedAt && (
+                              <div className="text-xs text-slate-500">
+                                Updated {new Date(item.updatedAt).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isCurrent}
+                              onClick={() => handleOpenWorkspace(item.id)}
+                            >
+                              Open
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isDeleting}
+                              onClick={() => handleDeleteWorkspace(item.id)}
+                            >
+                              {isDeleting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {!workspacesLoading && workspaceItems.length === 0 && (
+                      <div className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-600">
+                        No workspaces found.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>

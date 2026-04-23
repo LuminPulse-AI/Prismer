@@ -81,7 +81,7 @@ export function WorkspaceFileBrowser({
 
   // Fetch file list
   const fetchFiles = useCallback(async () => {
-    if (!workspaceId || workspaceId === 'default') return;
+    if (!workspaceId) return;
     setIsLoading(true);
     try {
       const res = await fetch(`/api/workspace/${workspaceId}/files`);

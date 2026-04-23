@@ -15,8 +15,8 @@ const log = createLogger('WorkspaceService');
 // ============================================================================
 
 /**
- * Resolve the remote MySQL user ID for collection/asset operations.
- * In dev mode returns 1. In prod, should resolve from auth context.
+ * Legacy numeric owner ID used by asset / collection APIs.
+ * Self-host mode keeps a single local owner, so the default stays 1.
  */
 export function getRemoteUserId(): number {
   return Number(process.env.REMOTE_USER_ID) || 1;
@@ -600,7 +600,6 @@ export const workspaceService = {
 
   /**
    * Ensure a workspace has a collection binding. Creates one if missing.
-   * Returns the collectionId or null if remote DB unavailable.
    */
   async ensureCollectionBinding(workspaceId: string): Promise<number | null> {
     const workspace = await prisma.workspaceSession.findUnique({
@@ -640,33 +639,13 @@ export const workspaceService = {
   },
 
   /**
-   * Create a default workspace for a user if none exists
+   * Return the most recent active workspace for a user, creating an
+   * initial workspace when none exists yet.
    */
   async getOrCreateDefault(ownerId: string): Promise<Workspace> {
-    // Single-workspace mode: always use a dedicated default workspace.
-    const existingDefault = await prisma.workspaceSession.findFirst({
-      where: {
-        ownerId,
-        status: 'active',
-        name: 'Default Workspace',
-      },
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        _count: {
-          select: {
-            participants: true,
-            tasks: true,
-            messages: true,
-          },
-        },
-        agentInstance: {
-          select: { id: true, status: true, name: true },
-        },
-      },
-    });
-
-    if (existingDefault) {
-      const ws = toWorkspace(existingDefault);
+    const mostRecent = await this.getMostRecent(ownerId);
+    if (mostRecent) {
+      const ws = mostRecent;
       if (!ws.agentInstanceId) {
         await this.ensureAgentBinding(ws.id, ownerId);
         return (await this.getById(ws.id))!;
@@ -674,7 +653,7 @@ export const workspaceService = {
       return ws;
     }
 
-    // Create default workspace (auto-creates agent)
+    // Create initial workspace (auto-creates agent)
     return this.create({
       name: 'Default Workspace',
       description: 'Your first research workspace',

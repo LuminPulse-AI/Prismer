@@ -14,12 +14,13 @@
  * the compile starts). See docker/plugin/prismer-workspace/src/tools.ts.
  *
  * File sync triggers: All file-bearing directives automatically trigger
- * either DB upsert (source files) or S3 upload + Asset creation (compiled output).
+ * either DB upsert (source files) or local asset creation (compiled output).
  * See FILE_SYNC_TRIGGERS and AGENT_LOOP_PLAN.md Phase 0.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
+import { storeLocalAssetBuffer } from '@/lib/assets/storage';
 import { directiveQueue } from '@/lib/directive/queue';
 import { createLogger } from '@/lib/logger';
 import prisma from '@/lib/prisma';
@@ -31,7 +32,7 @@ const log = createLogger('DirectiveAPI');
 // ============================================================
 
 interface FileSyncConfig {
-  /** Sync target: 'asset' uploads to S3 + creates Asset; 'workspace-files' upserts to WorkspaceFile DB */
+  /** Sync target: 'asset' stores a library asset; 'workspace-files' upserts to WorkspaceFile DB */
   target: 'asset' | 'workspace-files';
   service: 'latex' | 'jupyter' | 'code' | 'gallery';
   fileType: string;
@@ -242,7 +243,7 @@ async function syncFilesToWorkspaceDB(
 }
 
 // ============================================================
-// Asset Sync: S3 Upload + Asset Creation
+// Asset Sync: Local File Storage + Asset Creation
 // ============================================================
 
 /**
@@ -277,31 +278,18 @@ async function triggerAssetSync(
       log.warn('File sync service not available', { error: String(err) });
     }
   } else if (config.base64) {
-    // Base64 inline: upload directly to S3
+    // Base64 inline: store directly in local asset storage
     try {
-      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
       const buffer = Buffer.from(config.base64, 'base64');
-      const s3Key = `workspace/${agent.workspaceId}/${config.service}/${Date.now()}-${config.title || 'output'}`;
-
-      if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-        log.warn('S3 credentials not configured, skipping base64 upload');
-      } else {
-      const s3Client = new S3Client({
-        region: process.env.AWS_REGION || 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        },
+      const storedFile = await storeLocalAssetBuffer({
+        buffer,
+        fileName: config.title || 'output.pdf',
+        mimeType: config.mimeType || 'application/pdf',
+        workspaceId: agent.workspaceId,
+        category: config.service,
       });
 
-      await s3Client.send(new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET!,
-        Key: s3Key,
-        Body: buffer,
-        ContentType: config.mimeType || 'application/pdf',
-      }));
-
-      log.info('Base64 asset uploaded to S3', { s3Key, size: buffer.length });
+      log.info('Base64 asset stored locally', { storageKey: storedFile.storageKey, size: buffer.length });
 
       // Create asset record
       const { assetService } = await import('@/lib/services/asset.service');
@@ -312,15 +300,17 @@ async function triggerAssetSync(
         assetType: 'paper',
         title: config.title || 'Compiled PDF',
         source: 'upload',
-        pdfS3Key: s3Key,
+        storageProvider: 'local',
+        storageKey: storedFile.storageKey,
+        fileName: storedFile.fileName,
+        mimeType: storedFile.mimeType,
         metadata: {
           sourceId: `workspace:${agent.workspaceId}`,
           fileName: config.title || 'compiled.pdf',
         },
       });
 
-      log.info('Asset created from base64 directive', { agentId, s3Key });
-      }
+      log.info('Asset created from base64 directive', { agentId, storageKey: storedFile.storageKey });
     } catch (err) {
       log.warn('Base64 asset sync failed', { error: String(err) });
     }

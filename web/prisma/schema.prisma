@@ -575,6 +575,64 @@ model WorkspaceSnapshot {
 }
 
 // ==============================================================================
+// 本地资产库 (Self-host Asset / Collection)
+// ==============================================================================
+
+model Asset {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  assetType       String
+  title           String
+  description     String?
+  noteType        String?
+  source          String?  @default("local")
+  content         String?
+  mimeType        String?
+  storageProvider String?
+  storageKey      String?
+  externalUrl     String?
+  fileName        String?
+  metadata        String?  @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  collections     CollectionAsset[]
+
+  @@index([userId, assetType])
+  @@index([title])
+  @@index([createdAt])
+}
+
+model Collection {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  name        String
+  description String?
+  color       String?
+  icon        String?
+  metadata    String?  @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assets      CollectionAsset[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CollectionAsset {
+  collectionId Int
+  assetId      Int
+  addedAt      DateTime   @default(now())
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  asset        Asset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, assetId])
+  @@index([assetId])
+}
+
+// ==============================================================================
 // 缓存
 // ==============================================================================
 
