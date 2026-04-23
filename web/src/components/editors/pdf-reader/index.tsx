@@ -24,6 +24,7 @@ import { usePDFSearch } from "./hooks/usePDFSearch";
 import { useAIPaperReader } from "./hooks/useAIPaperReader";
 import { usePageNavigation } from "./hooks/usePageNavigation";
 import { api } from "@/lib/api";
+import { useWorkspaceId } from "@/app/workspace/components/WorkspaceContext";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import "./styles/pdf-reader.css";
@@ -117,6 +118,8 @@ interface SentenceTag {
 const leftPanelWidth = 320;
 
 const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSource }) => {
+  const contextWorkspaceId = useWorkspaceId();
+  const workspaceId = contextWorkspaceId && contextWorkspaceId !== 'default' ? contextWorkspaceId : null;
   const { setPendingItems } = useFlowStore();
   
   // Support dynamically switching PDF source (selected from the paper library)
@@ -1009,6 +1012,7 @@ const PDFReader: React.FC<PDFReaderProps> = ({ onClose, pdfSource: initialPdfSou
         isOpen={isPaperLibraryOpen}
         onClose={() => setIsPaperLibraryOpen(false)}
         onSelectPaper={handleSelectPaperFromLibrary}
+        workspaceId={workspaceId}
         openPaperIds={documents.map((d) => d.id)}
       />
     </div>

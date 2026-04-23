@@ -26,7 +26,15 @@ function buildHeaders(fileName: string | null, mimeType: string | null): Headers
   };
 }
 
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+function resolveRedirectTarget(externalUrl: string, requestUrl: string): URL | string {
+  if (/^https?:\/\//i.test(externalUrl)) {
+    return externalUrl;
+  }
+
+  return new URL(externalUrl, requestUrl);
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const assetId = Number(id);
@@ -41,7 +49,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     }
 
     if (asset.storageProvider === 'external' && asset.externalUrl) {
-      return NextResponse.redirect(asset.externalUrl);
+      return NextResponse.redirect(resolveRedirectTarget(asset.externalUrl, request.url));
     }
 
     if (asset.storageProvider === 'local' && asset.storageKey) {

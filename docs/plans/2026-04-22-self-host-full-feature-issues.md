@@ -10,7 +10,9 @@ Current state on branch `fix/update-org-name`:
 - Issue `2` done and pushed in commit `94ff6e0`
 - Issue `3` done and pushed in commit `94ff6e0`
 - Issue `4` done and pushed in commit `94ff6e0`
-- Issue `7` implemented locally on top of `94ff6e0`, with commit/push pending after documentation
+- Issue `7` done and pushed in commit `c20bcd1`
+- Issue `5` first pass implemented locally, including `/api/ocr/[paperId]/[...path]`
+- Issue `6` now has a first user-facing import path locally, including `POST /api/papers/upload` and Volcengine-backed OCR normalization
 
 Verification snapshot:
 
@@ -19,17 +21,32 @@ Verification snapshot:
 - `go test ./... -run '^$'` passed
 - `bash -n docker/docker-entrypoint-openclaw.sh` passed
 - `jq -c . docker/config/openclaw.json` passed
+- `npm run build` in `sdk/mcp` passed
+- `npm run build` in `sdk/typescript` passed
+- `npx tsc -p tsconfig.json --noEmit` in `sdk/openclaw-channel` passed
+- `npm run test -- src/lib/ocr/volcengine.test.ts` in `web` passed
+- `npm run test -- src/lib/ocr/self-host-smoke.test.ts src/lib/ocr/volcengine.test.ts` in `web` passed
+- `npm run test:self-host-ocr` in `web` passed
+- `npm run test:self-host-ocr-ui` in `web` passed
+- `npm run build` in `web` passed after adding `/api/papers/upload`, Volcengine OCR mapping, and the Paper Library import UI
+- imported papers now also register as local `paper` assets, which closes the paper-library-to-asset-browser loop for self-host
+- importing a paper from a real workspace now also links that paper into the workspace collection
+- Volcengine image URLs are now localized into `images/*` under the local OCR dataset when the provider returns them
+- the OCR self-host smoke path is now wired into CI as a dedicated workflow job
+- the browser-side self-host OCR flow now has a repeatable Playwright spec and CI job covering `workspace -> Reader -> Paper Library import -> Asset Browser reopen`
+- `pdf-reader` is no longer hidden in workspace self-host mode, and dismissing the readiness gate now also clears the blocking editor overlay
 
 Known verification gaps:
 
-- `sdk/mcp` and `sdk/typescript` full builds were not completed in this checkout because local package dependencies such as `tsup` are not installed
-- `sdk/openclaw-channel` standalone typecheck is also blocked by missing local package dependencies in the current checkout
+- the browser-side OCR flow is now part of CI, but it still relies on mocked provider responses rather than a live OCR backend
+- Volcengine OCR currently works best when self-host is publicly reachable via `PUBLIC_APP_URL` or when importing from a public `sourceUrl`
+- image extraction from Volcengine output is not fully localized yet; the first pass focuses on Markdown and text-block detections
 
 Recommended next step tomorrow:
 
-1. install or restore Node package dependencies for the SDK packages
-2. rerun Node build or typecheck for `sdk/mcp`, `sdk/typescript`, and `sdk/openclaw-channel`
-3. continue with issue `5` and issue `6` for local OCR routes and dataset indexing
+1. tighten the self-host docs for Volcengine requirements and localhost fallback behavior
+2. continue with issue `9` and issue `10`
+3. decide whether Hermes should be added as a second runtime adapter or treated as a larger runtime replacement track
 
 ## Scope
 

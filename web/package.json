@@ -20,6 +20,8 @@
     "sync:server": "tsx scripts/sync-server.ts",
     "test": "vitest run",
     "test:unit": "vitest run",
+    "test:self-host-ocr": "vitest run src/lib/ocr/self-host-smoke.test.ts src/lib/ocr/volcengine.test.ts",
+    "test:self-host-ocr-ui": "playwright test tests/layer2/self-host-ocr-ui.spec.ts --project=layer2",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:layer1": "playwright test --project=layer1",

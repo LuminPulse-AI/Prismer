@@ -59,6 +59,7 @@ interface AssetUpdateInput {
   description?: string | null;
   content?: string | null;
   noteType?: string | null;
+  source?: string | null;
   metadata?: Record<string, unknown>;
   mimeType?: string | null;
   storageProvider?: AssetStorageProvider | null;
@@ -73,6 +74,10 @@ interface AssetListOptions {
   limit?: number;
   offset?: number;
   collectionId?: number;
+}
+
+function escapeJsonStringValue(value: string): string {
+  return JSON.stringify(value).slice(1, -1);
 }
 
 function parseJsonObject(value: string | null | undefined): Record<string, unknown> {
@@ -237,6 +242,26 @@ export const assetService = {
     return asset ? serializeAsset(asset) : null;
   },
 
+  async findBySourceId(
+    userId: number,
+    sourceId: string,
+    assetType?: AssetType
+  ): Promise<AssetRecord | null> {
+    const escapedSourceId = escapeJsonStringValue(sourceId);
+    const asset = await prisma.asset.findFirst({
+      where: {
+        userId,
+        ...(assetType ? { assetType } : {}),
+        metadata: {
+          contains: `"sourceId":"${escapedSourceId}"`,
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    return asset ? serializeAsset(asset) : null;
+  },
+
   async update(id: number, userId: number, input: AssetUpdateInput): Promise<AssetRecord | null> {
     const existing = await prisma.asset.findFirst({
       where: { id, userId },
@@ -251,6 +276,7 @@ export const assetService = {
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.content !== undefined ? { content: input.content } : {}),
         ...(input.noteType !== undefined ? { noteType: input.noteType } : {}),
+        ...(input.source !== undefined ? { source: input.source } : {}),
         ...(input.mimeType !== undefined ? { mimeType: input.mimeType } : {}),
         ...(input.externalUrl !== undefined ? { externalUrl: input.externalUrl } : {}),
         ...(input.fileName !== undefined ? { fileName: input.fileName } : {}),

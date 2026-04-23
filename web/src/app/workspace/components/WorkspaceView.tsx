@@ -234,7 +234,7 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
   const showReadinessGate = !isReady && !gateDismissed;
 
   // Whether editors/chat should be disabled while agent is not ready
-  const workspaceDisabled = !isReady;
+  const workspaceDisabled = !isReady && !gateDismissed;
 
   const handleDismissGate = useCallback(() => {
     setGateDismissed(true);

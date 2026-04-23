@@ -27,6 +27,7 @@ jobs:
             web:
               - 'web/**'
               - 'package.json'
+              - '.github/workflows/**'
             docker:
               - 'docker/**'
               - 'Dockerfile*'
@@ -93,6 +94,50 @@ jobs:
           DATABASE_URL: "file:./ci.db"
       - run: npm test
         continue-on-error: true
+
+  self-host-ocr:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+        env:
+          DATABASE_URL: "file:./ci.db"
+      - run: npm run test:self-host-ocr
+
+  self-host-ocr-ui:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:self-host-ocr-ui
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        if: failure()
+        with:
+          name: self-host-ocr-ui-report
+          path: web/tests/output/
+          if-no-files-found: ignore
 
   build:
     needs: changes

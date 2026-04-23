@@ -39,6 +39,8 @@ export interface PaperMeta {
   totalPages?: number;
   /** Categories */
   categories?: string[];
+  /** Local PDF route */
+  pdfPath?: string;
 }
 
 /**

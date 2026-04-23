@@ -151,6 +151,7 @@ export function AssetBrowser({
       <div
         className="relative w-full max-w-lg bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden"
         onKeyDown={handleKeyDown}
+        data-testid="asset-browser-dialog"
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200">
@@ -180,6 +181,7 @@ export function AssetBrowser({
               <button
                 key={asset.id}
                 onClick={() => { onSelect(asset); onClose(); }}
+                data-testid={`asset-browser-item-${asset.id}`}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                   index === selectedIndex
                     ? 'bg-blue-50 text-slate-900 border-l-2 border-l-blue-500'

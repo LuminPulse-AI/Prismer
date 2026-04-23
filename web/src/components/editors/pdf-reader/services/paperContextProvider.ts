@@ -15,6 +15,7 @@ import {
   IPaperContextProvider,
   createEmptyPaperContext,
 } from '@/types/paperContext';
+import { normalizeDetectionsPayload } from '@/lib/ocr/normalize';
 
 /**
  * Base path for OCR data
@@ -128,7 +129,7 @@ export class PaperContextProvider implements IPaperContextProvider {
 
       // Parse detection results
       if (detectionsRes.status === 'fulfilled' && detectionsRes.value.ok) {
-        detections = await detectionsRes.value.json();
+        detections = normalizeDetectionsPayload(await detectionsRes.value.json());
       }
 
       // If no data is available, return null
@@ -187,13 +188,14 @@ export class PaperContextProvider implements IPaperContextProvider {
       
       for (let i = 0; i < imageDetections.length; i++) {
         const detection = imageDetections[i];
-        const filename = `page${page.page_number}_img${i}.jpg`;
+        const imagePath = detection.metadata?.image_path;
+        const filename = imagePath?.split('/').pop() || `page${page.page_number}_img${i}.jpg`;
         
         images.push({
           id: `${page.page_number}-${i}`,
           page: page.page_number,
           filename,
-          path: `${basePath}/${filename}`,
+          path: imagePath ? `${this.basePath}/${arxivId}/${imagePath}` : `${basePath}/${filename}`,
           bbox: detection.boxes[0],
           caption: this.findCaption(page.detections, detection),
         });
@@ -256,4 +258,3 @@ export function getDefaultPaperContextProvider(): IPaperContextProvider {
   }
   return defaultProvider;
 }
-
