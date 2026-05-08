@@ -87,12 +87,16 @@ export function McpAccessPanel({ workspaceId }: { workspaceId: string }) {
       </header>
 
       <div className="space-y-2">
-        <input
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Token name (e.g., 'Claude Desktop')"
-          className="border rounded px-2 py-1 w-full"
-        />
+        <label className="block">
+          <span className="sr-only">Token name</span>
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Token name (e.g., 'Claude Desktop')"
+            className="border rounded px-2 py-1 w-full"
+            aria-label="Token name"
+          />
+        </label>
         <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
           {creating ? 'Generating...' : 'Generate Token'}
         </Button>

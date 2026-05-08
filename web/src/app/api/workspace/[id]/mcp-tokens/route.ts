@@ -25,6 +25,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+// TODO(auth): replace with NextAuth session lookup once multi-user is supported
 async function resolveCallerUserId(workspaceId: string): Promise<string> {
   const ws = await prisma.workspaceSession.findUnique({
     where: { id: workspaceId },

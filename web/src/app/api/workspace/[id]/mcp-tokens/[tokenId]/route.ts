@@ -22,6 +22,7 @@ interface RouteParams {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   const { id: workspaceId, tokenId } = await params;
   try {
+    // TODO(auth): replace with NextAuth session lookup once multi-user is supported
     const ws = await prisma.workspaceSession.findUnique({
       where: { id: workspaceId },
       select: { ownerId: true },
