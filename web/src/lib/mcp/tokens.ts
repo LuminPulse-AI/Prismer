@@ -96,6 +96,13 @@ export async function revokeMcpToken(workspaceId: string, tokenId: string): Prom
   log.info('MCP token revoked', { workspaceId, tokenId });
 }
 
+export class TokenWorkspaceMismatchError extends Error {
+  override name = 'TokenWorkspaceMismatchError' as const;
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export async function validateMcpToken(
   plaintext: string,
   workspaceId: string
@@ -126,7 +133,7 @@ export async function validateMcpToken(
     throw new Error('Token expired');
   }
   if (row.workspaceId !== workspaceId) {
-    throw new Error('Token does not match workspace');
+    throw new TokenWorkspaceMismatchError('Token does not match workspace');
   }
 
   // Fire-and-forget lastUsedAt update — failures are non-fatal.

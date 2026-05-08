@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-vi.mock('@/lib/mcp/tokens', () => ({
-  validateMcpToken: vi.fn(),
-}));
+vi.mock('@/lib/mcp/tokens', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/mcp/tokens')>('@/lib/mcp/tokens');
+  return {
+    ...actual,
+    validateMcpToken: vi.fn(),
+  };
+});
 
-import { validateMcpToken } from '@/lib/mcp/tokens';
+import { TokenWorkspaceMismatchError, validateMcpToken } from '@/lib/mcp/tokens';
 import { authenticateMcpRequest } from '@/lib/mcp/auth';
 
 const mockedValidate = validateMcpToken as ReturnType<typeof vi.fn>;
@@ -41,7 +45,7 @@ describe('authenticateMcpRequest', () => {
   });
 
   it('rejects when token belongs to different workspace (403)', async () => {
-    mockedValidate.mockRejectedValueOnce(new Error('Token does not match workspace'));
+    mockedValidate.mockRejectedValueOnce(new TokenWorkspaceMismatchError('Token does not match workspace'));
     await expect(authenticateMcpRequest(makeRequest({ authorization: 'Bearer pmsk_xxx' }), 'ws1'))
       .rejects.toMatchObject({ status: 403 });
   });
