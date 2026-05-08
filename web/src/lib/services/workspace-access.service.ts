@@ -1,4 +1,7 @@
 import prisma from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('WorkspaceAccess');
 
 export interface WorkspaceAccessContext {
   workspaceId: string;
@@ -40,6 +43,7 @@ export async function requireWorkspaceAccess(
   });
 
   if (!workspace) {
+    log.warn('Workspace not found', { workspaceId });
     throw new WorkspaceAccessError(404, `Workspace ${workspaceId} not found`);
   }
 
@@ -56,5 +60,6 @@ export async function requireWorkspaceAccess(
     return { workspaceId, userId, asOwner: false };
   }
 
+  log.warn('Access denied', { workspaceId, userId });
   throw new WorkspaceAccessError(403, `User ${userId} has no access to workspace ${workspaceId}`);
 }

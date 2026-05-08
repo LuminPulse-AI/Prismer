@@ -54,4 +54,20 @@ describe('requireWorkspaceAccess', () => {
       status: 403,
     });
   });
+
+  it('throws WorkspaceAccessError(403) when userId is empty string (never coincidentally passes)', async () => {
+    mockedWorkspace.mockResolvedValueOnce({ id: 'ws1', ownerId: 'real-owner' });
+    mockedParticipant.mockResolvedValueOnce(null);
+    await expect(requireWorkspaceAccess('ws1', '')).rejects.toMatchObject({
+      name: 'WorkspaceAccessError',
+      status: 403,
+    });
+  });
+
+  it('returns asOwner=true short-circuit without checking participants when caller is owner', async () => {
+    mockedWorkspace.mockResolvedValueOnce({ id: 'ws1', ownerId: 'user1' });
+    const ctx = await requireWorkspaceAccess('ws1', 'user1');
+    expect(ctx).toEqual({ workspaceId: 'ws1', userId: 'user1', asOwner: true });
+    expect(mockedParticipant).not.toHaveBeenCalled();
+  });
 });
