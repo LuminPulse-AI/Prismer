@@ -12,8 +12,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { createLogger } from '@/lib/logger';
+import { upsertWorkspaceNote } from '@/lib/services/notes.service';
 
 const log = createLogger('WorkspaceNotes');
 
@@ -33,57 +33,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const workspace = await prisma.workspaceSession.findUnique({
-      where: { id: workspaceId },
-      select: { settings: true, name: true },
-    });
-
-    if (!workspace) {
-      return NextResponse.json(
-        { success: false, error: 'Workspace not found' },
-        { status: 404 }
-      );
-    }
-
-    const settings = workspace.settings ? JSON.parse(workspace.settings as string) : {};
-    const { getRemoteUserId } = await import('@/lib/services/workspace.service');
-    const userId = getRemoteUserId();
-
     try {
-      const { assetService } = await import('@/lib/services/asset.service');
-
-      // Upsert: update existing or create new
-      if (assetId) {
-        await assetService.update(assetId, userId, { content });
-        log.debug('Notes updated', { workspaceId, assetId, contentLength: content.length });
-        return NextResponse.json({ success: true, data: { assetId } });
-      }
-
-      // Create new note asset
-      const asset = await assetService.create({
-        userId,
-        assetType: 'note',
-        title: `${workspace.name || 'Workspace'} — Research Notes`,
+      const result = await upsertWorkspaceNote({
+        workspaceId,
         content,
-        noteType: 'summary',
-        metadata: {
-          sourceId: `workspace:${workspaceId}`,
-        },
+        assetId: typeof assetId === 'number' ? assetId : null,
       });
 
-      // Add to workspace collection if exists
-      if (settings.collectionId) {
-        const { collectionService } = await import('@/lib/services/collection.service');
-        await collectionService.addAsset(settings.collectionId, asset.id, userId);
-        log.info('Notes asset linked to collection', {
-          workspaceId,
-          assetId: asset.id,
-          collectionId: settings.collectionId,
-        });
+      return NextResponse.json({ success: true, data: result });
+    } catch (err) {
+      if (err instanceof Error && err.message === 'Workspace not found') {
+        return NextResponse.json(
+          { success: false, error: 'Workspace not found' },
+          { status: 404 }
+        );
       }
 
-      return NextResponse.json({ success: true, data: { assetId: asset.id } });
-    } catch (err) {
       // Remote MySQL unavailable — fallback to local-only
       log.warn('Remote asset service unavailable, notes not persisted to collection', {
         workspaceId,

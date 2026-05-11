@@ -421,9 +421,27 @@ model WorkspaceSession {
   agentInstance AgentInstance?
   workspaceFiles WorkspaceFile[]
   wsSnapshots   WorkspaceSnapshot[]
+  mcpTokens     WorkspaceMcpToken[]
 
   @@index([ownerId])
   @@index([status])
+}
+
+model WorkspaceMcpToken {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   WorkspaceSession @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  prefix      String
+  name        String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([tokenHash])
 }
 
 model WorkspaceParticipant {

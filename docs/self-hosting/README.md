@@ -19,6 +19,10 @@ Are you deploying for a lab or team on a dedicated server?
 | [Single Container](single-container.md) | `docker-compose.lite.yml` | Container | Container | Personal use, quick setup |
 | [Full Stack](full-stack.md) | `docker-compose.openclaw.yml` | Container | Container | Lab servers, shared deployment |
 
+## Workspace MCP
+
+Self-hosted workspaces can expose an MCP endpoint for external MCP clients. See [Workspace MCP](mcp.md) for token creation, endpoint format, and the initial `switch_component`, `update_notes`, and `load_pdf` tools.
+
 ## Prerequisites (All Options)
 
 - Docker 24+ with Docker Compose v2

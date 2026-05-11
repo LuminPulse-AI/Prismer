@@ -45,7 +45,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Check, Copy, KeyRound, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { SkillManagerDialog } from './SkillManager';
 import { AgentControlPanel } from './AgentControlPanel';
 
@@ -63,6 +63,17 @@ interface WorkspaceSummary {
   updatedAt?: string;
   status: 'active' | 'archived';
 }
+
+interface McpTokenSummary {
+  id: string;
+  prefix: string;
+  name: string;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+}
+
+type SettingsTab = 'skills' | 'config' | 'mcp' | 'logs' | 'workspaces';
 
 export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceViewProps) {
   const router = useRouter();
@@ -108,9 +119,17 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
   const prevWorkspaceIdRef = useRef(workspaceId);
   const [isInitializing, setIsInitializing] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'skills' | 'config' | 'logs' | 'workspaces'>('skills');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>('skills');
   const [agentLogs, setAgentLogs] = useState('');
   const [logsLoading, setLogsLoading] = useState(false);
+  const [mcpTokens, setMcpTokens] = useState<McpTokenSummary[]>([]);
+  const [mcpTokensLoading, setMcpTokensLoading] = useState(false);
+  const [mcpTokensError, setMcpTokensError] = useState<string | null>(null);
+  const [newMcpTokenName, setNewMcpTokenName] = useState('');
+  const [creatingMcpToken, setCreatingMcpToken] = useState(false);
+  const [generatedMcpToken, setGeneratedMcpToken] = useState<string | null>(null);
+  const [copiedMcpValue, setCopiedMcpValue] = useState<string | null>(null);
+  const [revokingMcpTokenId, setRevokingMcpTokenId] = useState<string | null>(null);
   const [workspaceItems, setWorkspaceItems] = useState<WorkspaceSummary[]>([]);
   const [workspacesLoading, setWorkspacesLoading] = useState(false);
   const [workspacesError, setWorkspacesError] = useState<string | null>(null);
@@ -123,6 +142,12 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
   useEffect(() => {
     setCurrentWorkspaceName(workspaceName || workspaceId);
   }, [workspaceId, workspaceName]);
+
+  const mcpEndpoint = useMemo(() => {
+    const path = `/api/mcp/workspace/${workspaceId}`;
+    if (typeof window === 'undefined') return path;
+    return `${window.location.origin}${path}`;
+  }, [workspaceId]);
 
   useEffect(() => {
     if (!hasInitRef.current && workspaceId) {
@@ -264,6 +289,89 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
       loadWorkspaces();
     }
   }, [activeSettingsTab, isSettingsOpen, loadWorkspaces]);
+
+  const loadMcpTokens = useCallback(async () => {
+    setMcpTokensLoading(true);
+    setMcpTokensError(null);
+    try {
+      const response = await fetch(`/api/workspace/${workspaceId}/mcp-tokens`);
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to load MCP tokens');
+      }
+
+      setMcpTokens(Array.isArray(result.data) ? result.data as McpTokenSummary[] : []);
+    } catch (error) {
+      setMcpTokensError(error instanceof Error ? error.message : 'Failed to load MCP tokens');
+    } finally {
+      setMcpTokensLoading(false);
+    }
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (isSettingsOpen && activeSettingsTab === 'mcp') {
+      loadMcpTokens();
+    }
+  }, [activeSettingsTab, isSettingsOpen, loadMcpTokens]);
+
+  const handleCreateMcpToken = useCallback(async () => {
+    const name = newMcpTokenName.trim();
+    if (!name) return;
+
+    setCreatingMcpToken(true);
+    setMcpTokensError(null);
+    try {
+      const response = await fetch(`/api/workspace/${workspaceId}/mcp-tokens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.data?.plaintext) {
+        throw new Error(result.error || 'Failed to create MCP token');
+      }
+
+      setGeneratedMcpToken(result.data.plaintext as string);
+      setNewMcpTokenName('');
+      await loadMcpTokens();
+    } catch (error) {
+      setMcpTokensError(error instanceof Error ? error.message : 'Failed to create MCP token');
+    } finally {
+      setCreatingMcpToken(false);
+    }
+  }, [loadMcpTokens, newMcpTokenName, workspaceId]);
+
+  const handleRevokeMcpToken = useCallback(async (tokenId: string) => {
+    setRevokingMcpTokenId(tokenId);
+    setMcpTokensError(null);
+    try {
+      const response = await fetch(`/api/workspace/${workspaceId}/mcp-tokens/${tokenId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to revoke MCP token');
+      }
+
+      await loadMcpTokens();
+    } catch (error) {
+      setMcpTokensError(error instanceof Error ? error.message : 'Failed to revoke MCP token');
+    } finally {
+      setRevokingMcpTokenId(null);
+    }
+  }, [loadMcpTokens, workspaceId]);
+
+  const handleCopyMcpValue = useCallback(async (value: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedMcpValue(key);
+      window.setTimeout(() => {
+        setCopiedMcpValue((current) => current === key ? null : current);
+      }, 1600);
+    } catch (error) {
+      setMcpTokensError(error instanceof Error ? error.message : 'Copy failed');
+    }
+  }, []);
 
   const handleCreateWorkspace = useCallback(async () => {
     const name = newWorkspaceName.trim();
@@ -756,7 +864,7 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
           <DialogHeader className="px-6 py-4 border-b border-slate-100">
             <DialogTitle>Workspace Settings</DialogTitle>
             <DialogDescription>
-              Manage current workspace skills, config and logs.
+              Manage current workspace skills, config, MCP access and logs.
             </DialogDescription>
           </DialogHeader>
 
@@ -776,6 +884,14 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
               onClick={() => setActiveSettingsTab('config')}
             >
               Config
+            </Button>
+            <Button
+              type="button"
+              variant={activeSettingsTab === 'mcp' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setActiveSettingsTab('mcp')}
+            >
+              MCP
             </Button>
             <Button
               type="button"
@@ -815,6 +931,148 @@ export default function WorkspaceView({ workspaceId, workspaceName }: WorkspaceV
 
             {activeSettingsTab === 'config' && (
               <AgentControlPanel />
+            )}
+
+            {activeSettingsTab === 'mcp' && (
+              <div className="space-y-5">
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-medium text-slate-900">MCP Access</h3>
+                      <div className="mt-1 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                        <code className="min-w-0 flex-1 break-all text-xs text-slate-700">{mcpEndpoint}</code>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopyMcpValue(mcpEndpoint, 'endpoint')}
+                          title="Copy endpoint"
+                        >
+                          {copiedMcpValue === 'endpoint' ? (
+                            <Check className="h-4 w-4 text-emerald-600" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={loadMcpTokens} disabled={mcpTokensLoading}>
+                      {mcpTokensLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[minmax(0,1fr),auto]">
+                    <Input
+                      value={newMcpTokenName}
+                      onChange={(event) => setNewMcpTokenName(event.target.value)}
+                      placeholder="Token name"
+                      maxLength={80}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleCreateMcpToken}
+                      disabled={creatingMcpToken || !newMcpTokenName.trim()}
+                    >
+                      {creatingMcpToken ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <KeyRound className="mr-2 h-4 w-4" />
+                      )}
+                      Generate
+                    </Button>
+                  </div>
+                </div>
+
+                {generatedMcpToken && (
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-medium text-emerald-950">New Token</h3>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setGeneratedMcpToken(null)}>
+                        Dismiss
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-white px-3 py-2">
+                      <code className="min-w-0 flex-1 break-all text-xs text-emerald-950">{generatedMcpToken}</code>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyMcpValue(generatedMcpToken, 'generated-token')}
+                        title="Copy token"
+                      >
+                        {copiedMcpValue === 'generated-token' ? (
+                          <Check className="h-4 w-4 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {mcpTokensError && (
+                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {mcpTokensError}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {mcpTokens.map((token) => {
+                    const isRevoking = revokingMcpTokenId === token.id;
+                    const revoked = Boolean(token.revokedAt);
+
+                    return (
+                      <div
+                        key={token.id}
+                        className={`flex items-center justify-between gap-4 rounded-lg border px-4 py-3 ${
+                          revoked ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="truncate text-sm font-medium text-slate-900">{token.name}</span>
+                            <code className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{token.prefix}</code>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                              revoked ? 'bg-slate-200 text-slate-600' : 'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {revoked ? 'Revoked' : 'Active'}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            Created {new Date(token.createdAt).toLocaleString()}
+                            {token.lastUsedAt ? ` - Last used ${new Date(token.lastUsedAt).toLocaleString()}` : ''}
+                          </div>
+                        </div>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={revoked || isRevoking}
+                          onClick={() => handleRevokeMcpToken(token.id)}
+                          title="Revoke token"
+                        >
+                          {isRevoking ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+
+                  {!mcpTokensLoading && mcpTokens.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-sm text-slate-600">
+                      No MCP tokens.
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {activeSettingsTab === 'logs' && (

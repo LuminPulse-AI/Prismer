@@ -1,6 +1,6 @@
 # Workspace MCP Design — Phase 1 (switch_component / update_notes / load_pdf)
 
-**Status:** Spec v2, awaiting implementation plan
+**Status:** Spec v2, Phase 1 implementation started
 **Author:** brainstorming session 2026-04-28
 **History:**
 - v1 (commit `0c84060`) — superseded after independent codex review found 17 mismatches against the actual codebase
