@@ -16,8 +16,8 @@
 
 # SCHEME — Database Schema Alignment
 
-> Last verified: 2026-02-26
-> Source: `prisma/schema.prisma` (37 models + AgentCronJob planned)
+> Last verified: 2026-05-13
+> Source: `prisma/schema.prisma` (38 models + AgentCronJob planned)
 > Dev: SQLite | Prod: Remote MySQL (prismer_info)
 
 ---
@@ -171,7 +171,7 @@
 
 ---
 
-## 6. Workspace (9 models)
+## 6. Workspace (10 models)
 
 ### WorkspaceSession
 | Field | Type | Notes |
@@ -183,7 +183,7 @@
 | status | String | active / archived |
 | settings | String? | JSON: WorkspaceSettings |
 
-**Relations**: messages, tasks, participants, timeline, snapshots, componentStates, agentInstance (1:1), workspaceFiles, wsSnapshots
+**Relations**: messages, tasks, participants, timeline, snapshots, componentStates, agentInstance (1:1), workspaceFiles, wsSnapshots, mcpTokens
 
 ### WorkspaceParticipant
 | Field | Type | Notes |
@@ -283,6 +283,24 @@ Index: `[workspaceId, timestamp]`
 | filesManifest | String | JSON: [{path, hash}] |
 
 @@unique([workspaceId, version])
+
+### WorkspaceMcpToken
+| Field | Type | Notes |
+|-------|------|-------|
+| id | String @id | cuid |
+| workspaceId | String | FK → WorkspaceSession (cascade delete) |
+| tokenHash | String @unique | SHA-256 of plaintext bearer |
+| prefix | String | `pmsk_` + first 8 random chars (13 total); shown in UI |
+| name | String | user-supplied label |
+| lastUsedAt | DateTime? | updated fire-and-forget on each request |
+| expiresAt | DateTime? | optional; not exposed in Phase 1 UI |
+| revokedAt | DateTime? | non-null means revoked |
+| createdBy | String | issuing userId |
+| createdAt | DateTime | default now() |
+
+Indexes: `[workspaceId]`, `[tokenHash]`
+
+Used by the workspace MCP surface (`/api/mcp/workspace/[id]/`) to authenticate external agents (Hermes, Claude Desktop, Cursor, Codex) reaching the workspace from outside the OpenClaw container path. Plaintext is returned **once** at create; only the hash is persisted. See `docs/plans/2026-04-28-workspace-mcp-design.md` §2.
 
 ---
 
@@ -496,7 +514,8 @@ User ──1:N──> WorkspaceSession ──1:1──> AgentInstance ──1:1�
                     ├──1:N──> WorkspaceTimelineEvent
                     ├──1:N──> WorkspaceComponentState
                     ├──1:N──> WorkspaceFile
-                    └──1:N──> WorkspaceSnapshot
+                    ├──1:N──> WorkspaceSnapshot
+                    └──1:N──> WorkspaceMcpToken
 
 User ──1:1──> IMUser ──1:1──> IMAgentCard
                  │

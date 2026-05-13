@@ -16,7 +16,7 @@
 
 # ARCH — Engineering Architecture
 
-> Last verified: 2026-02-27
+> Last verified: 2026-05-13
 > Source of truth: actual codebase, not aspirational docs
 > See also: `docs/WINDOWVIEW_CONVERGENCE.md` for WindowViewer component unification plan
 
@@ -473,7 +473,55 @@ agent-server.ts (port 3456)
 
 `PrismaSessionPersistence` already implements full CRUD: `saveMessage()`, `saveMessages()`, `saveTask()`, `saveTasks()`, `saveTimelineEvent()`, `saveTimelineEvents()`, `saveComponentState()`, `loadSession()`, `saveSnapshot()`, `loadSnapshots()`.
 
-### 8.7 LLM Gateway
+### 8.7 Workspace MCP Surface (Phase 1)
+
+The `src/lib/mcp/` module exposes a Model Context Protocol (MCP) surface so external agent runtimes — Hermes, Claude Desktop, Cursor, Codex, future custom agents — can drive a workspace **without** going through the OpenClaw container path. Both entry paths share one `AgentInstance` row, one directive queue, and one SSE stream — there is no fork in the frontend.
+
+```
+External agent (Hermes / Claude Desktop / Cursor / Codex)
+       │  HTTP POST /api/mcp/workspace/<id>/   (MCP JSON-RPC over Streamable HTTP, bearer auth)
+       ▼
+   lib/mcp/auth.ts           bearer → tokenHash lookup, workspace-id binding check
+       │
+       ▼
+   lib/mcp/tools/*           switch_component / update_notes / load_pdf
+       │  POST /api/agents/<agentId>/directive   (same endpoint OpenClaw plugin posts to)
+       ▼
+   directiveQueue ──SSE──> frontend useDirectiveStream ──> syncActions
+                                                    ▲
+   OpenClaw container plugin ──POST /api/agents/<agentId>/directive────┘
+```
+
+| Layer | File | Purpose |
+|-------|------|---------|
+| Transport | `app/api/mcp/workspace/[id]/route.ts` | Streamable HTTP JSON-RPC endpoint (POST/GET/DELETE) |
+| Server factory | `lib/mcp/server.ts` | `McpServer` per request, registers tools with context |
+| Auth | `lib/mcp/auth.ts` | Bearer extraction + SHA-256 hash lookup + workspace-id check |
+| Tokens | `lib/mcp/tokens.ts` | Generate / list / revoke `WorkspaceMcpToken` |
+| ACL | `lib/services/workspace-access.service.ts` | `requireWorkspaceAccess()` owner+participant gate |
+| Notes | `lib/services/notes.service.ts` | Extracted from `/api/workspace/[id]/notes` for tool reuse |
+| SSRF | `lib/mcp/ssrf.ts` | DNS-validating fetch agent for `load_pdf` URL mode |
+| Tools | `lib/mcp/tools/{switch_component,update_notes,load_pdf}.ts` | 3 Phase-1 tools |
+
+**Phase 1 tool surface (3 of ~26 OpenClaw tools)**:
+
+| Tool | Wire directive emitted | Notes |
+|------|------------------------|-------|
+| `switch_component` | `SWITCH_COMPONENT { component }` | Server-side rejects components in `DISABLED_COMPONENTS` |
+| `update_notes` | `UPDATE_NOTES { content }` | Persists via `notesService` Asset; replace-only in Phase 1 |
+| `load_pdf` | `SWITCH_COMPONENT` + `PDF_LOAD_DOCUMENT { source, page }` | assetId XOR url; URL mode runs SSRF + magic-byte + size checks |
+
+**Tokens** live in the `WorkspaceMcpToken` table (see `docs/SCHEME.md` §6). Plaintext is returned **once** at create; only `sha256(plaintext)` is persisted. UI is in `WorkspaceView.tsx` settings drawer ("MCP Access" tab).
+
+**Key decisions** (from `docs/plans/2026-04-28-workspace-mcp-design.md`):
+- No new `AgentInstance.runtime` field — both paths reuse the single per-workspace row (`workspaceId @unique`).
+- No new directive types — the three Phase 1 wire directives already exist for OpenClaw.
+- `AgentService` interface (§8.1) is **not** extended — MCP does not go through the factory.
+- MCP tools call the existing `/api/agents/[id]/directive` HTTP route exactly as the OpenClaw plugin does. No shared `dispatchDirective()` extraction; both paths are byte-identical at the wire.
+
+**Out of scope for Phase 1**: remaining 23 OpenClaw tools, `update_notes` append/patch mode, `HermesAgentService` runtime adapter, rate limiting, multi-user ACL. Tracked in `docs/plans/2026-04-23-post-merge-next-steps.md` and the design doc §Non-Goals.
+
+### 8.8 LLM Gateway
 
 `src/lib/llm/` provides multi-provider LLM support with usage tracking:
 
@@ -499,7 +547,7 @@ agent-server.ts (port 3456)
 
 ## 9. Database Schema Domains
 
-37 Prisma models across 7 domains (see `docs/SCHEME.md` for full detail):
+38 Prisma models across 7 domains (see `docs/SCHEME.md` for full detail):
 
 | Domain | Models | Count |
 |--------|--------|-------|
@@ -508,7 +556,7 @@ agent-server.ts (port 3456)
 | **Notebooks & Notes** | Notebook, Note, NoteCitation | 3 |
 | **Social** | Favorite, Like, Comment, Activity, UserPaperState | 5 |
 | **Uploads** | Upload | 1 |
-| **Workspace** | WorkspaceSession, WorkspaceParticipant, WorkspaceMessage, WorkspaceTask, WorkspaceTimelineEvent, WorkspaceStateSnapshot, WorkspaceComponentState, WorkspaceFile, WorkspaceSnapshot | 9 |
+| **Workspace** | WorkspaceSession, WorkspaceParticipant, WorkspaceMessage, WorkspaceTask, WorkspaceTimelineEvent, WorkspaceStateSnapshot, WorkspaceComponentState, WorkspaceFile, WorkspaceSnapshot, WorkspaceMcpToken | 10 |
 | **Agent & IM** | AgentInstance, AgentConfig, Container, ConfigDeployment, LLMUsageLog, IMUser, IMAgentCard, IMConversation, IMParticipant, IMMessage, IMWebhook | 11 |
 | **Cache** | StatsCache | 1 |
 
