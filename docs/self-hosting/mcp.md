@@ -93,6 +93,7 @@ Before declaring the Workspace MCP surface ready to demo, walk through this chec
 | 1 | Start the workspace UI and open a workspace |  |
 | 2 | Generate a token from `Workspace Settings -> MCP`; copy the plaintext once | new token row appears with prefix `pmsk_…` |
 | 3 | Hook Claude Desktop / Cursor / Codex up using the config above |  |
+| 3b | Repeat step 3 for Hermes following [hermes.md](hermes.md); run steps 4-9 against a Hermes session as well | same UI updates as Claude Desktop / Cursor |
 | 4 | Ask the agent to call `switch_component` with `ai-editor` | window switches to the notes editor |
 | 5 | Ask the agent to call `update_notes` with a short paragraph | notes editor shows the new content; settings `MCP` tab shows `lastUsedAt` updated |
 | 6 | Ask the agent to call `switch_component` with a disabled component (e.g. `three-viewer`) | tool returns `COMPONENT_DISABLED`; UI does not switch |

@@ -23,6 +23,8 @@ Are you deploying for a lab or team on a dedicated server?
 
 Self-hosted workspaces can expose an MCP endpoint for external MCP clients. See [Workspace MCP](mcp.md) for token creation, endpoint format, and the initial `switch_component`, `update_notes`, and `load_pdf` tools.
 
+For driving the workspace from a [Hermes](https://hermes-agent.nousresearch.com) agent over the same MCP surface, see [Hermes + Prismer Self-Host](hermes.md).
+
 ## Prerequisites (All Options)
 
 - Docker 24+ with Docker Compose v2
