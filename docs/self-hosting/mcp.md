@@ -2,7 +2,20 @@
 
 Prismer exposes a workspace-scoped MCP endpoint so external MCP clients can drive the same UI directive path as the OpenClaw workspace plugin.
 
-Endpoint:
+## Before First Use: Sync the Database Schema
+
+Phase 1 adds a `WorkspaceMcpToken` table. If you are upgrading from any Prismer build before commit `ba641b6 feat(mcp): add workspace MCP surface`, run a Prisma schema sync **before** creating tokens — otherwise token creation fails with `The table main.WorkspaceMcpToken does not exist in the current database`:
+
+```bash
+cd web
+DATABASE_URL="file:./prisma/dev.db" npx prisma db push --skip-generate
+```
+
+Fresh installs that already run `npm run db:push` as part of their bootstrap pick this up automatically. Production deployments using Prisma migrations should generate and apply a migration that creates `WorkspaceMcpToken` (see `prisma/schema.prisma` for the canonical shape).
+
+Re-run the same command after every schema-touching upgrade.
+
+## Endpoint
 
 ```text
 http://localhost:3000/api/mcp/workspace/<workspaceId>
