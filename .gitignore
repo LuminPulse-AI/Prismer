@@ -1,3 +1,5 @@
 # Local config
 .claude/
 .clawhub/
+.codex
+.context/
